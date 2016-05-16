@@ -64,6 +64,9 @@ document_type = [('Image', 'Image'),
 class SiteDescriptions(models.Model):
     site_description = models.CharField(max_length=60, choices=site_description)
 
+    def __str__(self):
+        return smart_text(self.site_description)
+
 
 class AssociationDocsTable(models.Model):
     ymac_site = models.ForeignKey('Site', on_delete=models.CASCADE)
@@ -386,7 +389,7 @@ class SiteDocument(models.Model):
 
 class Site(models.Model):
     site_id = models.AutoField(primary_key=True)
-    recorded_by = models.ForeignKey('YmacStaff', on_delete=models.CASCADE, db_column='recorded_by',
+    recorded_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='recorded_by',
                                     related_name='site_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
     group_name = models.TextField(blank=True, null=True)
@@ -395,7 +398,7 @@ class Site(models.Model):
     label_x_ll = models.FloatField(blank=True, null=True)
     label_y_ll = models.FloatField(blank=True, null=True)
     date_created = models.DateField(blank=True, null=True)
-    created_by = models.ForeignKey('YmacStaff', on_delete=models.CASCADE, db_column='created_by',
+    created_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='created_by',
                                    related_name='site_created_by', blank=True, null=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.TextField(blank=True, null=True)
@@ -607,3 +610,17 @@ class Ymacuser(models.Model):
     class Meta:
         managed = False
         db_table = 'ymacusers'
+
+
+class CaptureOrg(models.Model):
+    organisation_name = models.TextField()
+    organisation_website = models.TextField(blank=True, null=True)
+    organisation_phone = models.CharField(max_length=16, blank=True, null=True)
+    organisation_contact = models.TextField(blank=True, null=True)
+
+
+class SiteUser(models.Model):
+    user_name = models.TextField(blank=True, null=True)
+    employee = models.NullBooleanField()
+    capture_org = models.ForeignKey('CaptureOrg', blank=True, null=True)
+    email = models.TextField(blank=True, null=True)
