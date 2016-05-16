@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
-from  django.utils.encoding import smart_text
+from django.utils.encoding import smart_text
 
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
@@ -30,7 +30,7 @@ site_location = [('Located', 'Located'),
                  ]
 # TODO: Consider making this a site table
 
-site_desctiption = [
+site_description = [
     ('Artefacts / Scatter', 'Artefacts / Scatter'),
     ('Birthplace', 'Birthplace'),
     ('Ceremonial', 'Ceremonial'),
@@ -59,6 +59,10 @@ document_type = [('Image', 'Image'),
                  ('Map', 'Map'),
                  ('Other', 'Other')
                  ]
+
+
+class SiteDescriptions(models.Model):
+    site_description = models.CharField(max_length=60, choices=site_description)
 
 
 class AssociationDocsTable(models.Model):
@@ -179,7 +183,7 @@ class ExternalClientSite(models.Model):
 class HeritageSite(models.Model):
     heritage_site_id = models.AutoField(primary_key=True)
     site = models.ForeignKey('Site', on_delete=models.CASCADE, null=True)
-    site_description = models.CharField(max_length=30, choices=site_desctiption)
+    site_description = models.ForeignKey(SiteDescriptions)
     boundary_description = models.CharField(max_length=30, choices=boundary_description)
     disturbance_level = models.CharField(max_length=30, choices=disturbance_level)
     status = models.TextField(blank=True, null=True)

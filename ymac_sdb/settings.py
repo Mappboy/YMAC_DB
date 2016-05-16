@@ -8,6 +8,9 @@ https://docs.djangoproject.com/en/1.9/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
+FOR Some Reason the spatial server couldn't load the GEOS plugin
+had to include it manually in this file
+GEOS_LIBRARY_PATH = 'C:\\OSGeo4W64\\bin\\geos_c.dll'
 """
 
 import os
