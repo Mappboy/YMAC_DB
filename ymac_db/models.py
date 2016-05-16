@@ -618,9 +618,15 @@ class CaptureOrg(models.Model):
     organisation_phone = models.CharField(max_length=16, blank=True, null=True)
     organisation_contact = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return smart_text(self.organisation_name)
+
 
 class SiteUser(models.Model):
     user_name = models.TextField(blank=True, null=True)
     employee = models.NullBooleanField()
     capture_org = models.ForeignKey('CaptureOrg', blank=True, null=True)
     email = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.user_name)
