@@ -228,7 +228,7 @@ class HeritageSurvey(models.Model):
     status = models.ForeignKey('SurveyStatus', on_delete=models.CASCADE, db_column='status', blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    proponent_id = models.ForeignKey('Proponents', on_delete=models.CASCADE, blank=True, null=True)
+    proponent_id = models.ForeignKey('Proponents', on_delete=models.CASCADE, db_column='prop_id', blank=True, null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
                                     null=True)
