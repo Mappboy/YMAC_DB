@@ -635,7 +635,7 @@ class YmacRegion(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'ymac_region'
+        db_table = 'YMAC_region'
 
 
 class YmacStaff(models.Model):
