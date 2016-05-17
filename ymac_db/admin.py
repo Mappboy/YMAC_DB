@@ -46,7 +46,7 @@ class HeritageSiteSurveyInline(admin.TabularInline):
 
 
 class ResearchSiteDocumentInline(admin.TabularInline):
-    model = ResearchSite.researchdocuments.through
+    model = ResearchSite.documents.through
 
 
 @admin.register(Site)
