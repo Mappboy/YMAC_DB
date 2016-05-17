@@ -17,3 +17,11 @@ class HeritageSiteForm(forms.ModelForm):
     class Meta:
         model = HeritageSite
         exclude = []
+
+
+class HeritageSurveyForm(forms.ModelForm):
+    sampling_meth = forms.ModelMultipleChoiceField(queryset=SampleMethodology.objects.all())
+
+    class Meta:
+        model = HeritageSurvey
+        exclude = []

@@ -109,11 +109,35 @@ class ResearchSiteAdmin(SiteAdmin):
     ]
 
 
+@admin.register(HeritageSurvey)
+class HeritageSurveyAdmin(admin.GeoModelAdmin):
+    list_display = [
+        'survey_trip',
+        'status',
+        'source',
+        'comments',
+        'proponent_id',
+        'claim_group_id',
+        'survey_type',
+        'sampling_meth',
+        'ymac_svy_name',
+        'date_create',
+        'sampling_conf',
+        'created_by',
+        'data_supplier',
+        'collected_by'
+    ]
+    list_filter = [
+        'proponent_id',
+        'survey_type',
+    ]
+    form = HeritageSurveyForm
+
 geom_models = [
     YmacRegion,
     DaaSite,
     Tenement,
-    HeritageSurvey
+
 ]
 for gm in geom_models:
     admin.site.register(gm, YMACModelAdmin)

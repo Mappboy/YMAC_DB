@@ -83,7 +83,7 @@ class AuthUser(models.Model):
     password = models.CharField(max_length=128)
     last_login = models.DateTimeField(blank=True, null=True)
     is_superuser = models.BooleanField()
-    username = models.CharField(unique=True, max_length=30)
+    username = models.CharField(unique=True, max_length=150)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     email = models.CharField(max_length=254)
@@ -267,20 +267,41 @@ class ExternalClientSites(models.Model):
 
 class HeritageSites(models.Model):
     heritage_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Sites', models.DO_NOTHING, blank=True, null=True)
-    site_description = models.TextField(blank=True, null=True)  # This field type is a guess.
-    boundary_description = models.TextField(blank=True, null=True)  # This field type is a guess.
-    disturbance_level = models.TextField(blank=True, null=True)  # This field type is a guess.
+    site_description = models.ForeignKey('YmacDbSitedescriptions', models.DO_NOTHING, blank=True, null=True)
+    boundary_description = models.CharField(max_length=30, blank=True, null=True)
+    disturbance_level = models.CharField(max_length=30, blank=True, null=True)
     site_comments = models.CharField(max_length=-1, blank=True, null=True)
+    site = models.ForeignKey('Sites', models.DO_NOTHING, blank=True, null=True)
+    status = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'heritage_sites'
 
 
+class HeritageSitesDocuments(models.Model):
+    heritagesite = models.ForeignKey(HeritageSites, models.DO_NOTHING)
+    sitedocument = models.ForeignKey('SiteDocuments', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'heritage_sites_documents'
+        unique_together = (('heritagesite', 'sitedocument'),)
+
+
+class HeritageSitesHeritageSurveys(models.Model):
+    heritagesite = models.ForeignKey(HeritageSites, models.DO_NOTHING)
+    heritagesurvey = models.ForeignKey('HeritageSurveys', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'heritage_sites_heritage_surveys'
+        unique_together = (('heritagesite', 'heritagesurvey'),)
+
+
 class HeritageSurveys(models.Model):
     survey_trip_id = models.AutoField(primary_key=True)
-    status = models.ForeignKey('SurveyStatus', models.DO_NOTHING, db_column='status', blank=True, null=True)
+    status = models.IntegerField(blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     proponent_id = models.CharField(max_length=5, blank=True, null=True)
@@ -291,7 +312,8 @@ class HeritageSurveys(models.Model):
     ymac_svy_name = models.CharField(max_length=200, blank=True, null=True)
     survey_name = models.CharField(max_length=200, blank=True, null=True)
     date_create = models.DateField(blank=True, null=True)
-    sampling_conf = models.CharField(max_length=200, blank=True, null=True)
+    sampling_conf = models.ForeignKey('SamplingConfidence', models.DO_NOTHING, db_column='sampling_conf', blank=True,
+                                      null=True)
     created_by = models.CharField(max_length=50, blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
     mod_by = models.CharField(max_length=200, blank=True, null=True)
@@ -609,8 +631,8 @@ class Proponents(models.Model):
 class ResearchSites(models.Model):
     research_site_id = models.AutoField(primary_key=True)
     site = models.ForeignKey('Sites', models.DO_NOTHING, blank=True, null=True)
-    site_classification = models.TextField(blank=True, null=True)  # This field type is a guess.
-    site_location = models.TextField(blank=True, null=True)  # This field type is a guess.
+    site_classification = models.CharField(max_length=30, blank=True, null=True)
+    site_location = models.CharField(max_length=30, blank=True, null=True)
     site_comments = models.CharField(max_length=-1, blank=True, null=True)
     ethno_detail = models.CharField(max_length=-1, blank=True, null=True)
     reference = models.CharField(max_length=-1, blank=True, null=True)
@@ -618,10 +640,23 @@ class ResearchSites(models.Model):
     site_label = models.CharField(max_length=-1, blank=True, null=True)
     alt_site_name = models.CharField(max_length=-1, blank=True, null=True)
     site_number = models.IntegerField(blank=True, null=True)
+    site_category = models.CharField(max_length=30, blank=True, null=True)
+    family_affiliation = models.TextField(blank=True, null=True)
+    mapsheet = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'research_sites'
+
+
+class ResearchSitesDocuments(models.Model):
+    researchsite = models.ForeignKey(ResearchSites, models.DO_NOTHING)
+    sitedocument = models.ForeignKey('SiteDocuments', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'research_sites_documents'
+        unique_together = (('researchsite', 'sitedocument'),)
 
 
 class Reserves(models.Model):
@@ -706,7 +741,7 @@ class SampleMethodology(models.Model):
 
 
 class SamplingConfidence(models.Model):
-    sampling_conf = models.CharField(max_length=30, blank=True, null=True)
+    sampling_conf = models.CharField(primary_key=True, max_length=30)
 
     class Meta:
         managed = False
@@ -715,8 +750,7 @@ class SamplingConfidence(models.Model):
 
 class SiteDocuments(models.Model):
     doc_id = models.AutoField(primary_key=True)
-    document_type = models.TextField(blank=True, null=True)  # This field type is a guess.
-    site = models.ForeignKey('Sites', models.DO_NOTHING)
+    document_type = models.CharField(max_length=15, blank=True, null=True)
     filepath = models.CharField(max_length=-1, blank=True, null=True)
     filename = models.CharField(max_length=-1, blank=True, null=True)
 
@@ -727,7 +761,7 @@ class SiteDocuments(models.Model):
 
 class Sites(models.Model):
     site_id = models.AutoField(primary_key=True)
-    recorded_by = models.ForeignKey('Ymacusers', models.DO_NOTHING, db_column='recorded_by', blank=True, null=True)
+    recorded_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
     group_name = models.CharField(max_length=-1, blank=True, null=True)
     restricted_status = models.ForeignKey(RestrictionStatus, models.DO_NOTHING, db_column='restricted_status',
@@ -735,7 +769,7 @@ class Sites(models.Model):
     label_x_ll = models.FloatField(blank=True, null=True)
     label_y_ll = models.FloatField(blank=True, null=True)
     date_created = models.DateField(blank=True, null=True)
-    created_by = models.ForeignKey('Ymacusers', models.DO_NOTHING, db_column='created_by', blank=True, null=True)
+    created_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='created_by', blank=True, null=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.CharField(max_length=-1, blank=True, null=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
@@ -747,6 +781,7 @@ class Sites(models.Model):
 
 class SurveyStatus(models.Model):
     status = models.CharField(unique=True, max_length=8, blank=True, null=True)
+    survey_status_id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
@@ -766,7 +801,7 @@ class SurveyTrips(models.Model):
 
 
 class SurveyTypes(models.Model):
-    type_id = models.CharField(unique=True, max_length=4, blank=True, null=True)
+    type_id = models.CharField(primary_key=True, max_length=4)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True)
 
     class Meta:
@@ -781,6 +816,32 @@ class TenGprpfx(models.Model):
     class Meta:
         managed = False
         db_table = 'ten_gprpfx'
+
+
+class Tenement(models.Model):
+    type = models.CharField(max_length=50, blank=True, null=True)
+    survstatus = models.CharField(max_length=15, blank=True, null=True)
+    tenstatus = models.CharField(max_length=10, blank=True, null=True)
+    startdate = models.DateField(blank=True, null=True)
+    starttime = models.CharField(max_length=8, blank=True, null=True)
+    enddate = models.DateField(blank=True, null=True)
+    endtime = models.CharField(max_length=8, blank=True, null=True)
+    grantdate = models.DateField(blank=True, null=True)
+    granttime = models.CharField(max_length=8, blank=True, null=True)
+    fmt_tenid = models.CharField(primary_key=True, max_length=16)
+    legal_area = models.DecimalField(max_digits=31, decimal_places=15, blank=True, null=True)
+    special_in = models.CharField(max_length=1, blank=True, null=True)
+    extract_da = models.DateField(blank=True, null=True)
+    combined_r = models.CharField(max_length=10, blank=True, null=True)
+    all_holder = models.CharField(max_length=254, blank=True, null=True)
+    tribid = models.CharField(max_length=200, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
+    ymac_region = models.NullBooleanField()
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tenement'
 
 
 class TenementHistory(models.Model):
@@ -1075,6 +1136,36 @@ class YmacClaimsGeog(models.Model):
         db_table = 'ymac_claims_geog'
 
 
+class YmacDbCaptureorg(models.Model):
+    organisation_name = models.TextField()
+    organisation_website = models.TextField(blank=True, null=True)
+    organisation_phone = models.CharField(max_length=16, blank=True, null=True)
+    organisation_contact = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_captureorg'
+
+
+class YmacDbSitedescriptions(models.Model):
+    site_description = models.CharField(max_length=60)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_sitedescriptions'
+
+
+class YmacDbSiteuser(models.Model):
+    employee = models.NullBooleanField()
+    email = models.TextField(blank=True, null=True)
+    user_name = models.TextField(blank=True, null=True)
+    capture_org = models.ForeignKey(YmacDbCaptureorg, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_siteuser'
+
+
 class YmacHeritageStaging(models.Model):
     operation = models.CharField(max_length=7, blank=True, null=True)
     survey_trip_id = models.IntegerField()
@@ -1120,7 +1211,7 @@ class YmacRegion(models.Model):
     juris = models.CharField(max_length=20, blank=True, null=True)
     id = models.FloatField(primary_key=True)
     date_created = models.DateTimeField(blank=True, null=True)
-    geom = models.PolygonField(srid=3577, blank=True, null=True)
+    geom = models.PolygonField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1147,16 +1238,3 @@ class YmacStaff(models.Model):
     class Meta:
         managed = False
         db_table = 'ymac_staff'
-
-
-class Ymacusers(models.Model):
-    user_id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=-1, blank=True, null=True)
-    employee = models.NullBooleanField()
-    email = models.CharField(max_length=-1, blank=True, null=True)
-    first_name = models.CharField(max_length=-1, blank=True, null=True)
-    last_name = models.CharField(max_length=-1, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'ymacusers'
