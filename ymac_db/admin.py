@@ -17,6 +17,7 @@ models = [SiteUser,
           CaptureOrg,
           SurveyTrip,
           SiteDocument,
+          SiteDescriptions,
           AssociationDocsTable,
           AssociationSitesSurveyTable,
           RestrictionStatus]
@@ -91,7 +92,6 @@ class HeritageSiteAdmin(SiteAdmin):
 @admin.register(ResearchSite)
 class ResearchSiteAdmin(SiteAdmin):
     inlines = [
-        ResearchSiteDocumentInline
     ]
     list_display = [
         'site_classification',
@@ -127,6 +127,7 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
         'data_supplier',
         'collected_by'
     ]
+    search_fields = []
     list_filter = [
         'proponent_id',
         'survey_type',

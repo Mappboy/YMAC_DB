@@ -206,7 +206,7 @@ class HeritageSite(models.Model):
     site_description = models.ForeignKey(SiteDescriptions)
     boundary_description = models.CharField(max_length=30, choices=boundary_description)
     disturbance_level = models.CharField(max_length=30, choices=disturbance_level)
-    status = models.TextField(max_length=15, blank=True, null=True, choices=her_site_status)
+    status = models.CharField(max_length=15, blank=True, null=True, choices=her_site_status)
     site_comments = models.TextField(blank=True, null=True)
     heritage_surveys = models.ManyToManyField('HeritageSurvey',
                                               related_name='heritagesurveys',
@@ -228,7 +228,8 @@ class HeritageSurvey(models.Model):
     status = models.ForeignKey('SurveyStatus', on_delete=models.CASCADE, db_column='status', blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    proponent_id = models.ForeignKey('Proponents', on_delete=models.CASCADE, db_column='prop_id', blank=True, null=True)
+    proponent_id = models.ForeignKey('Proponents', on_delete=models.CASCADE, db_column='proponent_id', blank=True,
+                                     null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
                                     null=True)
@@ -239,9 +240,9 @@ class HeritageSurvey(models.Model):
     date_create = models.DateField(blank=True, null=True)
     sampling_conf = models.ForeignKey('SamplingConfidence', on_delete=models.CASCADE, db_column='sampling_conf',
                                       default='Unknown', blank=True, null=True)
-    created_by = models.CharField(max_length=50, blank=True, null=True)
+    created_by = models.ForeignKey('SiteUser', related_name='created_user', blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
-    mod_by = models.CharField(max_length=200, blank=True, null=True)
+    mod_by = models.ForeignKey('SiteUser', related_name='mod_user', blank=True, null=True)
     propref = models.CharField(max_length=200, blank=True, null=True)
     geom = models.GeometryField(srid=28350, blank=True, null=True)
     data_supplier = models.OneToOneField(DataSuppliers, on_delete=models.CASCADE, db_column='data_supplier', blank=True,
@@ -395,12 +396,14 @@ class RestrictionStatus(models.Model):
 
 
 class SampleMethodology(models.Model):
-    sampling_meth = models.CharField(unique=True, max_length=20, blank=True, null=True)
+    sampling_meth = models.CharField(primary_key=True, unique=True, max_length=20)
 
     class Meta:
         managed = False
         db_table = 'sample_methodology'
 
+    def __str__(self):
+        return smart_text(self.sampling_meth)
 
 class SamplingConfidence(models.Model):
     sampling_conf = models.CharField(primary_key=True, max_length=30)
@@ -409,6 +412,8 @@ class SamplingConfidence(models.Model):
         managed = False
         db_table = 'sampling_confidence'
 
+    def __str__(self):
+        return smart_text(self.sampling_conf)
 
 class SiteDocument(models.Model):
     doc_id = models.AutoField(primary_key=True)
@@ -471,7 +476,12 @@ class SurveyTrip(models.Model):
     date_to = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return smart_text("{}_(Trip {})".format(self.survey_id, self.trip_number))
+        str = ""
+        if self.trip_number:
+            str = "{}_(Trip {})".format(self.survey_id, self.trip_number)
+        else:
+            str = "{}".format(self.survey_id)
+        return smart_text(str)
 
     class Meta:
         managed = False
