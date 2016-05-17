@@ -573,6 +573,10 @@ class Migration(migrations.Migration):
                 ('survey_type', models.ForeignKey(blank=True, db_column='survey_type', null=True,
                                                   on_delete=django.db.models.deletion.CASCADE,
                                                   to='ymac_db.SurveyType')),
+                ('proponent_id', models.ForeignKey(blank=True, db_column='proponent_id', null=True,
+                                                   on_delete=django.db.models.deletion.CASCADE,
+                                                   to='ymac_db.Proponents'),
+                 )
             ],
             options={
                 'db_table': 'heritage_surveys',
