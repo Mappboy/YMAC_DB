@@ -202,18 +202,20 @@ class ExternalClientSite(models.Model):
 # Avoidance Buffer
 class HeritageSite(models.Model):
     heritage_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, null=True)
-    site_description = models.ForeignKey(SiteDescriptions)
-    boundary_description = models.CharField(max_length=30, choices=boundary_description)
-    disturbance_level = models.CharField(max_length=30, choices=disturbance_level)
+    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True)
+    site_description = models.ForeignKey(SiteDescriptions, blank=True, null=True)
+    boundary_description = models.CharField(max_length=30, choices=boundary_description, blank=True, null=True)
+    disturbance_level = models.CharField(max_length=30, choices=disturbance_level, blank=True, null=True)
     status = models.CharField(max_length=15, blank=True, null=True, choices=her_site_status)
     site_comments = models.TextField(blank=True, null=True)
     heritage_surveys = models.ManyToManyField('HeritageSurvey',
                                               related_name='heritagesurveys',
-                                              db_column='site_id')
+                                              db_column='site_id',
+                                              blank=True, null=True)
     documents = models.ManyToManyField('SiteDocument',
                                        db_column='site_id',
-                                       related_name='heritagedocuments')
+                                       related_name='heritagedocuments',
+                                       blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.site)
@@ -364,7 +366,7 @@ class ResearchSite(models.Model):
     mapsheet = models.TextField(blank=True, null=True)
     documents = models.ManyToManyField('SiteDocument',
                                        db_column='site_id',
-                                       related_name='researchdocuments')
+                                       related_name='researchdocuments', blank=True, null=True)
 
     def __str__(self):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
