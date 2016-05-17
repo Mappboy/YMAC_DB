@@ -282,7 +282,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SurveyStatus',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('survey_status_id',
+                 models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(blank=True, max_length=8, null=True, unique=True)),
             ],
             options={
@@ -539,7 +540,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='HeritageSurvey',
             fields=[
-                ('survey_trip_id',
+                ('survey_trip',
                  models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False,
                                       to='ymac_db.SurveyTrip')),
                 ('source', models.CharField(blank=True, max_length=100, null=True)),

@@ -35,9 +35,17 @@ site_description = [
     ('Birthplace', 'Birthplace'),
     ('Ceremonial', 'Ceremonial'),
     ('Engravings', 'Engravings'),
-    ('Grinding Groove', 'Grinding Groove'),
+    ('Grinding Patch', 'Grinding Patch'),
     ('Gnamma Hole', 'Gnamma Hole'),
     ('Mythological', 'Mythological'),
+]
+
+her_site_status = [
+    ('Protected', 'Protected'),
+    ('Cleared', 'Cleared'),
+    ('Restricted', 'Restricted'),
+    ('Provisional', 'Provisional'),
+    ('Stored Data', 'Stored Data')
 ]
 
 site_classification = [('Ethnographic', 'Ethnographic'),
@@ -152,6 +160,9 @@ class DaaSite(models.Model):
     agreetype = models.CharField(max_length=50, blank=True, null=True)
     geom = models.GeometryField(geography=True, blank=True, null=True)
 
+    def __str__(self):
+        return smart_text(self.sitename)
+
     class Meta:
         managed = False
         db_table = 'daa_sites'
@@ -159,6 +170,9 @@ class DaaSite(models.Model):
 
 class DataSuppliers(models.Model):
     supplier = models.CharField(primary_key=True, max_length=50)
+
+    def __str__(self):
+        return smart_text(self.supplier)
 
     class Meta:
         managed = False
@@ -171,12 +185,15 @@ class ExternalClientSite(models.Model):
     site_name = models.TextField(blank=True, null=True)
     geom = models.PolygonField(srid=4283)
 
+    def __str__(self):
+        return smart_text(self.site_name)
+
     class Meta:
         managed = False
         db_table = 'external_client_sites'
 
 
-# Status like 'Protected', 'Cleared'
+# Status like
 # Site Category
 # Proponent???
 # Site Centroid ???
@@ -189,8 +206,14 @@ class HeritageSite(models.Model):
     site_description = models.ForeignKey(SiteDescriptions)
     boundary_description = models.CharField(max_length=30, choices=boundary_description)
     disturbance_level = models.CharField(max_length=30, choices=disturbance_level)
-    status = models.TextField(blank=True, null=True)
+    status = models.TextField(max_length=15, blank=True, null=True, choices=her_site_status)
     site_comments = models.TextField(blank=True, null=True)
+    heritage_surveys = models.ManyToManyField('HeritageSurvey',
+                                              related_name='heritagesurveys',
+                                              db_column='site_id')
+    documents = models.ManyToManyField('SiteDocument',
+                                       db_column='site_id',
+                                       related_name='heritagedocuments')
 
     def __str__(self):
         return smart_text(self.site)
@@ -201,7 +224,7 @@ class HeritageSite(models.Model):
 
 
 class HeritageSurvey(models.Model):
-    survey_trip_id = models.OneToOneField('SurveyTrip', primary_key=True, on_delete=models.CASCADE)
+    survey_trip = models.OneToOneField('SurveyTrip', primary_key=True, on_delete=models.CASCADE)
     status = models.ForeignKey('SurveyStatus', on_delete=models.CASCADE, db_column='status', blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -226,10 +249,10 @@ class HeritageSurvey(models.Model):
     data_qa = models.BooleanField()
     collected_by = models.CharField(max_length=60, blank=True, null=True)
 
-    heriage_sites = models.ManyToManyField('Site', through=AssociationSitesSurveyTable)
+    heritage_sites = models.ManyToManyField('Site', through=AssociationSitesSurveyTable)
 
     def __str__(self):
-        return smart_text(self.survey_trip_id)
+        return smart_text(self.ymac_svy_name)
 
     class Meta:
         managed = True
@@ -240,6 +263,9 @@ class HsRioCode(models.Model):
     survey_trip = models.ForeignKey(HeritageSurvey, on_delete=models.CASCADE)
     field_rac_table = models.CharField(db_column='_rac_table', max_length=50, blank=True, null=True)
 
+    def __str__(self):
+        return smart_text(self.field_rac_table)
+
     class Meta:
         managed = False
         db_table = 'hs_rio_codes'
@@ -248,6 +274,9 @@ class HsRioCode(models.Model):
 class HsSvmythlgy(models.Model):
     survey_trip = models.ForeignKey(HeritageSurvey, on_delete=models.CASCADE)
     svy_meth = models.CharField(max_length=40, blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.svy_meth)
 
     class Meta:
         managed = False
@@ -295,6 +324,9 @@ class NnttDetermination(models.Model):
     date_created = models.DateTimeField(blank=True, null=True)
     geom = models.GeometryField(blank=True, null=True)
 
+    def __str__(self):
+        return smart_text(self.name)
+
     class Meta:
         managed = False
         db_table = 'nntt_determinations'
@@ -305,6 +337,9 @@ class Proponents(models.Model):
     name = models.TextField()
     contact = models.TextField(blank=True, null=True)
     email = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.name)
 
     class Meta:
         managed = False
@@ -326,6 +361,9 @@ class ResearchSite(models.Model):
     site_number = models.IntegerField(blank=True, null=True)
     family_affiliation = models.TextField(blank=True, null=True)
     mapsheet = models.TextField(blank=True, null=True)
+    documents = models.ManyToManyField('SiteDocument',
+                                       db_column='site_id',
+                                       related_name='researchdocuments')
 
     def __str__(self):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
@@ -342,7 +380,7 @@ class RestrictionStatus(models.Model):
 
     def __str__(self):
         if self.claim and self.gender:
-            status = "Gender Restricted {}and Claim Restricted".format(self.gender)
+            status = "Gender Restricted {} and Claim Restricted".format(self.gender)
         elif self.claim and not self.gender:
             status = "Claim Restricted"
         elif self.gender and not self.claim:
@@ -357,7 +395,10 @@ class RestrictionStatus(models.Model):
 
 
 class SampleMethodology(models.Model):
-    sampling_meth = models.CharField(unique=True, max_length=20)
+    sampling_meth = models.CharField(unique=True, max_length=20, primary_key=True)
+
+    def __str__(self):
+        return smart_text(self.sampling_meth)
 
     class Meta:
         managed = False
@@ -365,7 +406,10 @@ class SampleMethodology(models.Model):
 
 
 class SamplingConfidence(models.Model):
-    sampling_conf = models.CharField(max_length=30, blank=True, null=True)
+    sampling_conf = models.CharField(max_length=30, primary_key=True)
+
+    def __str__(self):
+        return smart_text(self.sampling_conf)
 
     class Meta:
         managed = False
@@ -375,9 +419,8 @@ class SamplingConfidence(models.Model):
 class SiteDocument(models.Model):
     doc_id = models.AutoField(primary_key=True)
     document_type = models.CharField(max_length=15, choices=document_type)  # This field type is a guess.
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, db_column='site_id', blank=True, null=True)
     filepath = models.TextField(max_length=255, blank=True, null=True)
-    filename = models.TextField(max_length=-1, blank=True, null=True)
+    filename = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.filename)
@@ -415,13 +458,14 @@ class Site(models.Model):
 
 
 class SurveyStatus(models.Model):
+    survey_status_id = models.AutoField(primary_key=True)
     status = models.CharField(unique=True, max_length=8, blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.status)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'survey_status'
 
 
@@ -433,7 +477,7 @@ class SurveyTrip(models.Model):
     date_to = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return smart_text(self.survey_trip_id)
+        return smart_text("{}_(Trip {})".format(self.survey_id, self.trip_number))
 
     class Meta:
         managed = False
@@ -441,8 +485,11 @@ class SurveyTrip(models.Model):
 
 
 class SurveyType(models.Model):
-    type_id = models.CharField(unique=True, max_length=4, blank=True, null=True)
+    type_id = models.CharField(unique=True, max_length=4, primary_key=True)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.description)
 
     class Meta:
         managed = False
@@ -558,6 +605,9 @@ class YmacHeritageStaging(models.Model):
     date_to = models.DateField(blank=True, null=True)
     geom = models.GeometryField(blank=True, null=True)
     modified_time = models.DateTimeField()
+
+    def __str__(self):
+        return smart_text(self.ymac_svy_name)
 
     class Meta:
         managed = False
