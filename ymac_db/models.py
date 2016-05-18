@@ -76,46 +76,6 @@ class SiteDescriptions(models.Model):
         return smart_text(self.site_description)
 
 
-class AssociationDocsTable(models.Model):
-    ymac_site = models.ForeignKey('Site', on_delete=models.CASCADE)
-    site_doc = models.ForeignKey('SiteDocument', on_delete=models.CASCADE)
-
-    class Meta:
-        managed = False
-        db_table = 'association_docs_table'
-        unique_together = (('ymac_site', 'site_doc'),)
-
-
-class AssociationExtSitesTable(models.Model):
-    ymac_site = models.ForeignKey('Site', on_delete=models.CASCADE)
-    external = models.ForeignKey('ExternalClientSite', on_delete=models.CASCADE)
-
-    class Meta:
-        managed = False
-        db_table = 'association_ext_sites_table'
-        unique_together = (('ymac_site', 'external'),)
-
-
-class AssociationSitesSurveyTable(models.Model):
-    ymac_site = models.ForeignKey('Site', on_delete=models.CASCADE)
-    ymac_survey = models.ForeignKey('HeritageSurvey', on_delete=models.CASCADE)
-
-    class Meta:
-        managed = False
-        db_table = 'association_sites_survey_table'
-        unique_together = (('ymac_site', 'ymac_survey'),)
-
-
-class AssociationSitesTable(models.Model):
-    ymac_site = models.ForeignKey('Site', on_delete=models.CASCADE)
-    daa_site = models.ForeignKey('DaaSite', on_delete=models.CASCADE)
-
-    class Meta:
-        managed = False
-        db_table = 'association_sites_table'
-        unique_together = (('ymac_site', 'daa_site'),)
-
-
 class DaaSite(models.Model):
     id = models.FloatField(primary_key=True)
     siteid = models.CharField(max_length=30, blank=True, null=True)
@@ -252,7 +212,7 @@ class HeritageSurvey(models.Model):
     data_qa = models.BooleanField()
     collected_by = models.CharField(max_length=60, blank=True, null=True)
 
-    heritage_sites = models.ManyToManyField('Site', through=AssociationSitesSurveyTable)
+    heritage_sites = models.ManyToManyField('Site')
 
     def __str__(self):
         return smart_text(self.ymac_svy_name)
@@ -446,8 +406,8 @@ class Site(models.Model):
                                    related_name='site_created_by', blank=True, null=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.TextField(blank=True, null=True)
-    documents = models.ManyToManyField(SiteDocument, related_name='documents', through=AssociationDocsTable)
-    heritage_surveys = models.ManyToManyField(HeritageSurvey, through=AssociationSitesSurveyTable)
+    documents = models.ManyToManyField(SiteDocument, related_name='documents')
+    heritage_surveys = models.ManyToManyField(HeritageSurvey)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
