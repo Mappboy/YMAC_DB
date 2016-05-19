@@ -411,7 +411,7 @@ class Site(models.Model):
                                     related_name='site_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
     group_name = models.TextField(blank=True, null=True)
-    site_identifier = models.Charfield(max_length=200, blank=True, null=True,
+    site_identifier = models.CharField(max_length=200, blank=True, null=True,
                                        help_text="Site name to help you identify it")
     restricted_status = models.ForeignKey(RestrictionStatus, on_delete=models.CASCADE, db_column='restricted_status',
                                           blank=True, null=True)
