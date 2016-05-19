@@ -237,6 +237,7 @@ class HeritageSurvey(models.Model):
 
     class Meta:
         managed = False
+        ordering = ('date_create',)
         db_table = 'heritage_surveys'
 
 
@@ -673,4 +674,5 @@ class SiteUser(models.Model):
 
     class Meta:
         managed = False
+        ordering = ('user_name',)
         db_table = 'ymac_db_siteuser'

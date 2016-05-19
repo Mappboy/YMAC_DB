@@ -51,8 +51,6 @@ class ResearchSiteDocumentInline(admin.TabularInline):
 @admin.register(Site)
 class SiteAdmin(admin.GeoModelAdmin):
     inlines = [
-        SiteDocumentInline,
-        SiteSurveyInline
     ]
     list_display = ['site_id',
                     'recorded_by',
