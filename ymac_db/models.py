@@ -411,6 +411,8 @@ class Site(models.Model):
                                     related_name='site_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
     group_name = models.TextField(blank=True, null=True)
+    site_identifier = models.Charfield(max_length=200, blank=True, null=True,
+                                       help_text="Site name to help you identify it")
     restricted_status = models.ForeignKey(RestrictionStatus, on_delete=models.CASCADE, db_column='restricted_status',
                                           blank=True, null=True)
     label_x_ll = models.FloatField(blank=True, null=True)
@@ -426,7 +428,8 @@ class Site(models.Model):
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        return smart_text("Site {}".format(self.site_id))
+        str = "Site {}".format(self.site_identifier) if self.site_identifier else "Site {}".format(self.site_id)
+        return smart_text(str)
 
     class Meta:
         managed = True

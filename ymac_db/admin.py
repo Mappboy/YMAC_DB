@@ -63,6 +63,10 @@ class SiteAdmin(admin.GeoModelAdmin):
                    'group_name',
                    'restricted_status']
 
+    search_fields = [
+        'group_name',
+    ]
+
 
 @admin.register(HeritageSite)
 class HeritageSiteAdmin(SiteAdmin):
@@ -82,7 +86,9 @@ class HeritageSiteAdmin(SiteAdmin):
         'status',
         'site_comments'
     ]
-
+    search_fields = [
+        'site_comments',
+    ]
     form = HeritageSiteForm
 
 @admin.register(ResearchSite)
@@ -104,6 +110,9 @@ class ResearchSiteAdmin(SiteAdmin):
         'site_name'
     ]
 
+    search_fields = [
+        'site_name',
+    ]
 
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(admin.GeoModelAdmin):
@@ -123,9 +132,11 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
         'data_supplier',
         'collected_by'
     ]
-    search_fields = []
-    list_filter = [
+    search_fields = [
+        'ymac_svy_name',
         'proponent_id',
+    ]
+    list_filter = [
         'survey_type',
     ]
     form = HeritageSurveyForm
