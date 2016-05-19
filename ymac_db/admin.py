@@ -18,8 +18,6 @@ models = [SiteUser,
           SurveyTrip,
           SiteDocument,
           SiteDescriptions,
-          AssociationDocsTable,
-          AssociationSitesSurveyTable,
           RestrictionStatus]
 
 for m in models:
@@ -31,11 +29,11 @@ for m in models:
 
 
 class SiteDocumentInline(admin.TabularInline):
-    model = Site.documents.through
+    model = Site.docs.through
 
 
 class SiteSurveyInline(admin.TabularInline):
-    model = Site.heritage_surveys.through
+    model = Site.surveys.through
 
 
 class HeritageSiteDocumentInline(admin.TabularInline):

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from os import path
+
 from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
 
@@ -11,6 +13,19 @@ from django.utils.encoding import smart_text
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 
+VALID_DRIVES = [
+    "X:",
+    "V:",
+    "W:",
+    "Z:",
+    "K:",
+    "\\\\ymac-dc3-fs1\\spatial_wkg",
+    "\\\\ymac-dc3-fs1\\spatial_data",
+    "\\\\ymac-dc3-fs1\\spatial_pub",
+    "\\\\ymac-dc3-fs1\\heritage",
+    "\\\\ymac-dc3-fs1\\research",
+
+]
 boundary_description = [('Complete Accurate', 'Complete Accurate'),
                         ('Incomplete Accurate', 'Incomplete Accurate'),
                         ('Complete Inferred', 'Complete Inferred'),
@@ -75,6 +90,9 @@ class SiteDescriptions(models.Model):
     def __str__(self):
         return smart_text(self.site_description)
 
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_sitedescriptions'
 
 class DaaSite(models.Model):
     id = models.FloatField(primary_key=True)
@@ -171,11 +189,11 @@ class HeritageSite(models.Model):
     heritage_surveys = models.ManyToManyField('HeritageSurvey',
                                               related_name='heritagesurveys',
                                               db_column='site_id',
-                                              blank=True, null=True)
+                                              )
     documents = models.ManyToManyField('SiteDocument',
                                        db_column='site_id',
                                        related_name='heritagedocuments',
-                                       blank=True, null=True)
+                                       )
 
     def __str__(self):
         return smart_text(self.site)
@@ -218,7 +236,7 @@ class HeritageSurvey(models.Model):
         return smart_text(self.ymac_svy_name)
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'heritage_surveys'
 
 
@@ -326,7 +344,7 @@ class ResearchSite(models.Model):
     mapsheet = models.TextField(blank=True, null=True)
     documents = models.ManyToManyField('SiteDocument',
                                        db_column='site_id',
-                                       related_name='researchdocuments', blank=True, null=True)
+                                       related_name='researchdocuments')
 
     def __str__(self):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
@@ -367,6 +385,7 @@ class SampleMethodology(models.Model):
     def __str__(self):
         return smart_text(self.sampling_meth)
 
+
 class SamplingConfidence(models.Model):
     sampling_conf = models.CharField(primary_key=True, max_length=30)
 
@@ -377,11 +396,25 @@ class SamplingConfidence(models.Model):
     def __str__(self):
         return smart_text(self.sampling_conf)
 
+
 class SiteDocument(models.Model):
     doc_id = models.AutoField(primary_key=True)
     document_type = models.CharField(max_length=15, choices=document_type)  # This field type is a guess.
-    filepath = models.TextField(max_length=255, blank=True, null=True)
-    filename = models.TextField(blank=True, null=True)
+    filepath = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.CharField(max_length=100, blank=True, null=True)
+
+    def check_file_exists(self):
+        """
+        Check file is on one of our drives and not local.
+        Also check if file actually exists
+        :return:
+        """
+        fp = path.join(self.filepath, self.filename)
+        drive = path.splitdrive(fp)[0] if not path.splitunc(fp) else path.splitunc(fp)[0]
+        if drive not in VALID_DRIVES:
+            return smart_text("Can't find Drive")
+        if not path.isfile(fp):
+            return smart_text("File does not exist")
 
     def __str__(self):
         return smart_text(self.filename)
@@ -406,16 +439,16 @@ class Site(models.Model):
                                    related_name='site_created_by', blank=True, null=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.TextField(blank=True, null=True)
-    documents = models.ManyToManyField(SiteDocument, related_name='documents')
-    heritage_surveys = models.ManyToManyField(HeritageSurvey)
+    docs = models.ManyToManyField('SiteDocument')
+    surveys = models.ManyToManyField('HeritageSurvey')
+    daa_sites = models.ManyToManyField('DaaSite')
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
         return smart_text("Site {}".format(self.site_id))
 
     class Meta:
-        managed = False
-        db_table = 'sites'
+        managed = True
 
 
 class SurveyStatus(models.Model):
@@ -426,7 +459,7 @@ class SurveyStatus(models.Model):
         return smart_text(self.status)
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'survey_status'
 
 
@@ -602,10 +635,10 @@ class YmacRegion(models.Model):
 
 class YmacStaff(models.Model):
     username = models.CharField(primary_key=True, max_length=30)
-    email = models.TextField(blank=True, null=True)
-    full_name = models.TextField(blank=True, null=True)
-    last_name = models.TextField(blank=True, null=True)
-    first_name = models.TextField(blank=True, null=True)
+    email = models.CharField(max_length=70, blank=True, null=True)
+    full_name = models.CharField(max_length=70, blank=True, null=True)
+    last_name = models.CharField(max_length=40, blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.full_name)
@@ -624,12 +657,20 @@ class CaptureOrg(models.Model):
     def __str__(self):
         return smart_text(self.organisation_name)
 
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_captureorg'
+
 
 class SiteUser(models.Model):
-    user_name = models.TextField(blank=True, null=True)
+    user_name = models.CharField(max_length=70, blank=True, null=True)
     employee = models.NullBooleanField()
     capture_org = models.ForeignKey('CaptureOrg', blank=True, null=True)
-    email = models.TextField(blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.user_name)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_siteuser'

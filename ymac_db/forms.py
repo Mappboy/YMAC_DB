@@ -6,6 +6,8 @@ from models import *
 # SEe https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-many-to-many-models
 
 class SiteForm(forms.ModelForm):
+    geom = forms.OpenLayersWidget()
+
     class Meta:
         model = Site
         exclude = []
