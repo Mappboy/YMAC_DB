@@ -130,9 +130,37 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
     ]
     form = HeritageSurveyForm
 
+
+@admin.register(DaaSite)
+class DAASiteAdmin(admin.GeoModelAdmin):
+    list_display = [
+        'place_id',
+        'status',
+        'name',
+        'status_reason',
+        'origin_place_id',
+        'type',
+        'region',
+        'restrictions',
+        'file_restricted',
+        'location_restricted',
+        'boundary_reliable',
+        'protected_area',
+        'protected_area_gazetted_date',
+        'national_estate_area',
+        'boundary_last_update_date',
+        'shape_length',
+        'shape_area',
+    ]
+    search_fields = ['name', 'place_id']
+    list_filter = [
+        'status',
+        'region',
+        'type'
+    ]
+
 geom_models = [
     YmacRegion,
-    DaaSite,
     Tenement,
 
 ]
