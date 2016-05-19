@@ -93,6 +93,7 @@ class SiteDescriptions(models.Model):
     class Meta:
         managed = False
         db_table = 'ymac_db_sitedescriptions'
+        verbose_name_plural = "Site Descriptions"
 
 class DaaSite(models.Model):
     objectid = models.CharField(max_length=200, primary_key=True)
@@ -354,6 +355,7 @@ class RestrictionStatus(models.Model):
     class Meta:
         managed = False
         db_table = 'restriction_status'
+        verbose_name_plural = "Restriction Status"
 
 
 class SampleMethodology(models.Model):

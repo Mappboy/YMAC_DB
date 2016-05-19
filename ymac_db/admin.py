@@ -84,7 +84,6 @@ class HeritageSiteAdmin(SiteAdmin):
         'boundary_description',
         'disturbance_level',
         'status',
-        'site_comments'
     ]
     search_fields = [
         'site_comments',
