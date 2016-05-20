@@ -3,12 +3,11 @@
 from __future__ import unicode_literals
 
 import django.contrib.gis.db.models.fields
-from django.db import migrations, models
 import django.db.models.deletion
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -545,6 +544,36 @@ class Migration(migrations.Migration):
                 ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=28350)),
                 ('data_qa', models.BooleanField()),
                 ('collected_by', models.CharField(blank=True, max_length=60, null=True)),
+                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                                 related_name='created_user', to='ymac_db.SiteUser')),
+                ('data_supplier',
+                 models.OneToOneField(blank=True, db_column='data_supplier', null=True,
+                                      on_delete=django.db.models.deletion.CASCADE, to='ymac_db.DataSuppliers')),
+
+                ('mod_by',
+                 models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                   related_name='mod_user', to='ymac_db.SiteUser')),
+
+                ('proponent_id',
+                 models.ForeignKey(blank=True, db_column='proponent_id', null=True,
+                                   on_delete=django.db.models.deletion.CASCADE, to='ymac_db.Proponents')),
+                ('sampling_conf',
+                 models.ForeignKey(blank=True, db_column='sampling_conf', default='Unknown', null=True,
+                                   on_delete=django.db.models.deletion.CASCADE,
+                                   to='ymac_db.SamplingConfidence')),
+
+                ('sampling_meth',
+                 models.ForeignKey(blank=True, db_column='sampling_meth', default='UNKNOWN', null=True,
+                                   on_delete=django.db.models.deletion.CASCADE,
+                                   to='ymac_db.SampleMethodology')),
+
+                ('status',
+                 models.ForeignKey(blank=True, db_column='status', null=True,
+                                   on_delete=django.db.models.deletion.CASCADE, to='ymac_db.SurveyStatus')),
+
+                ('survery_type',
+                 models.ForeignKey(blank=True, db_column='survey_type', null=True,
+                                   on_delete=django.db.models.deletion.CASCADE, to='ymac_db.SurveyType')),
             ],
             options={
                 'db_table': 'heritage_surveys',

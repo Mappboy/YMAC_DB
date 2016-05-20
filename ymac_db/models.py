@@ -95,6 +95,7 @@ class SiteDescriptions(models.Model):
         db_table = 'ymac_db_sitedescriptions'
         verbose_name_plural = "Site Descriptions"
 
+
 class DaaSite(models.Model):
     objectid = models.CharField(max_length=200, primary_key=True)
     place_id = models.CharField(max_length=200, blank=True, null=True)
@@ -168,12 +169,10 @@ class HeritageSite(models.Model):
     status = models.CharField(max_length=15, blank=True, null=True, choices=her_site_status)
     site_comments = models.TextField(blank=True, null=True)
     heritage_surveys = models.ManyToManyField('HeritageSurvey',
-                                              related_name='heritagesurveys',
-                                              db_column='site_id',
+                                              related_name='her_sites',
                                               )
     documents = models.ManyToManyField('SiteDocument',
-                                       db_column='site_id',
-                                       related_name='heritagedocuments',
+                                       related_name='heritagesites',
                                        )
 
     def __str__(self):
@@ -211,13 +210,13 @@ class HeritageSurvey(models.Model):
     data_qa = models.BooleanField()
     collected_by = models.CharField(max_length=60, blank=True, null=True)
 
-    heritage_sites = models.ManyToManyField('Site')
+    heritage_sites = models.ManyToManyField('HeritageSite', related_name='hs_surveys')
 
     def __str__(self):
         return smart_text(self.ymac_svy_name)
 
     class Meta:
-        managed = False
+        managed = True
         ordering = ('date_create',)
         db_table = 'heritage_surveys'
 
