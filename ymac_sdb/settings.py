@@ -72,6 +72,13 @@ TEMPLATES = [
     },
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '192.168.0.141:11211',
+    }
+}
+
 WSGI_APPLICATION = 'ymac_sdb.wsgi.application'
 
 # Database
