@@ -412,7 +412,7 @@ class Site(models.Model):
     recorded_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='recorded_by',
                                     related_name='site_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
-    group_name = models.TextField(blank=True, null=True)
+    group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
     site_identifier = models.CharField(max_length=200, blank=True, null=True,
                                        help_text="Site name to help you identify it")
     restricted_status = models.ForeignKey(RestrictionStatus, on_delete=models.CASCADE, db_column='restricted_status',
@@ -424,9 +424,9 @@ class Site(models.Model):
                                    related_name='site_created_by', blank=True, null=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.TextField(blank=True, null=True)
-    docs = models.ManyToManyField('SiteDocument')
-    surveys = models.ManyToManyField('HeritageSurvey')
-    daa_sites = models.ManyToManyField('DaaSite')
+    docs = models.ManyToManyField('SiteDocument', blank=True, null=True)
+    surveys = models.ManyToManyField('HeritageSurvey', blank=True, null=True)
+    daa_sites = models.ManyToManyField('DaaSite', blank=True, null=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
