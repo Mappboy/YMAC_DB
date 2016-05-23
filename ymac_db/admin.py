@@ -50,8 +50,6 @@ class ResearchSiteDocumentInline(admin.TabularInline):
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
-    default_lat = -27
-    default_lon = 121
     inlines = [
     ]
     list_display = ['site_id',

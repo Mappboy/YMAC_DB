@@ -162,7 +162,7 @@ class ExternalClientSite(models.Model):
 # Avoidance Buffer
 class HeritageSite(models.Model):
     heritage_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True)
+    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True, help_text="The Spatial Site Data")
     site_description = models.ForeignKey(SiteDescriptions, blank=True, null=True)
     boundary_description = models.CharField(max_length=30, choices=boundary_description, blank=True, null=True)
     disturbance_level = models.CharField(max_length=30, choices=disturbance_level, blank=True, null=True)
@@ -310,7 +310,8 @@ class Proponents(models.Model):
 
 class ResearchSite(models.Model):
     research_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True)
+    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True,
+                             help_text="The Spatial Site Data (optional)")
     site_classification = models.CharField(max_length=30, choices=site_classification, blank=True, null=True)
     site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
     site_location = models.CharField(max_length=30, choices=site_location, blank=True, null=True)
