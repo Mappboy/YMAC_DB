@@ -8,7 +8,7 @@ from django.contrib.gis import admin
 from .forms import *
 
 
-class YMACModelAdmin(admin.OSMGeoAdmin):
+class YMACModelAdmin(admin.GeoModelAdmin):
     default_lat = -27
     default_lon = 121
 
