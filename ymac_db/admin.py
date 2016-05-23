@@ -8,7 +8,7 @@ from django.contrib.gis import admin
 from .forms import *
 
 
-class YMACModelAdmin(admin.GeoModelAdmin):
+class YMACModelAdmin(admin.OSMGeoAdmin):
     default_lat = -27
     default_lon = 121
 
@@ -49,7 +49,9 @@ class ResearchSiteDocumentInline(admin.TabularInline):
 
 
 @admin.register(Site)
-class SiteAdmin(admin.GeoModelAdmin):
+class SiteAdmin(YMACModelAdmin):
+    default_lat = -27
+    default_lon = 121
     inlines = [
     ]
     list_display = ['site_id',
