@@ -421,12 +421,12 @@ class Site(models.Model):
     label_y_ll = models.FloatField(blank=True, null=True)
     date_created = models.DateField(blank=True, null=True)
     created_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='created_by',
-                                   related_name='site_created_by', blank=True, null=True)
+                                   related_name='site_created_by', blank=True)
     active = models.NullBooleanField()
     capture_coord_sys = models.TextField(blank=True, null=True)
-    docs = models.ManyToManyField('SiteDocument', blank=True, null=True)
-    surveys = models.ManyToManyField('HeritageSurvey', blank=True, null=True)
-    daa_sites = models.ManyToManyField('DaaSite', blank=True, null=True)
+    docs = models.ManyToManyField('SiteDocument', blank=True)
+    surveys = models.ManyToManyField('HeritageSurvey', blank=True)
+    daa_sites = models.ManyToManyField('DaaSite', blank=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
