@@ -4,9 +4,112 @@
 # Set List display
 # Create our own map template
 from django.contrib.gis import admin
-
+from django.contrib import admin as baseadmin
+from django.utils.translation import ugettext_lazy as _
 from .forms import *
+import re
 
+
+class SiteTypeFilter(baseadmin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = _('Site Type')
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'type'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('Arch', _('Archeological')),
+            ('Ethno', _('Ethnographic')),
+            ('Unknown', _('Unknown')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value() == 'Unknown':
+            return queryset.filter(type_exact='')
+        if self.value() == 'Ethno':
+            return queryset.filter(type__iregex=('^(Birth Place|'
+                                                 'Camp|'
+                                                 'Ceremonial|'
+                                                 'Engraving|'
+                                                 'Historical|'
+                                                 'Hunting Place|'
+                                                 'Man-Made Structure|'
+                                                 'Massacre|'
+                                                 'Meeting Place|'
+                                                 'Mythological|'
+                                                 'Named Place|'
+                                                 'Natural Feature|'
+                                                 'Ochre|'
+                                                 'Other: CONFIDENTIAL'
+                                                 'Other: DEATH PLACE|'
+                                                 'Other: DEATH SITE|'
+                                                 'Other: FEATURE|'
+                                                 'Other: FOOD RESOURCE|'
+                                                 'Other: Former camp|'
+                                                 'Other: LOCAL GROUP SITE|'
+                                                 'Other: SIGN SHOWS ABORIGINAL DESIGN|'
+                                                 'Other: Significant Tree|'
+                                                 'Other: SPRING|'
+                                                 'Other: WALLED CAVE|'
+                                                 'Other: Watercourse|'
+                                                 'Painting|'
+                                                 'Plant Resource|'
+                                                 'Rockshelter|'
+                                                 'Skeletal Material / Burial|'
+                                                 'Water Source)'))
+        if self.value() == 'Arch':
+            return queryset.filter(type__iregex=('^(Arch Deposit|'
+                                                 'Artefacts / Scatter|'
+                                                 'Fish Trap|'
+                                                 'Grinding Patches / Grooves|'
+                                                 'Midden / Scatter|'
+                                                 'Modified Tree|'
+                                                 'Other: \(NOT A SITE\)|'
+                                                 'Other:|'
+                                                 'Other: \[EXCLUDED FROM MARANDOO ACT\]|'
+                                                 'Other: Aboriginal track|'
+                                                 'Other: ANIMAL REMAINS|'
+                                                 'Other: Circular mounds|'
+                                                 'Other: CLAYPAN|'
+                                                 'Other: Exploited Stone Sources|'
+                                                 'Other: FOSSILISED FOOTPRINT|'
+                                                 'Other: GNAMMA HOLE|'
+                                                 'Other: GNAMMA HOLES|'
+                                                 'Other: IMP. AREA - JIG PPL|'
+                                                 'Other: KANGAROO TRAPS|'
+                                                 'Other: LIZARD TRAP|'
+                                                 'Other: MANUFACTURE SITE|'
+                                                 'Other: MARKED TREE|'
+                                                 'Other: MARKED TREES|'
+                                                 'Other: MATERIAL RESOURCE|'
+                                                 'Other: MULTI TRAIT|'
+                                                 'Other: No|'
+                                                 'Other: one circular mound|'
+                                                 'Other: PA 67|'
+                                                 'Other: Proposed|'
+                                                 'Other: ROCK CAIRNS|'
+                                                 'Other: ROCKHOLE|'
+                                                 'Other: SCARRED TREES?|'
+                                                 'Other: WORKSHOP|'
+                                                 'Quarry|'
+                                                 'Repository / Cache|'
+                                                 'Shell)'))
 
 class YMACModelAdmin(admin.GeoModelAdmin):
     default_lat = -27
@@ -166,7 +269,7 @@ class DAASiteAdmin(admin.GeoModelAdmin):
     list_filter = [
         'status',
         'region',
-        'type'
+        SiteTypeFilter
     ]
 
 geom_models = [
