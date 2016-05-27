@@ -41,7 +41,7 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
         # Compare the requested value (either '80s' or '90s')
         # to decide how to filter the queryset.
         if self.value() == 'Unknown':
-            return queryset.filter(type_exact='')
+            return queryset.filter(type__exact='')
         if self.value() == 'Ethno':
             return queryset.filter(type__iregex=('^(Birth Place|'
                                                  'Camp|'
