@@ -18,7 +18,7 @@ class SurveyView(View):
     def get(self, request):
         template = "ymac_openlayers.html"
         modelname = "SurveyView"
-        surveys = HeritageSurvey.objects.filter(ymac_svy_name__startswith="YHW018")
+        surveys = HeritageSurvey.objects.all()
         for hs in surveys:
             hs.geom.transform(4326)
         serialized = serialize('geojson', surveys,
