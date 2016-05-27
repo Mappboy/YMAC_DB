@@ -97,7 +97,7 @@ class SiteDescriptions(models.Model):
 
 
 class DaaSite(models.Model):
-    objectid = models.CharField(max_length=200, primary_key=True)
+    objectid = models.AutoField(max_length=200, primary_key=True)
     place_id = models.CharField(max_length=200, blank=True, null=True)
     name = models.CharField(max_length=200, blank=True, null=True)
     legacy_id = models.CharField(max_length=200, blank=True, null=True)
@@ -204,7 +204,7 @@ class HeritageSurvey(models.Model):
     date_mod = models.DateField(blank=True, null=True)
     mod_by = models.ForeignKey('SiteUser', related_name='mod_user', blank=True, null=True)
     propref = models.CharField(max_length=200, blank=True, null=True)
-    geom = models.GeometryField(srid=28350, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
     data_supplier = models.OneToOneField(DataSuppliers, on_delete=models.CASCADE, db_column='data_supplier', blank=True,
                                          null=True)
     data_qa = models.BooleanField()
@@ -430,7 +430,7 @@ class Site(models.Model):
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        str = "Site {}".format(self.site_identifier) if self.site_identifier else "Site {}".format(self.site_id)
+        str = "{}".format(self.site_identifier) if self.site_identifier else "Site {}".format(self.site_id)
         return smart_text(str)
 
     class Meta:
