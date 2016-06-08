@@ -180,6 +180,7 @@ class Migration(migrations.Migration):
                 ('name', models.TextField()),
                 ('contact', models.TextField(blank=True, null=True)),
                 ('email', models.TextField(blank=True, null=True)),
+                ('id', models.IntegerField()),
             ],
             options={
                 'db_table': 'proponents',

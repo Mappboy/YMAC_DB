@@ -82,6 +82,58 @@ document_type = [('Image', 'Image'),
                  ('Map', 'Map'),
                  ('Other', 'Other')
                  ]
+states = [
+    ('WA', 'WA'),
+    ('NSW', 'NSW'),
+    ('ACT', 'ACT'),
+    ('SA', 'SA'),
+    ('QLD', 'QLD'),
+    ('TAS', 'TAS'),
+    ('VIC', 'VIC'),
+    ('NT', 'NT'),
+]
+
+survey_methodology = [
+    ("Excavation", "Excavation"),
+    ("Monitoring", "Monitoring"),
+    ("RAB Drilling", "RAB Drilling"),
+    ("Reconnaissance", "Reconnaissance"),
+    ("Salvage", "Salvage"),
+    ("Section 16", "Section 16"),
+    ("Section 18", "Section 18"),
+    ("Site Avoidance", "Site Avoidance"),
+    ("Site Assessment", "Site Assessment"),
+    ("Site ID", "Site ID"),
+    ("Work Area Clearance", "Work Area Clearance"),
+    ("Work Program Clearance", "Work Program Clearance"),
+]
+
+
+class SurveyProponentCode(models.Model):
+    """
+    For when a survey has a proponent code.
+    This used to be the old rio_codes table but expanded.
+    This is a one to many table.
+    """
+    heritage_svy_id = models.IntegerField(null=False)
+    proponent_code = models.CharField(max_length=20, blank=True, null=True)
+
+
+class HeritageCompanies(models.Model):
+    """
+    Companies who Heritage Surveys have been performed for.
+    """
+    old_code = models.IntegerField(unique=True)
+    company_name = models.CharField(max_length=200, blank=True, null=True)
+
+
+class SurveyCleaning(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey.
+    """
+    cleaning_comment = models.TextField(blank=False, null=False)
+    data_path = models.TextField(blank=False, null=False)
 
 
 class SiteDescriptions(models.Model):
@@ -188,6 +240,7 @@ class HeritageSurvey(models.Model):
     status = models.ForeignKey('SurveyStatus', on_delete=models.CASCADE, db_column='status', blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
+    survey_description = models.TextField(blank=True)
     proponent_id = models.ForeignKey('Proponents', on_delete=models.CASCADE, db_column='proponent_id', blank=True,
                                      null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
@@ -207,8 +260,10 @@ class HeritageSurvey(models.Model):
     geom = models.GeometryField(srid=4283, blank=True, null=True)
     data_supplier = models.OneToOneField(DataSuppliers, on_delete=models.CASCADE, db_column='data_supplier', blank=True,
                                          null=True)
+    survey_methodology = models.ManyToManyField('SurveyMethodology', blank=True)
     data_qa = models.BooleanField()
     collected_by = models.CharField(max_length=60, blank=True, null=True)
+    old_file_ref = models.CharField(max_length=100, blank=True, null=True)
 
     heritage_sites = models.ManyToManyField('HeritageSite', related_name='hs_surveys')
 
@@ -233,16 +288,12 @@ class HsRioCode(models.Model):
         db_table = 'hs_rio_codes'
 
 
-class HsSvmythlgy(models.Model):
-    survey_trip = models.ForeignKey(HeritageSurvey, on_delete=models.CASCADE)
-    svy_meth = models.CharField(max_length=40, blank=True, null=True)
+class SurveyMethodology(models.Model):
+    survey_meth = models.CharField(max_length=40)
 
     def __str__(self):
-        return smart_text(self.svy_meth)
+        return smart_text(self.survey_meth)
 
-    class Meta:
-        managed = False
-        db_table = 'hs_svmythlgy'
 
 
 class NnttDetermination(models.Model):
@@ -295,17 +346,14 @@ class NnttDetermination(models.Model):
 
 
 class Proponents(models.Model):
-    prop_id = models.CharField(primary_key=True, max_length=10)
+    id = models.AutoField(primary_key=True)
+    prop_id = models.CharField(max_length=10)
     name = models.TextField()
     contact = models.TextField(blank=True, null=True)
     email = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.name)
-
-    class Meta:
-        managed = False
-        db_table = 'proponents'
 
 
 class ResearchSite(models.Model):
@@ -470,14 +518,14 @@ class SurveyTrip(models.Model):
 
 
 class SurveyType(models.Model):
-    type_id = models.CharField(unique=True, max_length=4, primary_key=True)
+    id = models.AutoField(primary_key=True, serialize=True)
+    type_id = models.CharField(unique=True, max_length=4)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.description)
 
     class Meta:
-        managed = False
         db_table = 'survey_types'
 
 
@@ -634,21 +682,42 @@ class YmacStaff(models.Model):
         db_table = 'ymac_staff'
 
 
+class Consultant(models.Model):
+    """
+    Survey Consultants
+    """
+    name = models.CharField(max_length=70, blank=True, null=True)
+    employee = models.NullBooleanField()
+    company = models.ForeignKey('CaptureOrg', blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.name)
+
+
 class CaptureOrg(models.Model):
     organisation_name = models.TextField()
-    organisation_website = models.TextField(blank=True, null=True)
+    organisation_contact = models.CharField(max_length=100, blank=True, null=True, help_text="Main Contact Name")
+    organisation_email = models.EmailField(blank=True, null=True, help_text="Main Contact Email")
     organisation_phone = models.CharField(max_length=16, blank=True, null=True)
-    organisation_contact = models.TextField(blank=True, null=True)
+    organisation_address = models.TextField(blank=True, null=True)
+    organisation_suburb = models.TextField(blank=True, null=True)
+    organisation_state = models.CharField(max_length=3, blank=True, null=True, choices=states)
+    organisation_postcode = models.IntegerField(blank=True, null=True)
+    organisation_website = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return smart_text(self.organisation_name)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ymac_db_captureorg'
 
 
 class SiteUser(models.Model):
+    """
+    This needs to be renamed to generic collection person
+    """
     user_name = models.CharField(max_length=70, blank=True, null=True)
     employee = models.NullBooleanField()
     capture_org = models.ForeignKey('CaptureOrg', blank=True, null=True)
@@ -661,3 +730,19 @@ class SiteUser(models.Model):
         managed = False
         ordering = ('user_name',)
         db_table = 'ymac_db_siteuser'
+
+
+class SurveyGroup(models.Model):
+    """
+    The Original Claim group area a heritage survey relates to
+    may now be determined. Groups with multiple areas will be aggregated
+    """
+    group_name = models.CharField(max_length=35)
+    group_id = models.CharField(max_length=3)
+    determined = models.BooleanField()
+    heritage_officer = models.ForeignKey(SiteUser, blank=True, related_name='heritageuser', default=72)
+    future_act_officer = models.ForeignKey(SiteUser, blank=True, related_name='futureactuser', default=71)
+    geom = models.GeometryField(srid=4283, blank=True)
+
+    def __str__(self):
+        return smart_text(self.group_name)

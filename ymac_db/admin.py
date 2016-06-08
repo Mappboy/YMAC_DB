@@ -121,7 +121,8 @@ models = [SiteUser,
           SurveyTrip,
           SiteDocument,
           SiteDescriptions,
-          RestrictionStatus]
+          RestrictionStatus,
+          SurveyMethodology]
 
 for m in models:
     admin.site.register(m)
@@ -275,8 +276,9 @@ class DAASiteAdmin(admin.GeoModelAdmin):
 geom_models = [
     YmacRegion,
     Tenement,
-
+    SurveyGroup
 ]
+
 for gm in geom_models:
     admin.site.register(gm, YMACModelAdmin)
 
