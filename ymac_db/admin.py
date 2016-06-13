@@ -118,11 +118,15 @@ class YMACModelAdmin(admin.GeoModelAdmin):
 
 models = [SiteUser,
           CaptureOrg,
-          SurveyTrip,
+          HeritageSurveyTrip,
           SiteDocument,
           SiteDescriptions,
           RestrictionStatus,
-          SurveyMethodology]
+          SurveyMethodology,
+          Consultant,
+          Proponent,
+          SurveyProponentCode,
+          SurveyCleaning]
 
 for m in models:
     admin.site.register(m)
@@ -151,6 +155,17 @@ class HeritageSiteSurveyInline(admin.TabularInline):
 class ResearchSiteDocumentInline(admin.TabularInline):
     model = ResearchSite.documents.through
 
+
+class HeritageSurveyConsultantInline(admin.TabularInline):
+    model = HeritageSurvey.consultants.through
+
+
+class HeritageSurveyProponentInline(admin.TabularInline):
+    model = HeritageSurvey.proponent_codes.through
+
+
+class HeritageSurveyCleaningInline(admin.TabularInline):
+    model = HeritageSurvey.data_source.through
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
@@ -216,33 +231,78 @@ class ResearchSiteAdmin(SiteAdmin):
     search_fields = [
         'site_name',
     ]
-
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(admin.GeoModelAdmin):
-    list_display = [
+    fields = (
         'survey_trip',
-        'status',
-        'source',
-        'comments',
-        'proponent_id',
-        'claim_group_id',
+        'project_name',
+        'project_status',
+        'survey_type',
+        'survey_methodologies',
+        'survey_group',
+        'proponent',
+        'sampling_meth',
+        'sampling_conf',
+        'survey_region',
+        'survey_description',
+        'survey_note',
+        'created_by',
+        'date_create',
+        'mod_by',
+        'date_mod',
+        'data_qa',
+        'data_status',
+        'geom',
+    )
+    inlines = [
+        HeritageSurveyConsultantInline,
+        HeritageSurveyProponentInline,
+        HeritageSurveyCleaningInline
+    ]
+
+    def survey(self, obj):
+        if obj.survey_trip:
+            return obj.survey_trip.survey_id
+        return ''
+
+    def datapath(self, obj):
+        if obj.data_source.values():
+            return "\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
+        return ''
+
+    def datastatus(self, obj):
+        if obj.data_status:
+            return obj.data_status.status
+        return ''
+
+    def propname(self, obj):
+        if obj.proponent:
+            return obj.proponent.name
+        return ''
+
+    def groupname(self, obj):
+        if obj.survey_group:
+            return obj.survey_group.group_name
+        return ''
+
+    list_display = [
+        'survey',
+        'datastatus',
+        'propname',
+        'groupname',
         'survey_type',
         'sampling_meth',
-        'ymac_svy_name',
         'date_create',
-        'sampling_conf',
         'created_by',
-        'data_supplier',
-        'collected_by'
+        'data_qa',
+        'datapath'
     ]
     search_fields = [
-        'ymac_svy_name',
         'proponent_id',
     ]
     list_filter = [
         'survey_type',
     ]
-    form = HeritageSurveyForm
 
 
 @admin.register(DaaSite)
