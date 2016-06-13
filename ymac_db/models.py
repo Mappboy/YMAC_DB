@@ -556,6 +556,7 @@ class HeritageSurveyTrip(models.Model):
 
     class Meta:
         managed = False
+        ordering = ('survey_id',)
 
 
 class SurveyType(models.Model):

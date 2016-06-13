@@ -10,6 +10,38 @@ from .forms import *
 import re
 
 
+class HasGeomFilter(baseadmin.SimpleListFilter):
+    title = _('Spatial Data Exists')
+
+    parameter_name = 'geom'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            (True, _('Exists')),
+            (False, _('No Spatial Data')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.filter(geom__isnull=True)
+        else:
+            return queryset.filter(geom__isnull=False)
+
+
 class SiteTypeFilter(baseadmin.SimpleListFilter):
     # Human-readable title which will be displayed in the
     # right admin sidebar just above the filter options.
@@ -31,6 +63,7 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
             ('Ethno', _('Ethnographic')),
             ('Unknown', _('Unknown')),
         )
+
 
     def queryset(self, request, queryset):
         """
@@ -265,6 +298,8 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
             return obj.survey_trip.survey_id
         return ''
 
+    survey.admin_order_field = 'survey_trip'
+    survey.short_description = 'Survey Trip'
     def datapath(self, obj):
         if obj.data_source.values():
             return "\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
@@ -302,6 +337,7 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
     ]
     list_filter = [
         'survey_type',
+        HasGeomFilter
     ]
 
 
