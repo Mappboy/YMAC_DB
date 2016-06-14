@@ -5,6 +5,8 @@ from os import path
 from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
 
+from validators import valid_surveyid
+
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
 #   * Rearrange models' order
@@ -186,7 +188,6 @@ class HeritageCompanies(models.Model):
         return smart_text("Company {}".format(self.company_name))
 
 
-
 class SurveyCleaning(models.Model):
     """
     These are cleaning comments and data paths that can be attached
@@ -297,8 +298,7 @@ class HeritageSite(models.Model):
         return smart_text(self.site)
 
     class Meta:
-        managed = False
-        db_table = 'heritage_sites'
+        managed = True
 
 
 class HeritageSurvey(models.Model):
@@ -332,12 +332,14 @@ class HeritageSurvey(models.Model):
     consultants = models.ManyToManyField('Consultant', blank=True, null=True, help_text="Consultants for survey")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
+        if self.survey_trip.survey_id:
+            return smart_text("{} - {}".format(self.survey_trip.survey_id, self.project_name))
         return smart_text(self.project_name)
 
     class Meta:
         managed = True
-        ordering = ('date_create',)
+        ordering = ('survey_trip__survey_id', 'date_create',)
 
 
 class SurveyMethodology(models.Model):
@@ -348,6 +350,7 @@ class SurveyMethodology(models.Model):
 
     class Meta:
         managed = False
+
 
 class NnttDetermination(models.Model):
     tribid = models.CharField(max_length=30, blank=True, null=True)
@@ -540,11 +543,12 @@ class RelatedSurveyCode(models.Model):
     def __str__(self):
         return smart_text(self.rel_survey_id)
 
+
 class HeritageSurveyTrip(models.Model):
     survey_trip_id = models.AutoField(primary_key=True)
-    survey_id = models.CharField(max_length=10)
+    survey_id = models.CharField(max_length=10, validators=[valid_surveyid])
     original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
-    related_surveys = models.ManyToManyField('RelatedSurveyCode')
+    related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
     trip_number = models.SmallIntegerField(blank=True, null=True)
     date_from = models.DateField(blank=True, null=True)
     date_to = models.DateField(blank=True, null=True)
@@ -800,3 +804,30 @@ class SurveyGroup(models.Model):
 
     class Meta:
         managed = False
+
+
+class RequestUser(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    department = models.CharField(max_length=20)
+
+
+class YMACSpatialRequest(models.Model):
+    """
+    Still need to add in the choices for each
+    """
+    user = models.ForeignKey(RequestUser)
+    request_type = models.CharField(max_length=45)
+    office = models.CharField(max_length=20)
+    region = models.CharField(max_length=15)
+    claim = models.ForeignKey(YmacClaim)
+    job_desc = models.TextField()
+    map_size = models.CharField(max_length=20)
+    sup_data = models.TextField()
+    required_by = models.DateField
+    cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients')
+    product_type = models.CharField(max_length=20)
+    other_instructions = models.TextField(blank=False)
+    cost_centre = models.CharField(max_length=20)
+    proponent = models.ForeignKey(Proponent)
+    priority = models.CharField(max_length=25)

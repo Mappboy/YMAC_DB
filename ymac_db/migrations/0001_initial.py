@@ -117,33 +117,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='HeritageSite',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('boundary_description', models.CharField(blank=True,
-                                                          choices=[('Complete Accurate', 'Complete Accurate'),
-                                                                   ('Incomplete Accurate', 'Incomplete Accurate'),
-                                                                   ('Complete Inferred', 'Complete Inferred'),
-                                                                   ('Incomplete Inferred', 'Incomplete Inferred'),
-                                                                   ('Unknown', 'Unknown')], max_length=30, null=True)),
-                ('disturbance_level', models.CharField(blank=True,
-                                                       choices=[('Negligible', 'Negligible'), ('Minimal', 'Minimal'),
-                                                                ('Moderate', 'Moderate'),
-                                                                ('Significant', 'Significant'), ('Major', 'Major')],
-                                                       max_length=30, null=True)),
-                ('status', models.CharField(blank=True, choices=[('Protected', 'Protected'), ('Cleared', 'Cleared'),
-                                                                 ('Restricted', 'Restricted'),
-                                                                 ('Provisional', 'Provisional'),
-                                                                 ('Stored Data', 'Stored Data')], max_length=15,
-                                            null=True)),
-                ('site_comments', models.TextField(blank=True, null=True)),
-            ],
-            options={
-                'db_table': 'heritage_sites',
-                'managed': False,
-            },
-        ),
-        migrations.CreateModel(
             name='HeritageSurvey',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
