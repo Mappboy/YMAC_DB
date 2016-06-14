@@ -537,6 +537,8 @@ class RelatedSurveyCode(models.Model):
     class Meta:
         managed = False
 
+    def __str__(self):
+        return smart_text(self.rel_survey_id)
 
 class HeritageSurveyTrip(models.Model):
     survey_trip_id = models.AutoField(primary_key=True)

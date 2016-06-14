@@ -158,6 +158,7 @@ models = [SiteUser,
           SurveyMethodology,
           Consultant,
           Proponent,
+          RelatedSurveyCode,
           SurveyProponentCode,
           SurveyCleaning]
 
