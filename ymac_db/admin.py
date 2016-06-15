@@ -6,7 +6,11 @@
 from django.contrib.gis import admin
 from django.contrib import admin as baseadmin
 from django.utils.translation import ugettext_lazy as _
-from .forms import *
+from forms import *
+from django.http import HttpResponse
+from django.core import serializers
+from django.http import HttpResponseRedirect
+from django.utils.encoding import smart_text
 import re
 
 
@@ -265,6 +269,37 @@ class ResearchSiteAdmin(SiteAdmin):
     search_fields = [
         'site_name',
     ]
+
+
+def get_surveyids(modeladmin, request, queryset):
+    for qs in queryset:
+        print qs.id
+    print modeladmin.model._meta.db_table
+
+
+get_surveyids.short_description = "Get selected survey ids"
+
+
+def export_as_json(modeladmin, request, queryset):
+    response = HttpResponse(content_type="application/json")
+    serializers.serialize("geojson", queryset, stream=response)
+    return response
+
+
+def export_as_shz(modeladmin, request, queryset):
+    response_dict = {'id_list': [], 'db_table': modeladmin.model._meta.db_table}
+    for qs in queryset:
+        response_dict['id_list'].append(qs.id)
+    ids = ",".join([smart_text(id) for id in response_dict['id_list']])
+    url = "http://YMAC-DC3-APP1:8080/fmedatastreaming/YMAC Data delivery/postgisdjangoaction.fmw?" \
+          "FEATURE_TYPES={db_table}&id_list=({id_list})&DestDataset_GENERIC=%5C%5Cymac-dc3-app1%5Cspatial_wkg%5CFME_OUTPUT%5C{outfile}.shz&" \
+          "GENERIC_OUT_FORMAT_GENERIC=ESRISHAPE".format(id_list=ids,
+                                                        db_table=response_dict['db_table'],
+                                                        outfile=response_dict['db_table'])
+    h = HttpResponseRedirect(url)
+    h['token'] = "782b77ba48c390cf8f74f9184a4398a8423d9efa"
+    return h
+
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(admin.GeoModelAdmin):
     fields = (
@@ -293,7 +328,11 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
         HeritageSurveyProponentInline,
         HeritageSurveyCleaningInline
     ]
-
+    actions = [
+        get_surveyids,
+        export_as_json,
+        export_as_shz
+    ]
     def survey(self, obj):
         if obj.survey_trip:
             return obj.survey_trip.survey_id
