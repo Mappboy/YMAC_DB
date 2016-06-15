@@ -210,7 +210,7 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
 class SiteAdmin(YMACModelAdmin):
     inlines = [
     ]
-    list_display = ['site_id',
+    list_display = [
                     'site_identifier',
                     'recorded_by',
                     'date_recorded',

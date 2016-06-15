@@ -493,7 +493,6 @@ class SiteDocument(models.Model):
 
 
 class Site(models.Model):
-    site_id = models.AutoField(primary_key=True)
     recorded_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='recorded_by',
                                     related_name='site_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
@@ -520,7 +519,7 @@ class Site(models.Model):
         return smart_text("Site {}".format(self.site_id))
 
     class Meta:
-        managed = False
+        managed = True
 
 
 class SurveyStatus(models.Model):
