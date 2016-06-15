@@ -515,8 +515,9 @@ class Site(models.Model):
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        retstr = "{}".format(self.site_identifier) if self.site_identifier else "Site {}".format(self.site_id)
-        return smart_text(retstr)
+        if self.site_identifier:
+            return smart_text(self.site_identifier)
+        return smart_text("Site {}".format(self.site_id))
 
     class Meta:
         managed = False
