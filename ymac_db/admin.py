@@ -3,15 +3,15 @@
 # MAke sure they are converted to 4283
 # Set List display
 # Create our own map template
-from django.contrib.gis import admin
 from django.contrib import admin as baseadmin
-from django.utils.translation import ugettext_lazy as _
-from forms import *
-from django.http import HttpResponse
+from django.contrib.gis import admin
 from django.core import serializers
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.encoding import smart_text
-import re
+from django.utils.translation import ugettext_lazy as _
+
+from forms import *
 
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
@@ -67,7 +67,6 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
             ('Ethno', _('Ethnographic')),
             ('Unknown', _('Unknown')),
         )
-
 
     def queryset(self, request, queryset):
         """
@@ -148,6 +147,7 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
                                                  'Repository / Cache|'
                                                  'Shell)'))
 
+
 class YMACModelAdmin(admin.GeoModelAdmin):
     default_lat = -27
     default_lon = 121
@@ -205,20 +205,22 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
+
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
     inlines = [
     ]
     list_display = ['site_id',
+                    'site_identifier',
                     'recorded_by',
                     'date_recorded',
                     'group_name',
                     'restricted_status']
-    list_filter = ['site_id',
-                   'recorded_by',
-                   'date_recorded',
-                   'group_name',
-                   'restricted_status']
+    list_filter = [
+        'recorded_by',
+        'date_recorded',
+        'group_name',
+        'restricted_status']
 
     search_fields = [
         'group_name',
@@ -246,6 +248,7 @@ class HeritageSiteAdmin(SiteAdmin):
         'site_comments',
     ]
     form = HeritageSiteForm
+
 
 @admin.register(ResearchSite)
 class ResearchSiteAdmin(SiteAdmin):
@@ -300,6 +303,7 @@ def export_as_shz(modeladmin, request, queryset):
     h['token'] = "782b77ba48c390cf8f74f9184a4398a8423d9efa"
     return h
 
+
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(admin.GeoModelAdmin):
     fields = (
@@ -333,6 +337,7 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
         export_as_json,
         export_as_shz
     ]
+
     def survey(self, obj):
         if obj.survey_trip:
             return obj.survey_trip.survey_id
@@ -340,6 +345,7 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
 
     survey.admin_order_field = 'survey_trip'
     survey.short_description = 'Survey Trip'
+
     def datapath(self, obj):
         if obj.data_source.values():
             return "\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
@@ -409,6 +415,7 @@ class DAASiteAdmin(admin.GeoModelAdmin):
         SiteTypeFilter
     ]
 
+
 geom_models = [
     YmacRegion,
     Tenement,
@@ -417,4 +424,3 @@ geom_models = [
 
 for gm in geom_models:
     admin.site.register(gm, YMACModelAdmin)
-

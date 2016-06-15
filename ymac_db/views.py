@@ -7,7 +7,11 @@ from models import HeritageSurvey
 
 
 def index(request):
-    return HttpResponse("You have reached the YMAC Spatial Database Website")
+    return render(request, 'base.html')
+
+
+def services(request):
+    return render(request, 'services.html')
 
 
 class SurveyView(View):

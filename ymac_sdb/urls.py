@@ -19,6 +19,7 @@ from ymac_db import views
 
 urlpatterns = [
     url(r'^home/', views.index, name='index'),
+    url(r'^services/', views.services, name='services'),
     url(r'^heritage_surveys/', views.SurveyView.as_view()),
     url(r'^', admin.site.urls),
 ]
