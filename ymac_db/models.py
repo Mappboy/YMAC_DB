@@ -5,7 +5,7 @@ from os import path
 from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
 
-from validators import valid_surveyid
+from .validators import valid_surveyid
 
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
@@ -131,6 +131,13 @@ ymac_region = [
     ("Yamatji", "Yamatji"),
 ]
 
+path_type = [
+    ("Spatial File", "Spatial File"),
+    ("Directory", "Directory"),
+    ("Survey Report", "Survey Report"),
+    ("Photo", "Photo"),
+]
+
 
 class SampleMethodology(models.Model):
     sampling_meth = models.CharField(unique=True, max_length=20)
@@ -195,9 +202,10 @@ class SurveyCleaning(models.Model):
     """
     cleaning_comment = models.TextField(blank=False, null=False)
     data_path = models.TextField(blank=False, null=False)
+    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
 
     class Meta:
-        managed = False
+        managed = True
 
     def __str__(self):
         name = self.data_path if self.data_path else self.cleaning_comment
@@ -332,7 +340,7 @@ class HeritageSurvey(models.Model):
     consultants = models.ManyToManyField('Consultant', blank=True, null=True, help_text="Consultants for survey")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.survey_trip.survey_id:
             return smart_text("{} - {}".format(self.survey_trip.survey_id, self.project_name))
         return smart_text(self.project_name)

@@ -307,7 +307,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Site',
             fields=[
-                ('site_id', models.AutoField(primary_key=True, serialize=False)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_recorded', models.DateField(blank=True, null=True)),
                 ('group_name',
                  models.TextField(blank=True, help_text='Is this site part of a group of sites or complex?',
@@ -321,9 +321,21 @@ class Migration(migrations.Migration):
                 ('active', models.NullBooleanField()),
                 ('capture_coord_sys', models.TextField(blank=True, null=True)),
                 ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4283)),
+                ('created_by',
+                 models.ForeignKey(blank=True, db_column='created_by', on_delete=django.db.models.deletion.CASCADE,
+                                   related_name='site_created_by', to='ymac_db.SiteUser')),
+                ('daa_sites', models.ManyToManyField(blank=True, to='ymac_db.DaaSite')),
+                ('docs', models.ManyToManyField(blank=True, to='ymac_db.SiteDocument')),
+                ('recorded_by', models.ForeignKey(blank=True, db_column='recorded_by', null=True,
+                                                  on_delete=django.db.models.deletion.CASCADE,
+                                                  related_name='site_recorded_by', to='ymac_db.SiteUser')),
+                ('restricted_status', models.ForeignKey(blank=True, db_column='restricted_status', null=True,
+                                                        on_delete=django.db.models.deletion.CASCADE,
+                                                        to='ymac_db.RestrictionStatus')),
+                ('surveys', models.ManyToManyField(blank=True, to='ymac_db.HeritageSurvey'))
             ],
             options={
-                'managed': False,
+                'managed': True,
             },
         ),
         migrations.CreateModel(

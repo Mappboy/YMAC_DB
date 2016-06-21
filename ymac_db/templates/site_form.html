@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+
+
+{% leaflet_js plugins="ALL" %}
+{% leaflet_css plugins="ALL" %}
+{% block content %}
+    <form action="/sites/" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="fieldWrapper">
+                {{ field.errors }}
+                {{ field.label_tag }} {{ field }}
+                {% if field.help_text %}
+                    <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <input type="submit" value="Submit"/>
+    </form>
+{% endblock %}
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted">&copy; YMAC 2016</p>
+        </div>
+    </footer>
+{% endblock %}

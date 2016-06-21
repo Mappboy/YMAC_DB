@@ -4,14 +4,15 @@
 # Set List display
 # Create our own map template
 from django.contrib import admin as baseadmin
+from django.contrib.gis import forms as geoforms
 from django.contrib.gis import admin
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
+from leaflet.admin import LeafletGeoAdmin
 
-from forms import *
+from .forms import *
 
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
@@ -148,25 +149,28 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
                                                  'Shell)'))
 
 
-class YMACModelAdmin(admin.GeoModelAdmin):
+class YMACModelAdmin(LeafletGeoAdmin):
     default_lat = -27
     default_lon = 121
+    # formfield_overrides = {
+    #    models.GeometryField: {'widget': OSMWidget},
+    # }
 
 
-models = [SiteUser,
-          CaptureOrg,
-          HeritageSurveyTrip,
-          SiteDocument,
-          SiteDescriptions,
-          RestrictionStatus,
-          SurveyMethodology,
-          Consultant,
-          Proponent,
-          RelatedSurveyCode,
-          SurveyProponentCode,
-          SurveyCleaning]
+basemodels = [SiteUser,
+              CaptureOrg,
+              HeritageSurveyTrip,
+              SiteDocument,
+              SiteDescriptions,
+              RestrictionStatus,
+              SurveyMethodology,
+              Consultant,
+              Proponent,
+              RelatedSurveyCode,
+              SurveyProponentCode,
+              SurveyCleaning]
 
-for m in models:
+for m in basemodels:
     admin.site.register(m)
 
 
@@ -210,12 +214,15 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
 class SiteAdmin(YMACModelAdmin):
     inlines = [
     ]
+    formfield_overrides = {
+        models.GeometryField: {'widget': geoforms.OSMWidget},
+    }
     list_display = [
-                    'site_identifier',
-                    'recorded_by',
-                    'date_recorded',
-                    'group_name',
-                    'restricted_status']
+        'site_identifier',
+        'recorded_by',
+        'date_recorded',
+        'group_name',
+        'restricted_status']
     list_filter = [
         'recorded_by',
         'date_recorded',
@@ -225,6 +232,7 @@ class SiteAdmin(YMACModelAdmin):
     search_fields = [
         'group_name',
     ]
+    form = SiteForm
 
 
 @admin.register(HeritageSite)
@@ -276,8 +284,8 @@ class ResearchSiteAdmin(SiteAdmin):
 
 def get_surveyids(modeladmin, request, queryset):
     for qs in queryset:
-        print qs.id
-    print modeladmin.model._meta.db_table
+        print(qs.id)
+    print(modeladmin.model._meta.db_table)
 
 
 get_surveyids.short_description = "Get selected survey ids"
@@ -379,10 +387,13 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
         'datapath'
     ]
     search_fields = [
-        'proponent_id',
+        'survey_group__group_name',
+        'survey_group__group_id',
     ]
     list_filter = [
+        'survey_group__group_name',
         'survey_type',
+
         HasGeomFilter
     ]
 
