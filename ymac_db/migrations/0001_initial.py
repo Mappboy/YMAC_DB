@@ -401,6 +401,12 @@ class Migration(migrations.Migration):
                 ('group_name', models.CharField(max_length=35)),
                 ('group_id', models.CharField(max_length=3)),
                 ('determined', models.BooleanField()),
+                ('heritage_officer',
+                 models.ForeignKey(blank=True, default=72, on_delete=django.db.models.deletion.CASCADE,
+                                   related_name='heritageuser', to='ymac_db.SiteUser')),
+                ('future_act_officer',
+                 models.ForeignKey(blank=True, default=71, on_delete=django.db.models.deletion.CASCADE,
+                                   related_name='futureactuser', to='ymac_db.SiteUser')),
                 ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, srid=4283)),
             ],
             options={

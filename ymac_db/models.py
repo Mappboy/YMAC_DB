@@ -138,6 +138,10 @@ path_type = [
     ("Photo", "Photo"),
 ]
 
+group_status = [
+    ('Represented', 'Represented'),
+    ('Discontinued', 'Discontinued'),
+]
 
 class SampleMethodology(models.Model):
     sampling_meth = models.CharField(unique=True, max_length=20)
@@ -803,6 +807,8 @@ class SurveyGroup(models.Model):
     group_name = models.CharField(max_length=35)
     group_id = models.CharField(max_length=3)
     determined = models.BooleanField()
+    status = models.CharField(max_length=15, choices=group_status, default="Represented",
+                              help_text="Does YMAC Represent the Claim")
     heritage_officer = models.ForeignKey(SiteUser, blank=True, related_name='heritageuser', default=72)
     future_act_officer = models.ForeignKey(SiteUser, blank=True, related_name='futureactuser', default=71)
     geom = models.GeometryField(srid=4283, blank=True)
@@ -811,7 +817,7 @@ class SurveyGroup(models.Model):
         return smart_text(self.group_name)
 
     class Meta:
-        managed = False
+        managed = True
 
 
 class RequestUser(models.Model):
