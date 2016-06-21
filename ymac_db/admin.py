@@ -15,6 +15,7 @@ from leaflet.admin import LeafletGeoAdmin
 from .forms import *
 
 
+
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Spatial Data Exists')
 
@@ -313,7 +314,7 @@ def export_as_shz(modeladmin, request, queryset):
 
 
 @admin.register(HeritageSurvey)
-class HeritageSurveyAdmin(admin.GeoModelAdmin):
+class HeritageSurveyAdmin(YMACModelAdmin):
     fields = (
         'survey_trip',
         'project_name',
@@ -359,23 +360,35 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
             return "\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
         return ''
 
+    def tripnumber(self, obj):
+        return obj.survey_trip.trip_number
+
+    tripnumber.short_description = "Trip Number"
+
     def datastatus(self, obj):
         if obj.data_status:
             return obj.data_status.status
         return ''
+
+    datastatus.short_description = "Status"
 
     def propname(self, obj):
         if obj.proponent:
             return obj.proponent.name
         return ''
 
+    propname.short_description = "Proponent"
+
     def groupname(self, obj):
         if obj.survey_group:
             return obj.survey_group.group_name
         return ''
 
+    groupname.short_description = "Claim"
+
     list_display = [
         'survey',
+        'tripnumber',
         'datastatus',
         'propname',
         'groupname',
