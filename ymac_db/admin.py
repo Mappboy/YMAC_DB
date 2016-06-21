@@ -213,6 +213,11 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
+    def get_queryset(self, request):
+        my_model = super(SiteAdmin, self).get_queryset(request)
+        my_model = my_model.prefetch_related('daa_sites')
+        my_model = my_model.prefetch_related('surveys')
+        return my_model
     inlines = [
     ]
     formfield_overrides = {

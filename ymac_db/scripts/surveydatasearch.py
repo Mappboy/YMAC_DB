@@ -34,7 +34,7 @@ PHOTOS = {
 }
 filesearch = re.compile("|".join([fnmatch.translate(ext) for ext in GEOFILES.keys()]))
 reportsearch = re.compile("|".join([fnmatch.translate(ext) for ext in REPORTFILES.keys()]))
-photsearch = fnmatch.translate("*.jpg")
+photosearch = fnmatch.translate("*.jpg")
 survey_match = re.compile("[A-Z&]{3}\d{3}[-_]?(\d{1,5})?")
 
 
@@ -132,7 +132,7 @@ def main():
                     # print("Found a Survey Directory {}".format(dentry.name))
                     continue
                 # Report file and match
-                elif surveys and dentry.is_file() and photsearch(dentry.name):
+                elif surveys and dentry.is_file() and photosearch(dentry.name):
                     # Save out as photo to survey
                     continue
                 elif surveys and dentry.is_file() and reportsearch.search(dentry.name) \
