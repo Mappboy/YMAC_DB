@@ -42,9 +42,9 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         # Compare the requested value (either '80s' or '90s')
         # to decide how to filter the queryset.
         if not self.value():
-            return queryset.filter(geom__isnull=True)
+            return queryset.all()
         else:
-            return queryset.filter(geom__isnull=False)
+            return queryset.filter(geom__isnull=self.value())
 
 
 class SiteTypeFilter(baseadmin.SimpleListFilter):
@@ -393,8 +393,7 @@ class HeritageSurveyAdmin(admin.GeoModelAdmin):
     list_filter = [
         'survey_group__group_name',
         'survey_type',
-
-        HasGeomFilter
+        # HasGeomFilter
     ]
 
 
