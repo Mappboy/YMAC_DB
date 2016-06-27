@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+    <div class="page-header">
+        <h1 class="text-center">The Fellowship of the Maps</h1>
+        <h2 class="text-center"> The Current Team </h2>
+    </div>
+    <div class="row">
+        <div class="col-sm-3 col-md-offset-1">
+            <div class="card">
+                <canvas class="header-bg" width="250" height="70" id="header-blur"></canvas>
+                <div class="avatar">
+                    <a href="#aboutModal" data-toggle="modal" data-target="#steveModal"><img src="" alt=""/></a>
+                </div>
+                <div class="content">
+                    <p>Steve "MappElf" Pashby<br>
+                        Head Spatial Officer</p>
+                    <p><a class="btn btn-default" href="mailto:spashby@ymac.org.au?Subject=Hello%20MapElf"
+                          role="button">Contact</a></p>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="steveModal" tabindex="-1" role="dialog" aria-labelledby="steveModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="steveModalLabel">More About MappElf</h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                                <img src="images/Legolask.jpg" name="aboutme" width="140" height="140" border="0"
+                                     class="img-circle"></a>
+                                <h3 class="media-heading">New Guy
+                                    <small>Spatial Officer</small>
+                                </h3>
+                                <span><strong>Skills: </strong></span>
+                                <span class="label label-warning">GIS Systems</span>
+                                <span class="label label-success">Management</span>
+                                <span class="label label-success">Archery</span>
+                            </center>
+                            <hr>
+                            <center>
+                                <p class="text-left"><strong>Bio: </strong><br></p>
+                                <br>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                            <center>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">I've heard enough
+                                    about MapElf
+                                </button>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="card">
+                <canvas class="header-bg" width="250" height="70" id="header-blur"></canvas>
+                <div class="avatar">
+                    <a href="#aboutModal" data-toggle="modal" data-target="#camModal"><img src="" alt=""/></a>
+                </div>
+                <div class="content">
+                    <p>Cameron "MapBoy" Poole<br>
+                        Developer</p>
+                    <p><a class="btn btn-default" href="mailto:cjpoole@ymac.org.au?Subject=Hello%20MapBoy"
+                          role="button">Contact</a></p>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="camModal" tabindex="-1" role="dialog" aria-labelledby="camModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="camModalLabel">More About MapBoy</h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                                <img src="{% static "images/Elijah_Wood_as_Frodo_Baggins.png" %}" name="aboutme"
+                                     width="140" height="140" border="0" class="img-circle"></a>
+                                <h3 class="media-heading">Cameron Poole
+                                    <small>Developer</small>
+                                </h3>
+                                <span><strong>Skills: </strong></span>
+                                <span class="label label-warning">Programming</span>
+                                <span class="label label-info">Web Development</span>
+                                <span class="label label-info">Casual Mapper</span>
+                                <span class="label label-success">Databases</span>
+                            </center>
+                            <hr>
+                            <center>
+                                <p class="text-left"><strong>Bio: </strong><br>
+                                    Has a degree in population health, worked for the Department of Health for five
+                                    years in the Data Linkage branch.
+                                    Extensive experience with databases, scripting and programming.
+                                    He travelled to Mordor to destroy the one ring to rule them all.
+                                    Can probably help you with anything technical.</p>
+                                <br>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                            <center>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">I've heard enough
+                                    about Cam
+                                </button>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="card">
+                <canvas class="header-bg" width="250" height="70" id="header-blur"></canvas>
+                <div class="avatar">
+                    <a href="#aboutModal" data-toggle="modal" data-target="#calModal"><img src="" alt=""/></a>
+                </div>
+                <div class="content">
+                    <p>Callum "MapBoy 2.0" Forsey<br>
+                        Casual Spatial Officer</p>
+                    <p><a class="btn btn-default" href="mailto:cforsey@ymac.org.au?Subject=Hello%20MapBoy2.0"
+                          role="button">Contact</a></p>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="calModal" tabindex="-1" role="dialog" aria-labelledby="calModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="calModalLabel">More About MapBoy 2.0</h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                                <img src="{% static "images/samwise3.jpg" %}" name="aboutme" width="140" height="140"
+                                     border="0" class="img-circle"></a>
+                                <h3 class="media-heading">Callum Forsey
+                                    <small> Data Forrager</small>
+                                </h3>
+                                <span><strong>Skills: </strong></span>
+                                <span class="label label-warning">Archeology</span>
+                                <span class="label label-info">ArcGIS</span>
+                                <span class="label label-info">QGIS</span>
+                                <span class="label label-success">Speed</span>
+                            </center>
+                            <hr>
+                            <center>
+                                <p class="text-left"><strong>Bio: </strong><br>
+                                    The youngest of the map team. Callum is currently finishing off his Honours in
+                                    Archeology.
+                                    Was hired to help with legacy data, but has taken on the role of helping to create
+                                    maps.
+                                    Is pretty quick on the rugby field and inherited the nickname Sirius Black.<br>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                            <center>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">I've heard enough
+                                    about Callum
+                                </button>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="page-header">
+        <h2 class="text-center">Past Members</h2>
+    </div>
+    <div class="row">
+        <div class="col-sm-3 col-md-offset-4">
+            <div class="card">
+                <canvas class="header-bg" width="250" height="70" id="header-blur"></canvas>
+                <div class="avatar">
+                    <a href="#aboutModal" data-toggle="modal" data-target="#cliveModal"><img src="" alt=""/></a>
+                </div>
+                <div class="content">
+                    <p>Clive "MappMan" Poole <br>
+                        Original Spatial Officer</p>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="cliveModal" tabindex="-1" role="dialog" aria-labelledby="cliveModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="cliveModalLabel">More About MApMan</h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                                <img src="{% static "images/Gandalf-2.jpg" %}" name="aboutme" width="140" height="140"
+                                     border="0" class="img-circle"></a>
+                                <h3 class="media-heading">Clive Poole
+                                    <small>Spatial Officer</small>
+                                </h3>
+                                <span><strong>Skills: </strong></span>
+                                <span class="label label-warning">GIS Systems</span>
+                                <span class="label label-info">Adobe</span>
+                                <span class="label label-info">Cooking</span>
+                                <span class="label label-success">Management</span>
+                                <span class="label label-success">Wizard</span>
+                            </center>
+                            <hr>
+                            <center>
+                                <p class="text-left"><strong>Bio: </strong><br>
+                                    Clive was the original Mappman, he formed the fellowship of the map.
+                                    Clive "The White" has departed middle-earth, probably for some new outlandish
+                                    adventure.
+                                    He famously said ‘All we have to decide is what to do with the time that is given to
+                                    us.’, what we shall do is make maps and have fun.
+                                    Vale Clive!
+                                </p>
+                                <br>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                            <center>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">I've heard enough
+                                    about Mapman
+                                </button>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <img class="src-image" src="{% static "images/Legolask.jpg" %}"/>
+    <img class="src-image" src="{% static "images/Elijah_Wood_as_Frodo_Baggins.png" %}"/>
+    <img class="src-image" src="{% static "images/samwise3.jpg" %}"/>
+    <img class="src-image" src="{% static "images/Gandalf-2.jpg" %}"/>
+{% endblock %}
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted">&copy; YMAC 2015</p>
+        </div>
+    </footer>
+    <script type='text/javascript' src="{% static "js/jquery1.9.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/contact.js" %}"></script>
+{% endblock %}

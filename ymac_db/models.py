@@ -129,6 +129,7 @@ project_status = [
 ymac_region = [
     ("Pilbara", "Pilbara"),
     ("Yamatji", "Yamatji"),
+    ("Both", "Both"),
 ]
 
 path_type = [
@@ -136,11 +137,62 @@ path_type = [
     ("Directory", "Directory"),
     ("Survey Report", "Survey Report"),
     ("Photo", "Photo"),
+    ("Prelim Advice", "Prelim Advice"),
 ]
 
 group_status = [
     ('Represented', 'Represented'),
     ('Discontinued', 'Discontinued'),
+]
+
+departments = [
+    ('Research', 'Research'),
+    ('Heritage', 'Heritage'),
+    ('Legal', 'Legal'),
+    ('Future Acts', 'Future Acts'),
+    ('Communications', 'Communications'),
+    ('Finance', 'Finance'),
+    ('Knowledge Partnerships', 'Knowledge Partnerships'),
+]
+
+map_sizes = [
+    ('A0', 'A0'),
+    ('A1', 'A1'),
+    ('A2', 'A2'),
+    ('A3', 'A3'),
+    ('A4', 'A4'),
+    ('Other', 'Other (Please describe in Other Instructions)'),
+]
+
+product_types = [
+    ('Digital only', 'Digital only'),
+    ('Hard Copy Posted', 'Hard Copy Posted'),
+    ('Digital and Hard Copy', 'Digital and Hard Copy'),
+    ('Other (please specify below)', 'Other (please specify below)'),
+]
+
+cost_centres = [
+    ('DPMC', 'DPMC'),
+    ('Cost Recovery', 'Cost Recovery'),
+    ('Non DPMC/Non Cost Recovery', 'Non DPMC/Non Cost Recovery'),
+]
+
+urgency = [
+    ("High Urgent", "High Urgent"),
+    ("High NOT Urgent", "High NOT Urgent"),
+    ("Medium Urgent", "Medium Urgent"),
+    ("Medium NOT Urgent", "Medium NOT Urgent"),
+    ("Low Urgent", "Low Urgent"),
+    ("Low NOT Urgent", "Low NOT Urgent"),
+]
+
+offices = [
+    ('Perth', 'Perth'),
+    ('Geraldton', 'Geraldton'),
+    ('South Hedland', 'South Hedland'),
+    ('Tom Price', 'Tom Price'),
+    ('Karratha', 'Karratha'),
+    ('Pilbara', 'Pilbara'),
 ]
 
 class SampleMethodology(models.Model):
@@ -205,6 +257,41 @@ class SurveyCleaning(models.Model):
     to a heritage survey.
     """
     cleaning_comment = models.TextField(blank=False, null=False)
+    data_path = models.TextField(blank=False, null=False)
+    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
+
+    class Meta:
+        managed = True
+
+    def __str__(self):
+        name = self.data_path if self.data_path else self.cleaning_comment
+        return smart_text("Cleaning Item {}".format(name))
+
+
+class SurveyTripCleaning(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey trip.
+    """
+    survey_trip = models.ForeignKey('HeritageSurveyTrip')
+    cleaning_comment = models.TextField(blank=False, null=False)
+    data_path = models.TextField(blank=False, null=False)
+    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
+
+    class Meta:
+        managed = True
+
+    def __str__(self):
+        name = self.data_path if self.data_path else self.cleaning_comment
+        return smart_text("Trip Cleaning Item {}".format(name))
+
+
+class PotentialSurvey(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey.
+    """
+    survey_id = models.CharField(max_length=15)
     data_path = models.TextField(blank=False, null=False)
     path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
 
@@ -425,6 +512,7 @@ class Proponent(models.Model):
 
     class Meta:
         managed = False
+        ordering = ('name',)
 
 
 class ResearchSite(models.Model):
@@ -667,6 +755,7 @@ class YmacClaim(models.Model):
     class Meta:
         managed = False
         db_table = 'ymac_claims'
+        ordering = ('name',)
 
 
 class YmacHeritageStaging(models.Model):
@@ -715,7 +804,7 @@ class YmacRegion(models.Model):
     effective = models.DateField(blank=True, null=True)
     comments = models.CharField(max_length=120, blank=True, null=True)
     juris = models.CharField(max_length=20, blank=True, null=True)
-    id = models.FloatField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     date_created = models.DateTimeField(blank=True, null=True)
     geom = models.GeometryField(blank=True, null=True)
 
@@ -723,7 +812,7 @@ class YmacRegion(models.Model):
         return smart_text(self.name)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'YMAC_region'
 
 
@@ -818,12 +907,33 @@ class SurveyGroup(models.Model):
 
     class Meta:
         managed = True
+        ordering = ('group_name',)
+
+
+class Department(models.Model):
+    name = models.CharField(max_length=25, choices=departments)
+    head = models.ForeignKey(YmacStaff)
+
+    def __str__(self):
+        return smart_text(self.name)
 
 
 class RequestUser(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
-    department = models.CharField(max_length=20)
+    department = models.ForeignKey('Department')
+    office = models.CharField(max_length=20, choices=offices, default="Perth")
+    region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
+
+    def __str__(self):
+        return smart_text(self.name)
+
+
+class RequestType(models.Model):
+    name = models.CharField(max_length=45)
+
+    def __str__(self):
+        return smart_text(self.name)
 
 
 class YMACSpatialRequest(models.Model):
@@ -831,17 +941,24 @@ class YMACSpatialRequest(models.Model):
     Still need to add in the choices for each
     """
     user = models.ForeignKey(RequestUser)
-    request_type = models.CharField(max_length=45)
-    office = models.CharField(max_length=20)
-    region = models.CharField(max_length=15)
-    claim = models.ForeignKey(YmacClaim)
+    request_type = models.ForeignKey('RequestType',
+                                     help_text="Please try to determine what sort of request "
+                                               "you have before completing this form.")
+    region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
+    claim = models.ManyToManyField(YmacClaim, blank=True)
     job_desc = models.TextField()
-    map_size = models.CharField(max_length=20)
-    sup_data = models.TextField()
-    required_by = models.DateField
-    cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients')
-    product_type = models.CharField(max_length=20)
-    other_instructions = models.TextField(blank=False)
-    cost_centre = models.CharField(max_length=20)
-    proponent = models.ForeignKey(Proponent)
-    priority = models.CharField(max_length=25)
+    map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
+                                                                            "you wish then please select.",
+                                blank=True, null=True)
+    sup_data = models.TextField(blank=True, help_text="If you have any data with this then please "
+                                                      "provide instructions as to where it can be located. "
+                                                      "Alternatively send a separate email to "
+                                                      "spatial@ymac.org.au with directions or as attachments.")
+    required_by = models.DateField()
+    cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
+    product_type = models.CharField(max_length=20, choices=product_types)
+    other_instructions = models.TextField(blank=True)
+    cost_centre = models.CharField(max_length=20, choices=cost_centres)
+    proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
+    priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
+                                                                          "assist spatial team to prioritise their task list")

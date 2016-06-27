@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+
+{% block head_js %}
+    {{ form.media }}
+    <script src={% static "js/jquery1.9.js" %}></script>
+    <script src={% static "js/bootstrap.min.js" %}></script>
+{% endblock %}
+{% block content %}
+    <form action="/spatial_request/" method="post" class="form">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">
+                {% bootstrap_icon "star" %} Submit
+            </button>
+        {% endbuttons %}
+    </form>
+{% endblock %}
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted">&copy; YMAC 2015</p>
+        </div>
+    </footer>
+{% endblock %}

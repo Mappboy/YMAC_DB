@@ -2,6 +2,7 @@ from django.contrib.gis import forms
 from django import forms as baseform
 from .models import *
 from leaflet.forms.widgets import LeafletWidget
+from datetimewidget.widgets import DateWidget
 
 
 # ADD Site Document Inline
@@ -21,3 +22,26 @@ class HeritageSiteForm(baseform.ModelForm):
     class Meta:
         model = HeritageSite
         exclude = []
+
+
+class YMACSpatialRequestForm(baseform.ModelForm):
+    user = forms.ModelChoiceField(RequestUser.objects.all(), label="Name:")
+    required_by = forms.DateField(label="Required by:", widget=DateWidget(options={
+        'format': 'dd-mm-yyyy',
+        'autoclose': True,
+        'showMeridian': True,
+        # 'todayBtn': True,
+        'startDate': '-1d'
+    }, bootstrap_version=3))
+    claim = forms.ModelMultipleChoiceField(YmacClaim.objects.all(), label="Claims (if known)",
+                                           widget=forms.SelectMultiple(attrs={'size': 10}))
+
+    def send_email(self):
+        pass
+
+    def update_smartsheet(self):
+        pass
+
+    class Meta:
+        model = YMACSpatialRequest
+        fields = '__all__'

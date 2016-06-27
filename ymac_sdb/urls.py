@@ -19,7 +19,12 @@ from ymac_db import views
 
 urlpatterns = [
     url(r'^home/', views.index, name='index'),
+    url(r'^about/', views.about, name='about'),
+    url(r'^contact/', views.contact, name='contact'),
     url(r'^services/', views.services, name='services'),
+    url(r'^software/', views.software, name='software'),
+    url(r'^workbenches/', views.workbenches, name='workbenches'),
+    url(r'^spatial_request/', views.SpatialRequestView.as_view(), name='spatail_request'),
     url(r'^sites/', views.get_site, name='sites'),
     url(r'^heritage_surveys/', views.SurveyView.as_view()),
     url(r'^', admin.site.urls),

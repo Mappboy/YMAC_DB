@@ -48,6 +48,59 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
             return queryset.filter(geom__isnull=self.value())
 
 
+class ClaimDataPathFilter(baseadmin.SimpleListFilter):
+    title = _('Potential Claim')
+
+    parameter_name = 'data_path'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('AMA', _('Amangu')),
+            ('BAD', _('Badimia')),
+            ('BAN', _('Banjima')),
+            ('BUD', _('Budina')),
+            ('GNU', _('Gnulli')),
+            ('HUT', _('Hutt River')),
+            ('JUR', _('Jurruru')),
+            ('K&M', _('Kuruma Marthadunera')),
+            ('KAR', _('Kariyarra')),
+            ('MAL', _('Malgana')),
+            ('NAA', _('Naaguja')),
+            ('NAN', _('Nanda')),
+            ('NGA', _('Ngarluma')),
+            ('NJA', _('Njamal')),
+            ('NLW', _('Ngarlawangga')),
+            ('NRL', _('Ngarla')),
+            ('NYA', _('Nyangumarta')),
+            ('NYI', _('Nyiyaparli')),
+            ('PAL', _('Palyku')),
+            ('PKK', _('Puutu Kunti Kurrama and Pinikura')),
+            ('THU', _('Thudgari')),
+            ('WJY', _('Wajarri Yamatji')),
+            ('YHW', _('Yinhawangka')),
+            ('YIN', _('Yindjibarndi')),
+            ('YUG', _('Yugunga-Nya')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(data_path__contains=self.value())
+        return queryset
+
 class SiteTypeFilter(baseadmin.SimpleListFilter):
     # Human-readable title which will be displayed in the
     # right admin sidebar just above the filter options.
@@ -169,7 +222,7 @@ basemodels = [SiteUser,
               Proponent,
               RelatedSurveyCode,
               SurveyProponentCode,
-              SurveyCleaning]
+              PotentialSurvey]
 
 for m in basemodels:
     admin.site.register(m)
@@ -210,6 +263,64 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
+
+# class SurveyCleaningHeritageSurveyInline(admin.TabularInline):
+#    model = SurveyCleaning.heritagesurveys.through
+#
+
+
+
+@admin.register(SurveyCleaning)
+class SurveyCleaningAdmin(baseadmin.ModelAdmin):
+    def surveys(self, obj):
+        print(obj)
+        try:
+            return ";\n".join([smart_text(hs.survey_trip) for hs in obj.heritagesurvey_set.all()])
+        except AttributeError:
+            return ''
+
+    surveys.short_description = "Surveys"
+
+    fields = (
+        'cleaning_comment',
+        'data_path',
+        'path_type',
+    )
+    list_display = [
+        'surveys',
+        'cleaning_comment',
+        'data_path',
+        'path_type',
+    ]
+    list_filter = [
+        'path_type',
+        ClaimDataPathFilter
+    ]
+    inlines = [
+    ]
+
+
+@admin.register(SurveyTripCleaning)
+class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
+    model = SurveyCleaning
+
+    fields = (
+        'survey_trip',
+        'data_path',
+        'path_type',
+    )
+    list_display = [
+        'survey_trip',
+        'data_path',
+        'path_type',
+    ]
+    list_filter = [
+        'path_type',
+        ClaimDataPathFilter
+    ]
+    inlines = [
+    ]
+    ordering = ('data_path', 'survey_trip',)
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
@@ -362,7 +473,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
 
     def datapath(self, obj):
         if obj.data_source.values():
-            return "\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
+            return ";\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
         return ''
 
     def tripnumber(self, obj):
@@ -397,6 +508,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'datastatus',
         'propname',
         'groupname',
+        'project_name',
         'survey_type',
         'sampling_meth',
         'date_create',
@@ -407,6 +519,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     search_fields = [
         'survey_group__group_name',
         'survey_group__group_id',
+        'project_name',
     ]
     list_filter = [
         'survey_group__group_name',

@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'leaflet'
+    'leaflet',
+    'bootstrap3',
+    'datetimewidget'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -130,4 +132,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (-27, 121),
+    'DEFAULT_ZOOM': 6,
+}
+
 STATIC_URL = '/static/'
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'ymac_sdb/static')

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <ul class="nav nav-sidebar">
+                    <li class="active"><a href="workbenches.html">Overview <span class="sr-only">(current)</span></a>
+                    </li>
+                    <!--li><a href="workbenches/validators.html">Validators</a></li-->
+                    <!--li><a href="workbenches/converters.html">Convertors</a></li-->
+                    <!--li><a href="workbenches/load_postgis.html">PostGis</a></li-->
+                    <!--li><a href="workbenches/live_data.html">Live data</a></li-->
+                    <li><a href="workbenches/data_download.html">Data Kiosk</a></li>
+                    <!--li><a href="workbenches/utilities.html">Utilities</a></li-->
+                </ul>
+            </div>
+
+            <div class="col-sm-9 col-md-10 main">
+                <h1 class="page-header">Data Kiosk Overview</h1>
+                <p> The Data Kiosk will allow users to easily access, view, transform, input and download spatial data
+                    here. <br>
+                    </br>It is for the most part a wrapper around <a href="http://spatial.yamatji.org.au:8080">FME
+                        server.</a></p>
+                <p>If you feel comfortable using FME server, or would just like to learn speak to Cameron and he will
+                    enable access.
+                </p>
+                <p> If you are unable to find a workbench or have an idea for a new work bench please contact Cameron.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
