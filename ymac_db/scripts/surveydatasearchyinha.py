@@ -586,23 +586,29 @@ def prelim_search():
     survey_files = {}
     # Check current objects first
     # Need to figure out what to do for survey trips
-    for qs in [SurveyCleaning.objects.all()]:
+    checked_dirs = set()
+    bad_dir = re.compile(r'^(\w):(\w)')
+    for qs in [SurveyCleaning.objects.all(), SurveyTripCleaning.objects.all()]:
         for sc in qs:
             if not sc.data_path:
                 continue
             _dir = sc.data_path if sc.path_type == "Directory" else os.path.dirname(sc.data_path)
+            m = bad_dir.search(_dir)
+            if m:
+                _dir = _dir[0] + ":\\" + _dir[2:]
             if "," in _dir:
                 _dir = _dir.split(",")[0]
-            if not _dir or not os.path.isdir(_dir):
+            if not _dir or not os.path.isdir(_dir) or _dir in checked_dirs:
                 print("%s is not a directory" % _dir)
                 continue
             try:
+                checked_dirs.add(_dir)
                 for dentry in rscandir(_dir):
                     match = survey_match.search(dentry.path)
                     if match:
                         # If we can't find a match this may return survey trips
-
-                        matched_hsurvey = sc.heritagesurvey_set.all()
+                        surveys = find_survey(match.group())
+                        matched_hsurvey = filter_survey(surveys, match.group(), dentry)
                         # Geo file and match
                         if dentry.is_file() \
                                 and reportsearch.search(dentry.name) \
@@ -619,14 +625,22 @@ def prelim_search():
     print("Total found %d" % prelim)
     with open('survey_files_prelim.pickle', 'wb') as f:
         pickle.dump(survey_files, f, pickle.HIGHEST_PROTOCOL)
-    add_files = []
+    with open('survey_trip_to_sort.pickle', 'wb') as f:
+        pickle.dump(survey_trip_to_sort, f, pickle.HIGHEST_PROTOCOL)
+    # Pickle the 'data' dictionary using the highest protocol available
     for h_survey, cleaning_files in survey_files.items():
+        add_files = []
         for cleaning_file in cleaning_files:
             sc, created = SurveyCleaning.objects.get_or_create(path_type=cleaning_file[0],
                                                                data_path=cleaning_file[1])
-            add_files.append(sc)
+            if created:
+                add_files.append(sc)
         h_survey.data_source.add(*add_files)
-
+    for ht_survey, cleaning_files in survey_trip_to_sort.items():
+        for cleaning_file in cleaning_files:
+            sc, created = SurveyTripCleaning.objects.get_or_create(survey_trip=ht_survey,
+                                                                   path_type=cleaning_file[0],
+                                                                   data_path=cleaning_file[1])
 
 if __name__ == '__main__':
     print("Running Survey analysis")

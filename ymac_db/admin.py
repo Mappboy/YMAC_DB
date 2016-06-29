@@ -264,9 +264,9 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
 
-# class SurveyCleaningHeritageSurveyInline(admin.TabularInline):
-#    model = SurveyCleaning.heritagesurveys.through
-#
+class SurveyCleaningHeritageSurveyInline(admin.TabularInline):
+    model = HeritageSurvey.data_source.through
+    show_change_link = True
 
 
 
@@ -297,6 +297,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         ClaimDataPathFilter
     ]
     inlines = [
+        SurveyCleaningHeritageSurveyInline
     ]
 
 
