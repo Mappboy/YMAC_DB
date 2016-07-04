@@ -103,9 +103,9 @@ class ClaimDataPathFilter(baseadmin.SimpleListFilter):
 
 
 class RelatedTripClaimFilter(baseadmin.SimpleListFilter):
-    title = _('Potential Claim')
+    title = _('Related Claim')
 
-    parameter_name = 'survey_trip__heritagesurvey__survey_group__group_id'
+    parameter_name = 'related_claim'
 
     def lookups(self, request, model_admin):
         """
@@ -157,7 +157,7 @@ class RelatedTripClaimFilter(baseadmin.SimpleListFilter):
 
 
 class RelatedClaimFilter(baseadmin.SimpleListFilter):
-    title = _('Potential Claim')
+    title = _('Related Claim')
 
     parameter_name = 'heritagesurvey__survey_group_group_id'
 
@@ -379,11 +379,6 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
 
-class SurveyCleaningHeritageSurveyInline(admin.TabularInline):
-    model = HeritageSurvey.data_source.through
-    show_change_link = True
-
-
 def move_to_surveydocs(modeladmin, request, queryset):
     """
     Function to move a SurveyCleaning Document to our cleaned Survey Document area
@@ -453,11 +448,10 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
+        RelatedClaimFilter,
         ClaimDataPathFilter,
-        RelatedClaimFilter
     ]
     inlines = [
-        SurveyCleaningHeritageSurveyInline
     ]
     actions = [move_to_surveydocs]
 
@@ -508,8 +502,6 @@ movest_surveydoc.short_description = "Move to Survey Docs"
 
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
-    model = SurveyCleaning
-
     fields = (
         'survey_trip',
         'data_path',
@@ -522,8 +514,9 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
+        RelatedTripClaimFilter,
         ClaimDataPathFilter,
-        RelatedTripClaimFilter
+        # ('survey_trip', baseadmin.RelatedOnlyFieldListFilter)
     ]
     inlines = [
     ]
