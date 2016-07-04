@@ -212,7 +212,8 @@ class DocumentType(models.Model):
     sub_type = models.CharField(max_length=30, choices=document_subtype, blank=True, null=True)
 
     def __str__(self):
-        return smart_text("%s : %s" % (self.document_type, self.sub_type))
+        doc_string = "%s : %s" % (self.document_type, self.sub_type) if self.sub_type else "%s" % (self.document_type)
+        return smart_text(doc_string)
 
 
 class SurveyDocument(models.Model):
@@ -304,7 +305,7 @@ class SurveyCleaning(models.Model):
 
     class Meta:
         managed = True
-
+        ordering = ('heritagesurvey__survey_trip__survey_id', 'data_path')
     def __str__(self):
         name = self.data_path if self.data_path else self.cleaning_comment
         return smart_text("Cleaning Item {}".format(name))

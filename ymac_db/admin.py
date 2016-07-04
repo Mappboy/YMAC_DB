@@ -6,6 +6,7 @@
 from django.contrib import admin as baseadmin
 from django.contrib.gis import forms as geoforms
 from django.contrib.gis import admin
+from django.utils.html import format_html
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -332,7 +333,6 @@ basemodels = [SiteUser,
               RelatedSurveyCode,
               SurveyProponentCode,
               PotentialSurvey,
-              SurveyDocument,
               DocumentType]
 
 for m in basemodels:
@@ -371,7 +371,7 @@ class HeritageSurveyProponentInline(admin.TabularInline):
     model = HeritageSurvey.proponent_codes.through
 
 
-class HeritageSurveyDocumenttInline(admin.TabularInline):
+class HeritageSurveyDocumentInline(admin.TabularInline):
     model = HeritageSurvey.documents.through
 
 
@@ -435,6 +435,12 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     surveys.short_description = "Surveys"
 
+    def show_data_pathurl(self, obj):
+
+        return format_html('<a href="{}">{}</a>',
+                           obj.data_path,
+                           obj.data_path)
+
     fields = (
         'cleaning_comment',
         'data_path',
@@ -443,7 +449,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     list_display = [
         'surveys',
         'cleaning_comment',
-        'data_path',
+        'show_data_pathurl',
         'path_type',
     ]
     list_filter = [
@@ -455,6 +461,41 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     actions = [move_to_surveydocs]
 
+
+@admin.register(SurveyDocument)
+class SurveyDocumentAdmin(baseadmin.ModelAdmin):
+    def surveys(self, obj):
+        print(obj)
+        try:
+            return ";\n".join([smart_text(hs.survey_trip) for hs in obj.heritagesurvey_set.all()])
+        except AttributeError:
+            return ''
+
+    surveys.short_description = "Surveys"
+
+    def show_data_pathurl(self, obj):
+        full_path = os.path.join(obj.filepath, obj.filename)
+        return format_html('<a href="{}">{}</a>',
+                           full_path,
+                           full_path)
+
+    fields = (
+        'document_type',
+        'filepath',
+        'filename',
+    )
+    list_display = [
+        'surveys',
+        'document_type',
+        'show_data_pathurl',
+    ]
+    list_filter = [
+        'document_type',
+        RelatedClaimFilter,
+    ]
+    inlines = [
+        HeritageSurveyDocumentInline
+    ]
 
 def movest_surveydoc(modeladmin, request, queryset):
     """
@@ -502,6 +543,10 @@ movest_surveydoc.short_description = "Move to Survey Docs"
 
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
+    def show_data_pathurl(self, obj):
+        return format_html('<a href="{}">{}</a>',
+                           obj.data_path,
+                           obj.data_path)
     fields = (
         'survey_trip',
         'data_path',
@@ -509,7 +554,7 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     )
     list_display = [
         'survey_trip',
-        'data_path',
+        'show_data_pathurl',
         'path_type',
     ]
     list_filter = [
@@ -658,7 +703,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HeritageSurveyConsultantInline,
         HeritageSurveyProponentInline,
         HeritageSurveyCleaningInline,
-        HeritageSurveyDocumenttInline
+        HeritageSurveyDocumentInline
     ]
     actions = [
         get_surveyids,
