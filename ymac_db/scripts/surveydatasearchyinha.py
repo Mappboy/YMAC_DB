@@ -599,7 +599,7 @@ def prelim_search():
             if "," in _dir:
                 _dir = _dir.split(",")[0]
             if not _dir or not os.path.isdir(_dir) or _dir in checked_dirs:
-                print("%s is not a directory" % _dir)
+                print("%s is not a directory or already checked" % _dir)
                 continue
             try:
                 checked_dirs.add(_dir)

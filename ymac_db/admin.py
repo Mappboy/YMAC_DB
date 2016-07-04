@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
-
+import os
 from .forms import *
 
 
@@ -100,6 +100,115 @@ class ClaimDataPathFilter(baseadmin.SimpleListFilter):
         if self.value():
             queryset = queryset.filter(data_path__contains=self.value())
         return queryset
+
+
+class RelatedTripClaimFilter(baseadmin.SimpleListFilter):
+    title = _('Potential Claim')
+
+    parameter_name = 'survey_trip__heritagesurvey__survey_group__group_id'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('AMA', _('Amangu')),
+            ('BAD', _('Badimia')),
+            ('BAN', _('Banjima')),
+            ('BUD', _('Budina')),
+            ('GNU', _('Gnulli')),
+            ('HUT', _('Hutt River')),
+            ('JUR', _('Jurruru')),
+            ('K&M', _('Kuruma Marthadunera')),
+            ('KAR', _('Kariyarra')),
+            ('MAL', _('Malgana')),
+            ('NAA', _('Naaguja')),
+            ('NAN', _('Nanda')),
+            ('NGA', _('Ngarluma')),
+            ('NJA', _('Njamal')),
+            ('NLW', _('Ngarlawangga')),
+            ('NRL', _('Ngarla')),
+            ('NYA', _('Nyangumarta')),
+            ('NYI', _('Nyiyaparli')),
+            ('PAL', _('Palyku')),
+            ('PKK', _('Puutu Kunti Kurrama and Pinikura')),
+            ('THU', _('Thudgari')),
+            ('WJY', _('Wajarri Yamatji')),
+            ('YHW', _('Yinhawangka')),
+            ('YIN', _('Yindjibarndi')),
+            ('YUG', _('Yugunga-Nya')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(survey_trip__heritagesurvey__survey_group__group_id=self.value())
+        return queryset
+
+
+class RelatedClaimFilter(baseadmin.SimpleListFilter):
+    title = _('Potential Claim')
+
+    parameter_name = 'heritagesurvey__survey_group_group_id'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('AMA', _('Amangu')),
+            ('BAD', _('Badimia')),
+            ('BAN', _('Banjima')),
+            ('BUD', _('Budina')),
+            ('GNU', _('Gnulli')),
+            ('HUT', _('Hutt River')),
+            ('JUR', _('Jurruru')),
+            ('K&M', _('Kuruma Marthadunera')),
+            ('KAR', _('Kariyarra')),
+            ('MAL', _('Malgana')),
+            ('NAA', _('Naaguja')),
+            ('NAN', _('Nanda')),
+            ('NGA', _('Ngarluma')),
+            ('NJA', _('Njamal')),
+            ('NLW', _('Ngarlawangga')),
+            ('NRL', _('Ngarla')),
+            ('NYA', _('Nyangumarta')),
+            ('NYI', _('Nyiyaparli')),
+            ('PAL', _('Palyku')),
+            ('PKK', _('Puutu Kunti Kurrama and Pinikura')),
+            ('THU', _('Thudgari')),
+            ('WJY', _('Wajarri Yamatji')),
+            ('YHW', _('Yinhawangka')),
+            ('YIN', _('Yindjibarndi')),
+            ('YUG', _('Yugunga-Nya')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(heritagesurvey__survey_group__group_id=self.value())
+        return queryset
+
 
 class SiteTypeFilter(baseadmin.SimpleListFilter):
     # Human-readable title which will be displayed in the
@@ -222,7 +331,9 @@ basemodels = [SiteUser,
               Proponent,
               RelatedSurveyCode,
               SurveyProponentCode,
-              PotentialSurvey]
+              PotentialSurvey,
+              SurveyDocument,
+              DocumentType]
 
 for m in basemodels:
     admin.site.register(m)
@@ -260,6 +371,10 @@ class HeritageSurveyProponentInline(admin.TabularInline):
     model = HeritageSurvey.proponent_codes.through
 
 
+class HeritageSurveyDocumenttInline(admin.TabularInline):
+    model = HeritageSurvey.documents.through
+
+
 class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
@@ -269,6 +384,50 @@ class SurveyCleaningHeritageSurveyInline(admin.TabularInline):
     show_change_link = True
 
 
+def move_to_surveydocs(modeladmin, request, queryset):
+    """
+    Function to move a SurveyCleaning Document to our cleaned Survey Document area
+    :param modeladmin:
+    :param request:
+    :param queryset:
+    :return:
+    """
+    conv_ext = {
+        '.shp': 'Shapefile',
+        '.shz': 'Shapefile',
+        '.gpx': 'GPX',
+        '.gdb': 'Geodatabase',
+        '.tab': 'Mapinfo',
+        '.kml': 'Google KML',
+        '.kmz': 'Google KML',
+    }
+    for qs in queryset:
+        # DocumentType.obejcts.get()
+        doc_type = qs.path_type
+
+        file_path, file_name = os.path.split(qs.data_path)
+        file_ext = os.path.splitext(qs.data_path)[1]
+        if doc_type == 'Prelim Advice':
+            did = DocumentType.objects.get(id=2)
+        elif doc_type == 'Survey Report':
+            did = DocumentType.objects.get(id=1)
+        elif doc_type == 'Photo':
+            did = DocumentType.objects.get(id=8)
+        elif doc_type == 'Spatial File':
+            did = DocumentType.objects.filter(sub_type=conv_ext[file_ext])[0]
+        else:
+            # Just ignore directories
+            pass
+        sd, created = SurveyDocument.objects.get_or_create(document_type=did,
+                                                           filepath=file_path,
+                                                           filename=file_name)
+        surveys = qs.heritagesurvey_set.all()
+        for survey in surveys:
+            survey.add(sd)
+        qs.delete()
+
+
+move_to_surveydocs.short_description = "Move to Survey Docs"
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
@@ -294,12 +453,58 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
-        ClaimDataPathFilter
+        ClaimDataPathFilter,
+        RelatedClaimFilter
     ]
     inlines = [
         SurveyCleaningHeritageSurveyInline
     ]
+    actions = [move_to_surveydocs]
 
+
+def movest_surveydoc(modeladmin, request, queryset):
+    """
+    Function to move a SurveyTripCleaning Document to our cleaned Survey Document area
+    :param modeladmin:
+    :param request:
+    :param queryset:
+    :return:
+    """
+    conv_ext = {
+        '.shp': 'Shapefile',
+        '.shz': 'Shapefile',
+        '.gpx': 'GPX',
+        '.gdb': 'Geodatabase',
+        '.tab': 'Mapinfo',
+        '.kml': 'Google KML',
+        '.kmz': 'Google KML',
+    }
+    for qs in queryset:
+        doc_type = qs.path_type
+        file_path, file_name = os.path.split(qs.data_path)
+        file_ext = os.path.splitext(qs.data_path)[1]
+        if doc_type == 'Prelim Advice':
+            did = DocumentType.objects.get(id=2)
+        elif doc_type == 'Survey Report':
+            did = DocumentType.objects.get(id=1)
+        elif doc_type == 'Photo':
+            did = DocumentType.objects.get(id=8)
+        elif doc_type == 'Spatial File':
+            did = DocumentType.objects.filter(sub_type=conv_ext[file_ext])[0]
+        else:
+            # Just ignore directories
+            pass
+        sd, created = SurveyDocument.objects.get_or_create(document_type=did,
+                                                           filepath=file_path,
+                                                           filename=file_name)
+        surveys = qs.heritagesurvey_set.all()
+        for survey in surveys:
+            survey.add(sd)
+        for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
+            rel_trip_clean.delete()
+
+
+movest_surveydoc.short_description = "Move to Survey Docs"
 
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
@@ -317,10 +522,12 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
-        ClaimDataPathFilter
+        ClaimDataPathFilter,
+        RelatedTripClaimFilter
     ]
     inlines = [
     ]
+    actions = [movest_surveydoc]
     ordering = ('data_path', 'survey_trip',)
 
 @admin.register(Site)
@@ -430,6 +637,7 @@ def export_as_shz(modeladmin, request, queryset):
     return h
 
 
+
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
     fields = (
@@ -456,7 +664,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     inlines = [
         HeritageSurveyConsultantInline,
         HeritageSurveyProponentInline,
-        HeritageSurveyCleaningInline
+        HeritageSurveyCleaningInline,
+        HeritageSurveyDocumenttInline
     ]
     actions = [
         get_surveyids,

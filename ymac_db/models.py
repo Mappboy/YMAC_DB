@@ -81,9 +81,20 @@ document_type = [('Image', 'Image'),
                  ('Audio', 'Audio'),
                  ('Video', 'Video'),
                  ('Document', 'Document'),
+                 ('Spatial', 'Spatial'),
                  ('Map', 'Map'),
                  ('Other', 'Other')
                  ]
+
+document_subtype = [
+    ('GPX', 'GPX'),
+    ('Shapefile', 'Shapefile'),
+    ('Mapinfo', 'Mapinfo'),
+    ('Geodatabase', 'Geodatabase'),
+    ('Google KML', 'Google KML'),
+    ('Preliminary Advice', 'Preliminary Advice'),
+    ('Survey Report', 'Survey Report')
+]
 states = [
     ('WA', 'WA'),
     ('NSW', 'NSW'),
@@ -194,6 +205,37 @@ offices = [
     ('Karratha', 'Karratha'),
     ('Pilbara', 'Pilbara'),
 ]
+
+
+class DocumentType(models.Model):
+    document_type = models.CharField(max_length=15, choices=document_type)
+    sub_type = models.CharField(max_length=30, choices=document_subtype, blank=True, null=True)
+
+    def __str__(self):
+        return smart_text("%s : %s" % (self.document_type, self.sub_type))
+
+
+class SurveyDocument(models.Model):
+    document_type = models.ForeignKey(DocumentType)
+    filepath = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.CharField(max_length=100, blank=True, null=True)
+
+    def check_file_exists(self):
+        """
+        Check file is on one of our drives and not local.
+        Also check if file actually exists
+        :return:
+        """
+        fp = path.join(self.filepath, self.filename)
+        drive = path.splitdrive(fp)[0] if not path.splitdrive(fp) else path.splitdrive(fp)[0]
+        if drive not in VALID_DRIVES:
+            return smart_text("Can't find Drive")
+        if not path.isfile(fp):
+            return smart_text("File does not exist")
+
+    def __str__(self):
+        return smart_text("%s : %s" % (self.document_type, self.filename))
+
 
 class SampleMethodology(models.Model):
     sampling_meth = models.CharField(unique=True, max_length=20)
@@ -429,6 +471,7 @@ class HeritageSurvey(models.Model):
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
     consultants = models.ManyToManyField('Consultant', blank=True, null=True, help_text="Consultants for survey")
+    documents = models.ManyToManyField(SurveyDocument, blank=True, help_text="Related documents")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
@@ -578,7 +621,7 @@ class SiteDocument(models.Model):
         :return:
         """
         fp = path.join(self.filepath, self.filename)
-        drive = path.splitdrive(fp)[0] if not path.splitunc(fp) else path.splitunc(fp)[0]
+        drive = path.splitdrive(fp)[0] if not path.splitdrive(fp) else path.splitdrive(fp)[0]
         if drive not in VALID_DRIVES:
             return smart_text("Can't find Drive")
         if not path.isfile(fp):
