@@ -843,7 +843,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         export_as_shz
     ]
     search_fields = ['survey_trip__survey_id',
-                     'survey_group__groupid',
+                     'survey_group__group_id',
                      'project_name']
 
     def survey(self, obj):
