@@ -474,6 +474,7 @@ class HeritageSurvey(models.Model):
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
     consultants = models.ManyToManyField('Consultant', blank=True, null=True, help_text="Consultants for survey")
     documents = models.ManyToManyField(SurveyDocument, blank=True, help_text="Related documents")
+    folder_location = models.TextField(blank=True, help_text="Location on Z drive of folder")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __unicode__(self):
