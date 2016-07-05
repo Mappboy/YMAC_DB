@@ -244,7 +244,7 @@ class DriveFilter(baseadmin.SimpleListFilter):
         # Compare the requested value (either '80s' or '90s')
         # to decide how to filter the queryset.
         if self.value():
-            queryset = queryset.filter(data_path_startswith=self.value())
+            queryset = queryset.filter(data_path__startswith=self.value())
         return queryset
 
 
