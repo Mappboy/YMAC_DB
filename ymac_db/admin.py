@@ -211,6 +211,59 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
         return queryset
 
 
+class RelatedClaimContainsFilter(baseadmin.SimpleListFilter):
+    title = _('Related Claim')
+
+    parameter_name = 'survey_contains'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('AMA', _('Amangu')),
+            ('BAD', _('Badimia')),
+            ('BAN', _('Banjima')),
+            ('BUD', _('Budina')),
+            ('GNU', _('Gnulli')),
+            ('HUT', _('Hutt River')),
+            ('JUR', _('Jurruru')),
+            ('K&M', _('Kuruma Marthadunera')),
+            ('KAR', _('Kariyarra')),
+            ('MAL', _('Malgana')),
+            ('NAA', _('Naaguja')),
+            ('NAN', _('Nanda')),
+            ('NGA', _('Ngarluma')),
+            ('NJA', _('Njamal')),
+            ('NLW', _('Ngarlawangga')),
+            ('NRL', _('Ngarla')),
+            ('NYA', _('Nyangumarta')),
+            ('NYI', _('Nyiyaparli')),
+            ('PAL', _('Palyku')),
+            ('PKK', _('Puutu Kunti Kurrama and Pinikura')),
+            ('THU', _('Thudgari')),
+            ('WJY', _('Wajarri Yamatji')),
+            ('YHW', _('Yinhawangka')),
+            ('YIN', _('Yindjibarndi')),
+            ('YUG', _('Yugunga-Nya')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(survey_id__startswith=self.value())
+        return queryset
+
 class SiteTypeFilter(baseadmin.SimpleListFilter):
     # Human-readable title which will be displayed in the
     # right admin sidebar just above the filter options.
@@ -332,7 +385,6 @@ basemodels = [SiteUser,
               Proponent,
               RelatedSurveyCode,
               SurveyProponentCode,
-              PotentialSurvey,
               DocumentType]
 
 for m in basemodels:
@@ -416,9 +468,8 @@ def move_to_surveydocs(modeladmin, request, queryset):
         sd, created = SurveyDocument.objects.get_or_create(document_type=did,
                                                            filepath=file_path,
                                                            filename=file_name)
-        surveys = qs.heritagesurvey_set.all()
-        for survey in surveys:
-            survey.add(sd)
+        for survey in qs.heritagesurvey_set.all():
+            survey.documents.add(sd)
         qs.delete()
 
 
@@ -533,8 +584,8 @@ def movest_surveydoc(modeladmin, request, queryset):
                                                            filepath=file_path,
                                                            filename=file_name)
         surveys = qs.heritagesurvey_set.all()
-        for survey in surveys:
-            survey.add(sd)
+        for survey in qs.heritagesurvey_set.all():
+            survey.documents.add(sd)
         for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
             rel_trip_clean.delete()
 
@@ -567,6 +618,35 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     actions = [movest_surveydoc]
     ordering = ('data_path', 'survey_trip',)
+
+
+@admin.register(PotentialSurvey)
+class PotentialSurveyAdmin(baseadmin.ModelAdmin):
+    def show_data_pathurl(self, obj):
+        return format_html('<a href="{}">{}</a>',
+                           obj.data_path,
+                           obj.data_path)
+
+    fields = (
+        'survey_id',
+        'data_path',
+        'path_type',
+    )
+    list_display = [
+        'survey_id',
+        'show_data_pathurl',
+        'path_type',
+    ]
+    list_filter = [
+        'path_type',
+        RelatedClaimContainsFilter,
+        ClaimDataPathFilter,
+        # ('survey_trip', baseadmin.RelatedOnlyFieldListFilter)
+    ]
+    inlines = [
+    ]
+    actions = []
+    ordering = ('data_path', 'survey_id',)
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
