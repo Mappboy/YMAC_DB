@@ -218,8 +218,8 @@ class DocumentType(models.Model):
 
 class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
-    filepath = models.CharField(max_length=255, blank=True, null=True)
-    filename = models.CharField(max_length=100, blank=True, null=True)
+    filepath = models.TextField(blank=True, null=True)
+    filename = models.CharField(max_length=200, blank=True, null=True)
 
     def check_file_exists(self):
         """
@@ -475,7 +475,7 @@ class HeritageSurvey(models.Model):
     documents = models.ManyToManyField(SurveyDocument, blank=True, help_text="Related documents")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.survey_trip.survey_id:
             return smart_text("{} - {}".format(self.survey_trip.survey_id, self.project_name))
         return smart_text(self.project_name)
@@ -697,7 +697,7 @@ class HeritageSurveyTrip(models.Model):
     date_from = models.DateField(blank=True, null=True)
     date_to = models.DateField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.trip_number:
             retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
         else:
