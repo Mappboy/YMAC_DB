@@ -493,7 +493,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     def show_data_pathurl(self, obj):
 
-        return format_html('<a href="{}">{}</a>',
+        return format_html(smart_text('<a href="{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
 
@@ -533,7 +533,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
 
     def show_data_pathurl(self, obj):
         full_path = os.path.join(obj.filepath, obj.filename)
-        return format_html('<a href="{}">{}</a>',
+        return format_html(smart_text('<a href="{}">{}</a>'),
                            full_path,
                            full_path)
 
@@ -606,7 +606,7 @@ movest_surveydoc.short_description = "Move to Survey Docs"
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     def show_data_pathurl(self, obj):
-        return format_html('<a href="{}">{}</a>',
+        return format_html(smart_text('<a href="{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
     fields = (
@@ -784,13 +784,6 @@ class ResearchSiteAdmin(SiteAdmin):
     ]
 
 
-def get_surveyids(modeladmin, request, queryset):
-    for qs in queryset:
-        print(qs.id)
-    print(modeladmin.model._meta.db_table)
-
-
-get_surveyids.short_description = "Get selected survey ids"
 
 
 def export_as_json(modeladmin, request, queryset):
@@ -845,7 +838,6 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HeritageSurveyDocumentInline
     ]
     actions = [
-        get_surveyids,
         export_as_json,
         export_as_shz
     ]
@@ -863,31 +855,31 @@ class HeritageSurveyAdmin(YMACModelAdmin):
 
     def datapath(self, obj):
         if obj.data_source.values():
-            return ";\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path])
+            return smart_text(";\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path]))
         return ''
 
     def tripnumber(self, obj):
-        return obj.survey_trip.trip_number
+        return smart_text(obj.survey_trip.trip_number)
 
     tripnumber.short_description = "Trip Number"
 
     def datastatus(self, obj):
         if obj.data_status:
-            return obj.data_status.status
+            return smart_text(obj.data_status.status)
         return ''
 
     datastatus.short_description = "Status"
 
     def propname(self, obj):
         if obj.proponent:
-            return obj.proponent.name
+            return smart_text(obj.proponent.name)
         return ''
 
     propname.short_description = "Proponent"
 
     def groupname(self, obj):
         if obj.survey_group:
-            return obj.survey_group.group_name
+            return smart_text(obj.survey_group.group_name)
         return ''
 
     groupname.short_description = "Claim"
