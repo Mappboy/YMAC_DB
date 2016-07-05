@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
+from django.contrib.admin.helpers import ActionForm
+from django.contrib import messages
 import os
 from .forms import *
 
@@ -468,9 +470,11 @@ def move_to_surveydocs(modeladmin, request, queryset):
         sd, created = SurveyDocument.objects.get_or_create(document_type=did,
                                                            filepath=file_path,
                                                            filename=file_name)
+        surveys = qs.heritagesurvey_set.all()
         for survey in qs.heritagesurvey_set.all():
             survey.documents.add(sd)
         qs.delete()
+        messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
 
 
 move_to_surveydocs.short_description = "Move to Survey Docs"
@@ -511,6 +515,8 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     inlines = [
     ]
     actions = [move_to_surveydocs]
+    search_fields = ['surveys__survey_trip__survey_id',
+                     'data_path']
 
 
 @admin.register(SurveyDocument)
@@ -584,10 +590,14 @@ def movest_surveydoc(modeladmin, request, queryset):
                                                            filepath=file_path,
                                                            filename=file_name)
         surveys = qs.heritagesurvey_set.all()
-        for survey in qs.heritagesurvey_set.all():
+        for survey in surveys:
             survey.documents.add(sd)
+        deleted = 0
         for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
             rel_trip_clean.delete()
+            deleted += 1
+        messages.success(request, "Created new document {}, added to surveys"
+                                  " {} and deleted {} Trip Cleanings".format(sd, surveys, deleted))
 
 
 movest_surveydoc.short_description = "Move to Survey Docs"
@@ -618,10 +628,16 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     actions = [movest_surveydoc]
     ordering = ('data_path', 'survey_trip',)
+    search_fields = ['survey_trip__survey_id',
+                     'data_path']
 
+
+class SetSurveyActionForm(ActionForm):
+    heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all())
 
 @admin.register(PotentialSurvey)
 class PotentialSurveyAdmin(baseadmin.ModelAdmin):
+    action_form = SetSurveyActionForm
     def show_data_pathurl(self, obj):
         return format_html('<a href="{}">{}</a>',
                            obj.data_path,
@@ -645,8 +661,50 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
     ]
     inlines = [
     ]
-    actions = []
+    actions = ['move_to_surveydocs']
     ordering = ('data_path', 'survey_id',)
+
+    def move_to_surveydocs(self, request, queryset):
+        """
+        Function to move a SurveyCleaning Document to our cleaned Survey Document area
+        :param modeladmin:
+        :param request:
+        :param queryset:
+        :return:
+        """
+        conv_ext = {
+            '.shp': 'Shapefile',
+            '.shz': 'Shapefile',
+            '.gpx': 'GPX',
+            '.gdb': 'Geodatabase',
+            '.tab': 'Mapinfo',
+            '.kml': 'Google KML',
+            '.kmz': 'Google KML',
+        }
+        for qs in queryset:
+            # DocumentType.obejcts.get()
+            doc_type = qs.path_type
+
+            file_path, file_name = os.path.split(qs.data_path)
+            file_ext = os.path.splitext(qs.data_path)[1]
+            if doc_type == 'Prelim Advice':
+                did = DocumentType.objects.get(id=2)
+            elif doc_type == 'Survey Report':
+                did = DocumentType.objects.get(id=1)
+            elif doc_type == 'Photo':
+                did = DocumentType.objects.get(id=8)
+            elif doc_type == 'Spatial File':
+                did = DocumentType.objects.filter(sub_type=conv_ext[file_ext])[0]
+            else:
+                # Just ignore directories
+                pass
+            sd, created = SurveyDocument.objects.get_or_create(document_type=did,
+                                                               filepath=file_path,
+                                                               filename=file_name)
+            survey = HeritageSurvey.objects.get(id=request.POST['heritage_survey'])
+            survey.documents.add(sd)
+            qs.delete()
+            messages.success(request, "Created document {} and moved to survey {}".format(sd, survey))
 
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
@@ -790,6 +848,9 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         export_as_json,
         export_as_shz
     ]
+    search_fields = ['survey_trip__survey_id',
+                     'survey_group__groupid',
+                     'project_name']
 
     def survey(self, obj):
         if obj.survey_trip:
