@@ -215,6 +215,39 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
         return queryset
 
 
+class DriveFilter(baseadmin.SimpleListFilter):
+    title = _('Drive Location')
+
+    parameter_name = 'drive_location'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('G', _('General')),
+            ('Q', _('Claims')),
+            ('K', _('Research')),
+            ('Z', _('Heritage')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(data_path_startswith=self.value())
+        return queryset
+
+
 class RelatedClaimContainsFilter(baseadmin.SimpleListFilter):
     title = _('Related Claim')
 
@@ -522,6 +555,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
+        DriveFilter,
         RelatedClaimFilter,
         ClaimDataPathFilter,
     ]
@@ -636,6 +670,7 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
         'path_type',
         RelatedTripClaimFilter,
         ClaimDataPathFilter,
+        DriveFilter
         # ('survey_trip', baseadmin.RelatedOnlyFieldListFilter)
     ]
     inlines = [
