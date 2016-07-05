@@ -267,7 +267,7 @@ class SurveyProponentCode(models.Model):
     This used to be the old rio_codes table but expanded.
     This is a one to many table.
     """
-    prop = models.ForeignKey('Proponent', blank=True)
+    proponent = models.ForeignKey('Proponent', blank=True)
     proponent_code = models.CharField(max_length=20, blank=True, null=True)
 
     def __unicode__(self):
