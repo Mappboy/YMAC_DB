@@ -938,7 +938,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     list_display = [
         'survey',
         'tripnumber',
-        'datastatus',
+        'project_status',
         'propname',
         'groupname',
         'project_name',
@@ -946,6 +946,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'sampling_meth',
         'date_create',
         'created_by',
+        'datastatus',
         'data_qa',
         'folder_location',
         'datapath'
@@ -954,6 +955,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     list_filter = [
         'survey_group__group_name',
         'survey_type',
+        'project_status',
         # HasGeomFilter
     ]
 
