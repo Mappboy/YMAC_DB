@@ -4,21 +4,23 @@
 # Set List display
 # Create our own map template
 from __future__ import unicode_literals
+
+import os
+
 from django.contrib import admin as baseadmin
-from django.contrib.gis import forms as geoforms
+from django.contrib import messages
+from django.contrib.admin.helpers import ActionForm
 from django.contrib.gis import admin
-from django.utils.html import format_html
+from django.contrib.gis import forms as geoforms
 from django.core import serializers
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
-from django.contrib.admin.helpers import ActionForm
-from django.contrib import messages
-import os
-from .forms import *
-from django.core.urlresolvers import reverse
 
+from .forms import *
 
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
@@ -244,6 +246,7 @@ class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
             queryset = queryset.filter(data_path__regex=self.value())
         return queryset
 
+
 class DriveFilter(baseadmin.SimpleListFilter):
     title = _('Drive Location')
 
@@ -329,6 +332,7 @@ class RelatedClaimContainsFilter(baseadmin.SimpleListFilter):
         if self.value():
             queryset = queryset.filter(survey_id__startswith=self.value())
         return queryset
+
 
 class SiteTypeFilter(baseadmin.SimpleListFilter):
     # Human-readable title which will be displayed in the
@@ -543,6 +547,7 @@ def move_to_surveydocs(modeladmin, request, queryset):
 
 move_to_surveydocs.short_description = "Move to Survey Docs"
 
+
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     def surveys(self, obj):
@@ -593,8 +598,9 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     actions = [move_to_surveydocs,
                url_to_edit]
-    search_fields = ['surveys__survey_trip__survey_id',
-                     'data_path']
+    search_fields = ['cleaning_comment',
+                     'data_path',
+                     'heritagesurvey__survey_trip__survey_id']
 
 
 @admin.register(SurveyDocument)
@@ -631,6 +637,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     inlines = [
         HeritageSurveyDocumentInline
     ]
+
 
 def movest_surveydoc(modeladmin, request, queryset):
     """
@@ -680,12 +687,14 @@ def movest_surveydoc(modeladmin, request, queryset):
 
 movest_surveydoc.short_description = "Move to Survey Docs"
 
+
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     def show_data_pathurl(self, obj):
         return format_html(smart_text('<a href="{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
+
     fields = (
         'survey_trip',
         'data_path',
@@ -739,9 +748,11 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
 class SetSurveyActionForm(ActionForm):
     heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all(), required=False)
 
+
 @admin.register(PotentialSurvey)
 class PotentialSurveyAdmin(baseadmin.ModelAdmin):
     action_form = SetSurveyActionForm
+
     def show_data_pathurl(self, obj):
         return format_html('<a href="{}">{}</a>',
                            obj.data_path,
@@ -823,6 +834,7 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
             qs.delete()
             messages.success(request, "Created document {} and moved to survey {}".format(sd, survey))
 
+
 @admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
     def get_queryset(self, request):
@@ -830,6 +842,7 @@ class SiteAdmin(YMACModelAdmin):
         my_model = my_model.prefetch_related('daa_sites')
         my_model = my_model.prefetch_related('surveys')
         return my_model
+
     inlines = [
     ]
     formfield_overrides = {
@@ -900,8 +913,6 @@ class ResearchSiteAdmin(SiteAdmin):
     ]
 
 
-
-
 def export_as_json(modeladmin, request, queryset):
     response = HttpResponse(content_type="application/json")
     serializers.serialize("geojson", queryset, stream=response)
@@ -921,7 +932,6 @@ def export_as_shz(modeladmin, request, queryset):
     h = HttpResponseRedirect(url)
     h['token'] = "782b77ba48c390cf8f74f9184a4398a8423d9efa"
     return h
-
 
 
 @admin.register(HeritageSurvey)
