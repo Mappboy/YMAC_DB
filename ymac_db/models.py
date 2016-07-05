@@ -267,17 +267,17 @@ class SurveyProponentCode(models.Model):
     This used to be the old rio_codes table but expanded.
     This is a one to many table.
     """
-    heritage_svy_id = models.IntegerField(null=False)
+    prop = models.ForeignKey('Proponent', blank=True)
     proponent_code = models.CharField(max_length=20, blank=True, null=True)
 
     def __unicode__(self):
         if self.proponent_code:
-            return smart_text("Proponent Code {}".format(self.proponent_code))
+            return smart_text("{} Code {}".format(self.proponent, self.proponent_code))
         else:
             return smart_text("No code")
 
     class Meta:
-        managed = False
+        managed = True
 
 
 class HeritageCompanies(models.Model):
