@@ -308,7 +308,7 @@ class SurveyCleaning(models.Model):
         ordering = ('heritagesurvey__survey_trip__survey_id', 'data_path')
 
     def __unicode__(self):
-        name = self.data_path if self.data_path else self.cleaning_comment
+        name = path.split(self.data_path)[1] if self.data_path else self.cleaning_comment
         return smart_text("Cleaning Item {}".format(name))
 
 
