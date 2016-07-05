@@ -897,13 +897,10 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'date_create',
         'created_by',
         'data_qa',
+        'folder_location',
         'datapath'
     ]
-    search_fields = [
-        'survey_group__group_name',
-        'survey_group__group_id',
-        'project_name',
-    ]
+
     list_filter = [
         'survey_group__group_name',
         'survey_type',
