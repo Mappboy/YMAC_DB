@@ -215,6 +215,35 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
         return queryset
 
 
+class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
+    title = _('Correct Filing')
+
+    parameter_name = 'correct_File'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            (r"Z:\\?Claim Groups\\\w+\\Heritage Surveys\\\d{4}", _('Correct')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(data_path__regex=self.value())
+        return queryset
+
 class DriveFilter(baseadmin.SimpleListFilter):
     title = _('Drive Location')
 
@@ -556,6 +585,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     list_filter = [
         'path_type',
         DriveFilter,
+        CorrectlyFiledFilter,
         RelatedClaimFilter,
         ClaimDataPathFilter,
     ]
@@ -668,10 +698,10 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
+        CorrectlyFiledFilter,
+        DriveFilter,
         RelatedTripClaimFilter,
         ClaimDataPathFilter,
-        DriveFilter
-        # ('survey_trip', baseadmin.RelatedOnlyFieldListFilter)
     ]
     inlines = [
     ]
@@ -740,6 +770,7 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
+        CorrectlyFiledFilter,
         RelatedClaimContainsFilter,
         ClaimDataPathFilter,
         # ('survey_trip', baseadmin.RelatedOnlyFieldListFilter)

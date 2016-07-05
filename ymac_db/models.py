@@ -479,7 +479,8 @@ class HeritageSurvey(models.Model):
 
     def __unicode__(self):
         if self.survey_trip.survey_id:
-            return smart_text("{} - {}".format(self.survey_trip.survey_id, self.project_name))
+            return smart_text(
+                "{} (Trip {})- {}".format(self.survey_trip.survey_id, self.survey_trip.trip_number, self.project_name))
         return smart_text(self.project_name)
 
     class Meta:
