@@ -211,7 +211,7 @@ class DocumentType(models.Model):
     document_type = models.CharField(max_length=15, choices=document_type)
     sub_type = models.CharField(max_length=30, choices=document_subtype, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         doc_string = "%s : %s" % (self.document_type, self.sub_type) if self.sub_type else "%s" % (self.document_type)
         return smart_text(doc_string)
 
@@ -234,14 +234,14 @@ class SurveyDocument(models.Model):
         if not path.isfile(fp):
             return smart_text("File does not exist")
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text("%s : %s" % (self.document_type, self.filename))
 
 
 class SampleMethodology(models.Model):
     sampling_meth = models.CharField(unique=True, max_length=20)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.sampling_meth)
 
     class Meta:
@@ -253,7 +253,7 @@ class SamplingConfidence(models.Model):
     sampling_conf = models.CharField(max_length=30)
     id = models.AutoField(primary_key=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.sampling_conf)
 
     class Meta:
@@ -270,7 +270,7 @@ class SurveyProponentCode(models.Model):
     heritage_svy_id = models.IntegerField(null=False)
     proponent_code = models.CharField(max_length=20, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.proponent_code:
             return smart_text("Proponent Code {}".format(self.proponent_code))
         else:
@@ -290,7 +290,7 @@ class HeritageCompanies(models.Model):
     class Meta:
         managed = False
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text("Company {}".format(self.company_name))
 
 
@@ -306,7 +306,8 @@ class SurveyCleaning(models.Model):
     class Meta:
         managed = True
         ordering = ('heritagesurvey__survey_trip__survey_id', 'data_path')
-    def __str__(self):
+
+    def __unicode__(self):
         name = self.data_path if self.data_path else self.cleaning_comment
         return smart_text("Cleaning Item {}".format(name))
 
@@ -324,7 +325,7 @@ class SurveyTripCleaning(models.Model):
     class Meta:
         managed = True
 
-    def __str__(self):
+    def __unicode__(self):
         name = self.data_path if self.data_path else self.cleaning_comment
         return smart_text("Trip Cleaning Item {}".format(name))
 
@@ -341,7 +342,7 @@ class PotentialSurvey(models.Model):
     class Meta:
         managed = True
 
-    def __str__(self):
+    def __unicode__(self):
         name = self.data_path if self.data_path else self.cleaning_comment
         return smart_text("Cleaning Item {}".format(name))
 
@@ -349,7 +350,7 @@ class PotentialSurvey(models.Model):
 class SiteDescriptions(models.Model):
     site_description = models.CharField(max_length=60, choices=site_description)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.site_description)
 
     class Meta:
@@ -381,7 +382,7 @@ class DaaSite(models.Model):
     shape_area = models.CharField(max_length=200, blank=True, null=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
     class Meta:
@@ -393,7 +394,7 @@ class DaaSite(models.Model):
 class DataSuppliers(models.Model):
     supplier = models.CharField(primary_key=True, max_length=50)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.supplier)
 
     class Meta:
@@ -407,7 +408,7 @@ class ExternalClientSite(models.Model):
     site_name = models.TextField(blank=True, null=True)
     geom = models.PolygonField(srid=4283)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.site_name)
 
     class Meta:
@@ -436,7 +437,7 @@ class HeritageSite(models.Model):
                                        related_name='heritagesites',
                                        )
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.site)
 
     class Meta:
@@ -488,7 +489,7 @@ class HeritageSurvey(models.Model):
 class SurveyMethodology(models.Model):
     survey_meth = models.CharField(max_length=40)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.survey_meth)
 
     class Meta:
@@ -536,7 +537,7 @@ class NnttDetermination(models.Model):
     date_created = models.DateTimeField(blank=True, null=True)
     geom = models.GeometryField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
     class Meta:
@@ -551,7 +552,7 @@ class Proponent(models.Model):
     contact = models.TextField(blank=True, null=True)
     email = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
     class Meta:
@@ -579,7 +580,7 @@ class ResearchSite(models.Model):
                                        db_column='site_id',
                                        related_name='researchdocuments')
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
 
     class Meta:
@@ -592,7 +593,7 @@ class RestrictionStatus(models.Model):
     gender = models.CharField(max_length=12, choices=gender, blank=True, null=True)
     claim = models.NullBooleanField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.claim and self.gender:
             status = "Gender Restricted {} and Claim Restricted".format(self.gender)
         elif self.claim and not self.gender:
@@ -628,7 +629,7 @@ class SiteDocument(models.Model):
         if not path.isfile(fp):
             return smart_text("File does not exist")
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.filename)
 
     class Meta:
@@ -657,7 +658,7 @@ class Site(models.Model):
     daa_sites = models.ManyToManyField('DaaSite', blank=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.site_identifier:
             return smart_text(self.site_identifier)
         return smart_text("Site {}".format(self.site_id))
@@ -670,7 +671,7 @@ class SurveyStatus(models.Model):
     survey_status_id = models.AutoField(primary_key=True)
     status = models.CharField(unique=True, max_length=8, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.status)
 
     class Meta:
@@ -684,7 +685,7 @@ class RelatedSurveyCode(models.Model):
     class Meta:
         managed = False
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.rel_survey_id)
 
 
@@ -713,7 +714,7 @@ class SurveyType(models.Model):
     type_id = models.CharField(unique=True, max_length=4)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.description)
 
     class Meta:
@@ -742,7 +743,7 @@ class Tenement(models.Model):
     ymac_region = models.NullBooleanField()
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.fmt_tenid)
 
     class Meta:
@@ -793,7 +794,7 @@ class YmacClaim(models.Model):
     geom = models.GeometryField(blank=True, null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
     class Meta:
@@ -832,7 +833,7 @@ class YmacHeritageStaging(models.Model):
     geom = models.GeometryField(blank=True, null=True)
     modified_time = models.DateTimeField()
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.ymac_svy_name)
 
     class Meta:
@@ -852,7 +853,7 @@ class YmacRegion(models.Model):
     date_created = models.DateTimeField(blank=True, null=True)
     geom = models.GeometryField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
     class Meta:
@@ -867,7 +868,7 @@ class YmacStaff(models.Model):
     last_name = models.CharField(max_length=40, blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.full_name)
 
     class Meta:
@@ -884,7 +885,7 @@ class Consultant(models.Model):
     company = models.ForeignKey('CaptureOrg', blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         if self.name:
             return smart_text(self.name)
         else:
@@ -906,7 +907,7 @@ class CaptureOrg(models.Model):
     organisation_postcode = models.IntegerField(blank=True, null=True)
     organisation_website = models.URLField(blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.organisation_name)
 
     class Meta:
@@ -923,7 +924,7 @@ class SiteUser(models.Model):
     capture_org = models.ForeignKey('CaptureOrg', blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.user_name)
 
     class Meta:
@@ -946,7 +947,7 @@ class SurveyGroup(models.Model):
     future_act_officer = models.ForeignKey(SiteUser, blank=True, related_name='futureactuser', default=71)
     geom = models.GeometryField(srid=4283, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.group_name)
 
     class Meta:
@@ -958,7 +959,7 @@ class Department(models.Model):
     name = models.CharField(max_length=25, choices=departments)
     head = models.ForeignKey(YmacStaff)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
 
@@ -969,14 +970,14 @@ class RequestUser(models.Model):
     office = models.CharField(max_length=20, choices=offices, default="Perth")
     region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
 
 class RequestType(models.Model):
     name = models.CharField(max_length=45)
 
-    def __str__(self):
+    def __unicode__(self):
         return smart_text(self.name)
 
 
