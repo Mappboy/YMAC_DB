@@ -3,6 +3,7 @@
 # MAke sure they are converted to 4283
 # Set List display
 # Create our own map template
+from __future__ import unicode_literals
 from django.contrib import admin as baseadmin
 from django.contrib.gis import forms as geoforms
 from django.contrib.gis import admin
