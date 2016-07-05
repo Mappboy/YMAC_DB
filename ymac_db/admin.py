@@ -17,6 +17,7 @@ from django.contrib.admin.helpers import ActionForm
 from django.contrib import messages
 import os
 from .forms import *
+from django.core.urlresolvers import reverse
 
 
 
@@ -491,6 +492,17 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     surveys.short_description = "Surveys"
 
+    def url_to_edit(self, request, queryset):
+        trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                               reverse('admin:%s_%s_change' % (
+                                                   hs._meta.app_label, hs._meta.model_name),
+                                                       args=[hs.id]),
+                                               hs.__unicode__()) for qs in queryset for hs in
+                                   qs.heritagesurvey_set.all()])
+        messages.info(request, format_html(trip_urls))
+
+    url_to_edit.short_description = "Get Heritage Surveys Links"
+
     def show_data_pathurl(self, obj):
 
         return format_html(smart_text('<a href="{}">{}</a>'),
@@ -515,7 +527,8 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     inlines = [
     ]
-    actions = [move_to_surveydocs]
+    actions = [move_to_surveydocs,
+               url_to_edit]
     search_fields = ['surveys__survey_trip__survey_id',
                      'data_path']
 
@@ -627,14 +640,39 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ]
     inlines = [
     ]
-    actions = [movest_surveydoc]
+
+    def url_to_edit(self, request, queryset):
+        trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                               reverse('admin:%s_%s_change' % (
+                                                   qs._meta.app_label, qs.survey_trip._meta.model_name),
+                                                       args=[qs.survey_trip_id]),
+                                               qs.survey_trip.__unicode__()) for qs in queryset])
+        messages.info(request, format_html(trip_urls))
+
+    url_to_edit.short_description = "Get Survey Trip links"
+
+    def url_to_hsedit(self, request, queryset):
+        trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                               reverse('admin:%s_%s_change' % (
+                                                   hs._meta.app_label, hs._meta.model_name),
+                                                       args=[hs.id]),
+                                               hs.__unicode__()) for qs in queryset for hs in
+                                   qs.survey_trip.heritagesurvey_set.all()])
+        messages.info(request, format_html(trip_urls))
+
+    url_to_hsedit.short_description = "Get Heritage Surveys Links"
+
+    actions = [movest_surveydoc,
+               url_to_edit,
+               url_to_hsedit,
+               ]
     ordering = ('data_path', 'survey_trip',)
     search_fields = ['survey_trip__survey_id',
                      'data_path']
 
 
 class SetSurveyActionForm(ActionForm):
-    heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all())
+    heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all(), required=False)
 
 @admin.register(PotentialSurvey)
 class PotentialSurveyAdmin(baseadmin.ModelAdmin):
@@ -643,6 +681,17 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
         return format_html('<a href="{}">{}</a>',
                            obj.data_path,
                            obj.data_path)
+
+    def url_to_edit(self, request, queryset):
+        trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                               reverse('admin:%s_%s_change' % (
+                                                   hs._meta.app_label, hs._meta.model_name),
+                                                       args=[hs.id]),
+                                               hs.__unicode__()) for qs in queryset for hs in
+                                   HeritageSurvey.objects.filter(survey_trip__survey_id__contains=qs.survey_id)])
+        messages.info(request, format_html(trip_urls))
+
+    url_to_edit.short_description = "Get Potential Heritage Surveys Links"
 
     fields = (
         'survey_id',
@@ -662,7 +711,8 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
     ]
     inlines = [
     ]
-    actions = ['move_to_surveydocs']
+    actions = ['move_to_surveydocs',
+               url_to_edit]
     ordering = ('data_path', 'survey_id',)
 
     def move_to_surveydocs(self, request, queryset):
