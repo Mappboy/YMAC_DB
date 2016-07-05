@@ -829,7 +829,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'date_mod',
         'data_qa',
         'data_status',
-        'folder_location'
+        'folder_location',
         'geom',
     )
     inlines = [
