@@ -457,7 +457,7 @@ basemodels = [SiteUser,
               RelatedSurveyCode,
               SurveyProponentCode,
               DocumentType,
-              FileCleanUp]
+              ]
 
 for m in basemodels:
     admin.site.register(m)
@@ -585,6 +585,15 @@ def move_to_clean_up(modeladmin, request, queryset):
 
 
 move_to_clean_up.short_description = "Move item to File Clean up"
+
+
+@admin.register(FileCleanUp)
+class FileCleanUpAdmin(baseadmin.ModelAdmin):
+    list_display = [
+        'data_path',
+        'submitted_user'
+    ]
+
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):

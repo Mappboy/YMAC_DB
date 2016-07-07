@@ -1031,5 +1031,11 @@ class YMACSpatialRequest(models.Model):
 
 
 class FileCleanUp(models.Model):
+    """
+    Will clean up all these files after approval
+    """
     data_path = models.TextField()
     submitted_user = models.ForeignKey(User)
+
+    def __unicode__(self):
+        return smart_text(self.data_path)
