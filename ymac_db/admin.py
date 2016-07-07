@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+from import_export.admin import ImportExportModelAdmin
 from leaflet.admin import LeafletGeoAdmin
 
 from .forms import *
@@ -455,7 +456,8 @@ basemodels = [SiteUser,
               Proponent,
               RelatedSurveyCode,
               SurveyProponentCode,
-              DocumentType]
+              DocumentType,
+              FileCleanUp]
 
 for m in basemodels:
     admin.site.register(m)
@@ -501,9 +503,10 @@ class HeritageSurveyCleaningInline(admin.TabularInline):
     model = HeritageSurvey.data_source.through
 
 
-def move_to_surveydocs(modeladmin, request, queryset):
+def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
     """
     Function to move a SurveyCleaning Document to our cleaned Survey Document area
+    TODO add a check if we do want to link or just move to surveyDocuments
     :param modeladmin:
     :param request:
     :param queryset:
@@ -538,15 +541,50 @@ def move_to_surveydocs(modeladmin, request, queryset):
         sd, created = SurveyDocument.objects.get_or_create(document_type=did,
                                                            filepath=file_path,
                                                            filename=file_name)
-        surveys = qs.heritagesurvey_set.all()
-        for survey in qs.heritagesurvey_set.all():
-            survey.documents.add(sd)
+        if modeladmin == SurveyCleaningAdmin:
+            surveys = qs.heritagesurvey_set.all()
+            if linkfiles:
+                for survey in qs.heritagesurvey_set.all():
+                    survey.documents.add(sd)
+            qs.delete()
+            messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
+        elif modeladmin == SurveyTripCleaningAdmin:
+            deleted = 0
+            for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
+                rel_trip_clean.delete()
+                deleted += 1
+            messages.success(request, "Created new document {}, added to surveys"
+                                      " {} and deleted {} Trip Cleanings".format(sd, surveys, deleted))
+
+
+def move_to_survey_docs(modeladmin, request, queryset):
+    move_to_surveydocs(modeladmin, request, queryset)
+
+
+move_to_survey_docs.short_description = "Move to Survey Docs and Link"
+
+
+def move_to_docs(modeladmin, request, queryset):
+    move_to_surveydocs(modeladmin, request, queryset, False)
+
+
+move_to_docs.short_description = "Move to Survey Docs"
+
+
+def move_to_clean_up(modeladmin, request, queryset):
+    """
+    Move an object with a datapath to Clean up table. Which is a review table for deleting duplicate or bad items
+    :param modeladmin:
+    :param request:
+    :param queryset:
+    :return:
+    """
+    for qs in queryset:
+        FileCleanUp.objects.create(data_path=qs.data_path, submitted_user=request.user)
         qs.delete()
-        messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
 
 
-move_to_surveydocs.short_description = "Move to Survey Docs"
-
+move_to_clean_up.short_description = "Move item to File Clean up"
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
@@ -576,14 +614,40 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
                            obj.data_path,
                            obj.data_path)
 
+    def startdate(self, obj):
+        start_date = None
+        for hs in obj.heritagesurvey_set.all():
+            if not start_date:
+                start_date = hs.survey_trip.date_from
+            elif hs.survey_trip.date_from < start_date:
+                start_date = hs.survey_trip.date_from
+            else:
+                continue
+        return smart_text(start_date)
+
+    startdate.short_description = "Start Date"
+
+    def enddate(self, obj):
+        end_date = None
+        for hs in obj.heritagesurvey_set.all():
+            if not end_date:
+                end_date = hs.survey_trip.date_from
+            elif hs.survey_trip.date_from > end_date:
+                end_date = hs.survey_trip.date_from
+            else:
+                continue
+        return smart_text(end_date)
+
+    enddate.short_description = "End Date"
+
     fields = (
-        'cleaning_comment',
         'data_path',
         'path_type',
     )
     list_display = [
         'surveys',
-        'cleaning_comment',
+        'startdate',
+        'enddate',
         'show_data_pathurl',
         'path_type',
     ]
@@ -596,11 +660,18 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     inlines = [
     ]
-    actions = [move_to_surveydocs,
-               url_to_edit]
-    search_fields = ['cleaning_comment',
-                     'data_path',
-                     'heritagesurvey__survey_trip__survey_id']
+    actions = [move_to_survey_docs,
+               move_to_docs,
+               url_to_edit,
+               move_to_clean_up]
+    search_fields = [
+        'data_path',
+        'heritagesurvey__survey_trip__survey_id']
+
+
+@admin.register(YMACSpatialRequest)
+class YMACSpatialRequestAdmin(ImportExportModelAdmin):
+    pass
 
 
 @admin.register(SurveyDocument)
@@ -639,61 +710,22 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     ]
 
 
-def movest_surveydoc(modeladmin, request, queryset):
-    """
-    Function to move a SurveyTripCleaning Document to our cleaned Survey Document area
-    :param modeladmin:
-    :param request:
-    :param queryset:
-    :return:
-    """
-    conv_ext = {
-        '.shp': 'Shapefile',
-        '.shz': 'Shapefile',
-        '.gpx': 'GPX',
-        '.gdb': 'Geodatabase',
-        '.tab': 'Mapinfo',
-        '.kml': 'Google KML',
-        '.kmz': 'Google KML',
-    }
-    for qs in queryset:
-        doc_type = qs.path_type
-        file_path, file_name = os.path.split(qs.data_path)
-        file_ext = os.path.splitext(qs.data_path)[1]
-        if doc_type == 'Prelim Advice':
-            did = DocumentType.objects.get(id=2)
-        elif doc_type == 'Survey Report':
-            did = DocumentType.objects.get(id=1)
-        elif doc_type == 'Photo':
-            did = DocumentType.objects.get(id=8)
-        elif doc_type == 'Spatial File':
-            did = DocumentType.objects.filter(sub_type=conv_ext[file_ext])[0]
-        else:
-            # Just ignore directories
-            pass
-        sd, created = SurveyDocument.objects.get_or_create(document_type=did,
-                                                           filepath=file_path,
-                                                           filename=file_name)
-        surveys = qs.heritagesurvey_set.all()
-        for survey in surveys:
-            survey.documents.add(sd)
-        deleted = 0
-        for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
-            rel_trip_clean.delete()
-            deleted += 1
-        messages.success(request, "Created new document {}, added to surveys"
-                                  " {} and deleted {} Trip Cleanings".format(sd, surveys, deleted))
-
-
-movest_surveydoc.short_description = "Move to Survey Docs"
-
-
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     def show_data_pathurl(self, obj):
         return format_html(smart_text('<a href="{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
+
+    def startdate(self, obj):
+        return smart_text(obj.survey_trip.date_from)
+
+    startdate.short_description = "Start Date"
+
+    def enddate(self, obj):
+        return smart_text(obj.survey_trip.date_to)
+
+    enddate.short_description = "End Date"
 
     fields = (
         'survey_trip',
@@ -702,6 +734,8 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     )
     list_display = [
         'survey_trip',
+        'startdate',
+        'enddate',
         'show_data_pathurl',
         'path_type',
     ]
@@ -736,9 +770,11 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
 
     url_to_hsedit.short_description = "Get Heritage Surveys Links"
 
-    actions = [movest_surveydoc,
+    actions = [move_to_survey_docs,
+               move_to_docs,
                url_to_edit,
                url_to_hsedit,
+               move_to_clean_up
                ]
     ordering = ('data_path', 'survey_trip',)
     search_fields = ['survey_trip__survey_id',
@@ -990,6 +1026,16 @@ class HeritageSurveyAdmin(YMACModelAdmin):
 
     tripnumber.short_description = "Trip Number"
 
+    def startdate(self, obj):
+        return smart_text(obj.survey_trip.date_from)
+
+    startdate.short_description = "Start Date"
+
+    def enddate(self, obj):
+        return smart_text(obj.survey_trip.date_to)
+
+    enddate.short_description = "End Date"
+
     def datastatus(self, obj):
         if obj.data_status:
             return smart_text(obj.data_status.status)
@@ -1025,6 +1071,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'datastatus',
         'data_qa',
         'folder_location',
+        'startdate',
+        'enddate',
         'datapath'
     ]
 

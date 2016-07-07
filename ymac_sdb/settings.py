@@ -11,9 +11,14 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 FOR Some Reason the spatial server couldn't load the GEOS plugin
 had to include it manually in this file
 GEOS_LIBRARY_PATH = 'C:\\OSGeo4W64\\bin\\geos_c.dll'
+
+MAybe include:
+    - https://github.com/django-import-export/django-import-export
+    - https://github.com/divio/django-filer
 """
 
 import os
+from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +30,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '$6a*9_a&4e3)-2%q)w4ij#!rsrsabo#yr)@z67u3l$099)kmk-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -34,6 +39,12 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'ymac_db.apps.YmacDbConfig',
     'django.contrib.gis',
+    'dal',
+    'dal_select2',
+    'import_export',
+    # 'grappelli',
+    'suit',
+    # 'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,6 +81,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Included this for suit
+                'django.core.context_processors.request',
             ],
         },
     },
@@ -136,6 +149,12 @@ LEAFLET_CONFIG = {
     'DEFAULT_CENTER': (-27, 121),
     'DEFAULT_ZOOM': 6,
 }
+
+SUIT_CONFIG = {
+    'ADMIN_NAME': 'Spatial Database'
+}
+
+GRAPPELLI_ADMIN_TITLE = 'YMAC Spatial Database'
 
 STATIC_URL = '/static/'
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))

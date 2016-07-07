@@ -4,6 +4,7 @@ from os import path
 
 from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
+from django.contrib.auth.models import User
 
 from .validators import valid_surveyid
 
@@ -299,7 +300,6 @@ class SurveyCleaning(models.Model):
     These are cleaning comments and data paths that can be attached
     to a heritage survey.
     """
-    cleaning_comment = models.TextField(blank=False, null=False)
     data_path = models.TextField(blank=False, null=False)
     path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
 
@@ -308,8 +308,7 @@ class SurveyCleaning(models.Model):
         ordering = ('heritagesurvey__survey_trip__survey_id', 'data_path')
 
     def __unicode__(self):
-        name = path.split(self.data_path)[1] if self.data_path else self.cleaning_comment
-        return smart_text("Cleaning Item {}".format(name))
+        return smart_text("Cleaning Item {}".format(path.split(self.data_path)[1]))
 
 
 class SurveyTripCleaning(models.Model):
@@ -707,6 +706,13 @@ class HeritageSurveyTrip(models.Model):
             retstr = "{}".format(self.survey_id)
         return smart_text(retstr)
 
+    def related_label(self):
+        if self.trip_number:
+            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
+        else:
+            retstr = "{}".format(self.survey_id)
+        return smart_text(retstr)
+
     class Meta:
         managed = False
         ordering = ('survey_id',)
@@ -987,7 +993,7 @@ class YMACSpatialRequest(models.Model):
     """
     Still need to add in the choices for each
     """
-    user = models.ForeignKey(RequestUser)
+    user = models.ForeignKey(RequestUser, blank=True)
     request_type = models.ForeignKey('RequestType',
                                      help_text="Please try to determine what sort of request "
                                                "you have before completing this form.")
@@ -997,11 +1003,14 @@ class YMACSpatialRequest(models.Model):
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
                                 blank=True, null=True)
-    sup_data = models.TextField(blank=True, help_text="If you have any data with this then please "
+    sup_data_text = models.TextField(blank=True, help_text="If you have any data with this then please "
                                                       "provide instructions as to where it can be located. "
                                                       "Alternatively send a separate email to "
                                                       "spatial@ymac.org.au with directions or as attachments.")
+    sup_data_file = models.FileField(blank=True, help_text="Upload a data file")
     required_by = models.DateField()
+    request_datetime = models.DateTimeField()
+    completed_datetime = models.DateTimeField(blank=True)
     cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
     product_type = models.CharField(max_length=20, choices=product_types)
     other_instructions = models.TextField(blank=True)
@@ -1009,3 +1018,18 @@ class YMACSpatialRequest(models.Model):
     proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
     priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
                                                                           "assist spatial team to prioritise their task list")
+    map = models.BooleanField(default=False)
+    data = models.BooleanField(default=False)
+    analysis = models.BooleanField(default=False)
+    other = models.BooleanField(default=False)
+    draft = models.BooleanField(default=False)
+    done = models.BooleanField(default=False)
+    assigned_to = models.ForeignKey(YmacStaff, blank=True)
+    time_spent = models.IntegerField(blank=True)
+    duration_till_completion = models.CharField(max_length=10, blank=True)
+    related_jobs = models.ManyToManyField("self")
+
+
+class FileCleanUp(models.Model):
+    data_path = models.TextField()
+    submitted_user = models.ForeignKey(User)
