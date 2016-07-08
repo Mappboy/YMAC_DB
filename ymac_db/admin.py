@@ -541,7 +541,7 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
         sd, created = SurveyDocument.objects.get_or_create(document_type=did,
                                                            filepath=file_path,
                                                            filename=file_name)
-        if modeladmin == SurveyCleaningAdmin:
+        if modeladmin.model == SurveyCleaning:
             surveys = qs.heritagesurvey_set.all()
             if linkfiles:
                 for survey in qs.heritagesurvey_set.all():
@@ -549,9 +549,10 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
             else:
                 for survey in qs.heritagesurvey_set.all():
                     survey.data_source.delete(sd)
+                messages.info(request, "Deleting {} from surveys {}".format(sd, surveys))
             qs.delete()
             messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
-        elif modeladmin == SurveyTripCleaningAdmin:
+        elif modeladmin.model == SurveyTripCleaning:
             deleted = 0
             for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
                 rel_trip_clean.delete()
