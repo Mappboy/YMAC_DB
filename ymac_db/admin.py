@@ -546,6 +546,9 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
             if linkfiles:
                 for survey in qs.heritagesurvey_set.all():
                     survey.documents.add(sd)
+            else:
+                for survey in qs.heritagesurvey_set.all():
+                    survey.data_source.delete(sd)
             qs.delete()
             messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
         elif modeladmin == SurveyTripCleaningAdmin:

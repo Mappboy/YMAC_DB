@@ -15,6 +15,7 @@ GEOS_LIBRARY_PATH = 'C:\\OSGeo4W64\\bin\\geos_c.dll'
 MAybe include:
     - https://github.com/django-import-export/django-import-export
     - https://github.com/divio/django-filer
+    - http://django-guardian.readthedocs.io/en/stable/api/guardian.admin.html
 """
 
 import os
@@ -127,6 +128,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+]
+
+# LDAP AUTH INTEGRATION
+AUTH_LDAP_SERVER_URI = "ldap://192.168.0.36:389"
+AUTH_LDAP_BIND_DN = "svc_spatial@yamatji.org.au"
+AUTH_LDAP_BIND_PASSWORD = "Yamatji_01Spatial"
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Internationalization

@@ -1000,6 +1000,7 @@ class YMACSpatialRequest(models.Model):
     region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
     claim = models.ManyToManyField(YmacClaim, blank=True)
     job_desc = models.TextField()
+    job_control = models.CharField(max_length=9, blank=True)
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
                                 blank=True, null=True)
@@ -1012,9 +1013,10 @@ class YMACSpatialRequest(models.Model):
     request_datetime = models.DateTimeField()
     completed_datetime = models.DateTimeField(blank=True)
     cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
-    product_type = models.CharField(max_length=20, choices=product_types)
+    product_type = models.CharField(max_length=20, choices=product_types, blank=True)
     other_instructions = models.TextField(blank=True)
-    cost_centre = models.CharField(max_length=20, choices=cost_centres)
+    # Set this back to false
+    cost_centre = models.CharField(max_length=20, choices=cost_centres, blank=True)
     proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
     priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
                                                                           "assist spatial team to prioritise their task list")
@@ -1026,7 +1028,6 @@ class YMACSpatialRequest(models.Model):
     done = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(YmacStaff, blank=True)
     time_spent = models.IntegerField(blank=True)
-    duration_till_completion = models.CharField(max_length=10, blank=True)
     related_jobs = models.ManyToManyField("self")
 
 
