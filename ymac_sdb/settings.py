@@ -31,9 +31,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '$6a*9_a&4e3)-2%q)w4ij#!rsrsabo#yr)@z67u3l$099)kmk-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*', ]
+ALLOWED_HOSTS = ['*', '127.0.0.1']
 
 # Application definition
 
@@ -168,4 +168,4 @@ GRAPPELLI_ADMIN_TITLE = 'YMAC Spatial Database'
 
 STATIC_URL = '/static/'
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'ymac_sdb/static')
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')

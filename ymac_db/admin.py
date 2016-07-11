@@ -544,12 +544,11 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
         if modeladmin.model == SurveyCleaning:
             surveys = qs.heritagesurvey_set.all()
             if linkfiles:
-                for survey in qs.heritagesurvey_set.all():
+                for survey in surveys:
                     survey.documents.add(sd)
             else:
-                for survey in qs.heritagesurvey_set.all():
-                    survey.data_source.delete(sd)
-                messages.info(request, "Deleting {} from surveys {}".format(sd, surveys))
+                for survey in surveys:
+                    survey.data_source.remove(qs)
             qs.delete()
             messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
         elif modeladmin.model == SurveyTripCleaning:
