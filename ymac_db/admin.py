@@ -233,6 +233,7 @@ class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
         """
         return (
             (r"Z:\\?Claim Groups\\\w+\\Heritage Surveys\\\d{4}", _('Correct')),
+            (r".*\\0. Old Folder Structure\\.*", _('Old file')),
         )
 
     def queryset(self, request, queryset):
@@ -247,6 +248,36 @@ class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
             queryset = queryset.filter(data_path__regex=self.value())
         return queryset
 
+
+class NoDataPathfilterFilter(baseadmin.SimpleListFilter):
+    title = _('Data Path')
+
+    parameter_name = 'data_path_null'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            (True, _('is null')),
+            (False, _('is not null')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(data_path__isnull=self.value())
+        return queryset
 
 class DriveFilter(baseadmin.SimpleListFilter):
     title = _('Drive Location')
@@ -622,7 +653,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     def show_data_pathurl(self, obj):
 
-        return format_html(smart_text('<a href="{}">{}</a>'),
+        return format_html(smart_text('<a href="file:///{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
 
@@ -666,6 +697,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     list_filter = [
         'path_type',
         DriveFilter,
+        NoDataPathfilterFilter,
         CorrectlyFiledFilter,
         RelatedClaimFilter,
         ClaimDataPathFilter,
@@ -699,7 +731,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
 
     def show_data_pathurl(self, obj):
         full_path = os.path.join(obj.filepath, obj.filename)
-        return format_html(smart_text('<a href="{}">{}</a>'),
+        return format_html(smart_text('<a href="file:///{}">{}</a>'),
                            full_path,
                            full_path)
 
@@ -717,6 +749,9 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
         'document_type',
         RelatedClaimFilter,
     ]
+    list_display_links = ('surveys',
+                          'document_type',
+                          )
     inlines = [
         HeritageSurveyDocumentInline
     ]
@@ -725,7 +760,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
 @admin.register(SurveyTripCleaning)
 class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     def show_data_pathurl(self, obj):
-        return format_html(smart_text('<a href="{}">{}</a>'),
+        return format_html(smart_text('<a href="file:///{}">{}</a>'),
                            obj.data_path,
                            obj.data_path)
 
@@ -802,7 +837,7 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
     action_form = SetSurveyActionForm
 
     def show_data_pathurl(self, obj):
-        return format_html('<a href="{}">{}</a>',
+        return format_html('<a href="file:///{}">{}</a>',
                            obj.data_path,
                            obj.data_path)
 
