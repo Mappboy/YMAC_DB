@@ -23,7 +23,7 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}">
     <!-- Optional theme -->
     <link rel="stylesheet" href="{% static  "css/bootstrap-theme.min.css" %}">{% endblock %}
-    {% block head_js %}{% endblock %}
+    {% block extra_css %}{% endblock %}{% block head_js %}{% endblock %}
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -35,7 +35,8 @@
     <div class="container main"><!-- group -->
 
         <header>
-            <img src="images/logo.png" data-src="images/logo.png" class="img-responsive logo" alt="YMAC">
+            <img src="{% static "images/logo.png" %}" data-src={% static "images/logo.png" %} class="img-responsive logo"
+            alt="YMAC">
         </header>
 
         {% block navbar %}
@@ -68,7 +69,7 @@
                             <li id="about" class=""><a href="/about/">About Us</a></li>
                             <li id="services" class=""><a href="/services/">Services</a></li>
                             <li id="software" class=""><a href="/software/">Software</a></li>
-                            <li id="contact1" class=""><a href="contact.html">Contact</a></li>
+                            <li id="contact1" class=""><a href="/contact/">Contact</a></li>
                             <li id="spatial-request" class=""><a href="/spatial_request/">Spatial Request form</a>
                             </li>
                         </ul>

@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'workbenches.html' %}
+{% load staticfiles %}
+{% load bootstrap3 %}
 
-</body>
-</html>
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dynatable.css" %}"/>
+{% endblock %}
+{% block head_js %}
+    {{ form.media }}
+    <script type='text/javascript' src={% static "js/jquery1.9.js" %}></script>
+    <script type='text/javascript' src={% static "js/bootstrap.min.js" %}></script>
+    <script type='text/javascript' src="{% static "js/FMEServer.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/jquery.dynatable.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/region_dist_calc.js" %}"></script>
+{% endblock %}
+{% block fme %}
+    <form action="/workbenches/region_distance/" method="post" class="form">
+        {% bootstrap_form form %}
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">
+                {% bootstrap_icon "star" %} Get Distances
+            </button>
+        {% endbuttons %}
+    </form>
+{% endblock %}
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted">&copy; YMAC 2015</p>
+        </div>
+    </footer>
+{% endblock %}

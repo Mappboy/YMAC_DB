@@ -1,36 +1,41 @@
-{% load staticfiles %}
 {% extends 'workbenches.html' %}
+{% load staticfiles %}
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="{% static "../css/jquery.dynatable.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dynatable.css" %}"/>
 {% endblock %}
 {% block head_js %}
-	<script type='text/javascript' src="{%  static "js/FMEServer.js" %}"></script>
-	<script type='text/javascript' src="{%  static "js/jquery.dynatable.js" %}"></script>
-	<script type='text/javascript' src="{%  static "js/datakiosk.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/FMEServer.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/jquery.dynatable.js" %}"></script>
+    <script type='text/javascript' src="{% static "js/datakiosk.js" %}"></script>
 {% endblock %}
 {% block fme %}
-		<div class="col-sm-9 col-md-10 main" id="fme-group">
-          <h1 id="repository" class="page-header">YMAC Data delivery</h1>
-		  <h2> Select a process to get started</h2>
-		  <p id="description" class="lead"></p>
-		  <form id="selection-form">
-			<div class="form-group">
-			<label class="control-label" for="repo_sel"></label>
-			<select id="repo_selector"  class="form-control">
-			</select>
-			</div>
-			<div id="output_req" class="form-group" hidden><label class="control-label" for="output request">How would you like the results ?</label>
-			<select type="select" id="output_request" class="form-control" >\
-			<option value="Download">Download Data</option>\
-			<option value="table">View online table</option>\
-			<option value="googleEarth">View as Google Earth in Browser</option>\
-			<option value="customizableMap">View online Map</option>\
-			</select>
-			</div>
-		  </form>
-			<form id="output-form" >
-			<div class="form-group">
-			</div>
-			</form>
-			<div id="results" class="row top-buffer"></div>
+    <div class="col-sm-9 col-md-10 main" id="fme-group">
+    <h1 id="repository" class="page-header">YMAC Data delivery</h1>
+    <h2> Select a process to get started</h2>
+    <p id="description" class="lead"></p>
+    <form id="selection-form">
+        <div class="form-group">
+            <label class="control-label" for="repo_sel"></label>
+            <select id="repo_selector" class="form-control">
+            </select>
+        </div>
+        <div id="output_req" class="form-group" hidden><label class="control-label" for="output request">How would you
+            like the results ?</label>
+            <select type="select" id="output_request" class="form-control">\
+                <option value="Download">Download Data</option>
+                \
+                <option value="table">View online table</option>
+                \
+                <option value="googleEarth">View as Google Earth in Browser</option>
+                \
+                <option value="customizableMap">View online Map</option>
+                \
+            </select>
+        </div>
+    </form>
+    <form id="output-form">
+        <div class="form-group">
+        </div>
+    </form>
+    <div id="results" class="row top-buffer"></div>
 {% endblock %}
