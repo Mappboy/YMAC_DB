@@ -527,10 +527,12 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 
 
 class HeritageSurveyDocumentInline(admin.TabularInline):
+    max_num = 5
     model = HeritageSurvey.documents.through
 
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
+    max_num = 5
     model = HeritageSurvey.data_source.through
 
 
@@ -583,8 +585,9 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
             qs.delete()
             messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
         elif modeladmin.model == SurveyTripCleaning:
+            surveys = SurveyTripCleaning.objects.filter(data_path=qs.data_path)
             deleted = 0
-            for rel_trip_clean in SurveyTripCleaning.objects.filter(data_path=qs.data_path):
+            for rel_trip_clean in surveys:
                 rel_trip_clean.delete()
                 deleted += 1
             messages.success(request, "Created new document {}, added to surveys"
@@ -1044,7 +1047,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     inlines = [
         HeritageSurveyConsultantInline,
         HeritageSurveyProponentInline,
-        HeritageSurveyCleaningInline,
+        # HeritageSurveyCleaningInline,
         HeritageSurveyDocumentInline
     ]
     actions = [
