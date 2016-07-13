@@ -45,3 +45,27 @@ class YMACSpatialRequestForm(baseform.ModelForm):
     class Meta:
         model = YMACSpatialRequest
         fields = '__all__'
+
+
+class RegionDistanceForm(baseform.Form):
+    """
+    Model for our region distances
+    """
+    origin = models.TextField()
+    destination = models.TextField()
+    region = models.CharField(max_length=15, choices=[('Pilbara', 'Pilbara'),
+                                                      ('Geraldton', 'Geraldton')])
+    output = models.CharField(max_length=10, choices=[('ESRISHAPE', 'Esri Shapefile'),
+                                                      ('GEOJSON', 'Web Map'),
+                                                      ('JSON', 'Table'),
+                                                      ])
+    petrol_cost = models.FloatField()
+
+    def create_web_map(self):
+        pass
+
+    def download_data(self):
+        pass
+
+    def display_table(self):
+        pass

@@ -94,7 +94,8 @@ document_subtype = [
     ('Geodatabase', 'Geodatabase'),
     ('Google KML', 'Google KML'),
     ('Preliminary Advice', 'Preliminary Advice'),
-    ('Survey Report', 'Survey Report')
+    ('Survey Report', 'Survey Report'),
+    ('HISF', 'Heritage Information Submission Form'),
 ]
 states = [
     ('WA', 'WA'),
@@ -210,7 +211,7 @@ offices = [
 
 class DocumentType(models.Model):
     document_type = models.CharField(max_length=15, choices=document_type)
-    sub_type = models.CharField(max_length=30, choices=document_subtype, blank=True, null=True)
+    sub_type = models.CharField(max_length=40, choices=document_subtype, blank=True, null=True)
 
     def __unicode__(self):
         doc_string = "%s : %s" % (self.document_type, self.sub_type) if self.sub_type else "%s" % (self.document_type)

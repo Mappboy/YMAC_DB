@@ -53,6 +53,24 @@ def spatial_thanks(request):
     return render(request, 'spatial_thanks.html')
 
 
+def data_download(request):
+    return render(request, 'data_download.html')
+
+
+class RegionDistanceView(FormView):
+    """
+    This should possibly be using Ajax to send Json back to table
+    """
+    template_name = 'region_distances.html'
+    form_class = RegionDistanceForm
+    success_url = '/test/'
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        form.display_table()
+        return HttpResponse()
+
 def get_site(request):
     # if this is a POST request we need to process the form data
     if request.method == 'POST':

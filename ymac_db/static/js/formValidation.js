@@ -9,9 +9,9 @@
  */
 // Register the namespace
 window.FormValidation = {
-    AddOn:     {},  // Add-ons
+    AddOn: {},  // Add-ons
     Framework: {},  // Supported frameworks
-    I18n:      {},  // i18n
+    I18n: {},  // i18n
     Validator: {}   // Available validators
 };
 
@@ -19,14 +19,14 @@ if (typeof jQuery === 'undefined') {
     throw new Error('FormValidation requires jQuery');
 }
 
-(function($) {
+(function ($) {
     var version = $.fn.jquery.split(' ')[0].split('.');
     if ((+version[0] < 2 && +version[1] < 9) || (+version[0] === 1 && +version[1] === 9 && +version[2] < 1)) {
         throw new Error('FormValidation requires jQuery version 1.9.1 or higher');
     }
 }(jQuery));
 
-(function($) {
+(function ($) {
     // TODO: Remove backward compatibility in v0.7.0
     /**
      * Constructor
@@ -37,29 +37,30 @@ if (typeof jQuery === 'undefined') {
      * Currently, it's used to support backward version
      * @constructor
      */
-    FormValidation.Base = function(form, options, namespace) {
-        this.$form      = $(form);
-        this.options    = $.extend({}, $.fn.formValidation.DEFAULT_OPTIONS, options);
+    FormValidation.Base = function (form, options, namespace) {
+        this.$form = $(form);
+        this.options = $.extend({}, $.fn.formValidation.DEFAULT_OPTIONS, options);
         this._namespace = namespace || 'fv';
 
         this.$invalidFields = $([]);    // Array of invalid fields
-        this.$submitButton  = null;     // The submit button which is clicked to submit form
-        this.$hiddenButton  = null;
+        this.$submitButton = null;     // The submit button which is clicked to submit form
+        this.$hiddenButton = null;
 
         // Validating status
         this.STATUS_NOT_VALIDATED = 'NOT_VALIDATED';
-        this.STATUS_VALIDATING    = 'VALIDATING';
-        this.STATUS_INVALID       = 'INVALID';
-        this.STATUS_VALID         = 'VALID';
+        this.STATUS_VALIDATING = 'VALIDATING';
+        this.STATUS_INVALID = 'INVALID';
+        this.STATUS_VALID = 'VALID';
 
         // Determine the event that is fired when user change the field value
         // Most modern browsers supports input event except IE 7, 8.
         // IE 9 supports input event but the event is still not fired if I press the backspace key.
         // Get IE version
         // https://gist.github.com/padolsey/527683/#comment-7595
-        var ieVersion = (function() {
+        var ieVersion = (function () {
             var v = 3, div = document.createElement('div'), a = div.all || [];
-            while (div.innerHTML = '<!--[if gt IE '+(++v)+']><br><![endif]-->', a[0]) {}
+            while (div.innerHTML = '<!--[if gt IE ' + (++v) + ']><br><![endif]-->', a[0]) {
+            }
             return v > 4 ? v : !v;
         }());
 
@@ -84,9 +85,9 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @returns {Boolean}
          */
-        _exceedThreshold: function($field) {
-            var ns        = this._namespace,
-                field     = $field.attr('data-' + ns + '-field'),
+        _exceedThreshold: function ($field) {
+            var ns = this._namespace,
+                field = $field.attr('data-' + ns + '-field'),
                 threshold = this.options.fields[field].threshold || this.options.threshold;
             if (!threshold) {
                 return true;
@@ -98,74 +99,74 @@ if (typeof jQuery === 'undefined') {
         /**
          * Init form
          */
-        _init: function() {
-            var that    = this,
-                ns      = this._namespace,
+        _init: function () {
+            var that = this,
+                ns = this._namespace,
                 options = {
-                    addOns:         {},
-                    autoFocus:      this.$form.attr('data-' + ns + '-autofocus'),
+                    addOns: {},
+                    autoFocus: this.$form.attr('data-' + ns + '-autofocus'),
                     button: {
                         selector: this.$form.attr('data-' + ns + '-button-selector') || this.$form.attr('data-' + ns + '-submitbuttons'), // Support backward
                         disabled: this.$form.attr('data-' + ns + '-button-disabled')
                     },
                     control: {
-                        valid:   this.$form.attr('data-' + ns + '-control-valid'),
+                        valid: this.$form.attr('data-' + ns + '-control-valid'),
                         invalid: this.$form.attr('data-' + ns + '-control-invalid')
                     },
                     err: {
-                        clazz:     this.$form.attr('data-' + ns + '-err-clazz'),
+                        clazz: this.$form.attr('data-' + ns + '-err-clazz'),
                         container: this.$form.attr('data-' + ns + '-err-container') || this.$form.attr('data-' + ns + '-container'), // Support backward
-                        parent:    this.$form.attr('data-' + ns + '-err-parent')
+                        parent: this.$form.attr('data-' + ns + '-err-parent')
                     },
                     events: {
-                        formInit:         this.$form.attr('data-' + ns + '-events-form-init'),
-                        formError:        this.$form.attr('data-' + ns + '-events-form-error'),
-                        formSuccess:      this.$form.attr('data-' + ns + '-events-form-success'),
-                        fieldAdded:       this.$form.attr('data-' + ns + '-events-field-added'),
-                        fieldRemoved:     this.$form.attr('data-' + ns + '-events-field-removed'),
-                        fieldInit:        this.$form.attr('data-' + ns + '-events-field-init'),
-                        fieldError:       this.$form.attr('data-' + ns + '-events-field-error'),
-                        fieldSuccess:     this.$form.attr('data-' + ns + '-events-field-success'),
-                        fieldStatus:      this.$form.attr('data-' + ns + '-events-field-status'),
-                        localeChanged:    this.$form.attr('data-' + ns + '-events-locale-changed'),
-                        validatorError:   this.$form.attr('data-' + ns + '-events-validator-error'),
+                        formInit: this.$form.attr('data-' + ns + '-events-form-init'),
+                        formError: this.$form.attr('data-' + ns + '-events-form-error'),
+                        formSuccess: this.$form.attr('data-' + ns + '-events-form-success'),
+                        fieldAdded: this.$form.attr('data-' + ns + '-events-field-added'),
+                        fieldRemoved: this.$form.attr('data-' + ns + '-events-field-removed'),
+                        fieldInit: this.$form.attr('data-' + ns + '-events-field-init'),
+                        fieldError: this.$form.attr('data-' + ns + '-events-field-error'),
+                        fieldSuccess: this.$form.attr('data-' + ns + '-events-field-success'),
+                        fieldStatus: this.$form.attr('data-' + ns + '-events-field-status'),
+                        localeChanged: this.$form.attr('data-' + ns + '-events-locale-changed'),
+                        validatorError: this.$form.attr('data-' + ns + '-events-validator-error'),
                         validatorSuccess: this.$form.attr('data-' + ns + '-events-validator-success')
                     },
-                    excluded:      this.$form.attr('data-' + ns + '-excluded'),
+                    excluded: this.$form.attr('data-' + ns + '-excluded'),
                     icon: {
-                        valid:      this.$form.attr('data-' + ns + '-icon-valid')      || this.$form.attr('data-' + ns + '-feedbackicons-valid'),      // Support backward
-                        invalid:    this.$form.attr('data-' + ns + '-icon-invalid')    || this.$form.attr('data-' + ns + '-feedbackicons-invalid'),    // Support backward
+                        valid: this.$form.attr('data-' + ns + '-icon-valid') || this.$form.attr('data-' + ns + '-feedbackicons-valid'),      // Support backward
+                        invalid: this.$form.attr('data-' + ns + '-icon-invalid') || this.$form.attr('data-' + ns + '-feedbackicons-invalid'),    // Support backward
                         validating: this.$form.attr('data-' + ns + '-icon-validating') || this.$form.attr('data-' + ns + '-feedbackicons-validating'), // Support backward
-                        feedback:   this.$form.attr('data-' + ns + '-icon-feedback')
+                        feedback: this.$form.attr('data-' + ns + '-icon-feedback')
                     },
-                    live:          this.$form.attr('data-' + ns + '-live'),
-                    locale:        this.$form.attr('data-' + ns + '-locale'),
-                    message:       this.$form.attr('data-' + ns + '-message'),
-                    onError:       this.$form.attr('data-' + ns + '-onerror'),
-                    onSuccess:     this.$form.attr('data-' + ns + '-onsuccess'),
+                    live: this.$form.attr('data-' + ns + '-live'),
+                    locale: this.$form.attr('data-' + ns + '-locale'),
+                    message: this.$form.attr('data-' + ns + '-message'),
+                    onError: this.$form.attr('data-' + ns + '-onerror'),
+                    onSuccess: this.$form.attr('data-' + ns + '-onsuccess'),
                     row: {
                         selector: this.$form.attr('data-' + ns + '-row-selector') || this.$form.attr('data-' + ns + '-group'), // Support backward
-                        valid:    this.$form.attr('data-' + ns + '-row-valid'),
-                        invalid:  this.$form.attr('data-' + ns + '-row-invalid'),
+                        valid: this.$form.attr('data-' + ns + '-row-valid'),
+                        invalid: this.$form.attr('data-' + ns + '-row-invalid'),
                         feedback: this.$form.attr('data-' + ns + '-row-feedback')
                     },
-                    threshold:     this.$form.attr('data-' + ns + '-threshold'),
-                    trigger:       this.$form.attr('data-' + ns + '-trigger'),
-                    verbose:       this.$form.attr('data-' + ns + '-verbose'),
-                    fields:        {}
+                    threshold: this.$form.attr('data-' + ns + '-threshold'),
+                    trigger: this.$form.attr('data-' + ns + '-trigger'),
+                    verbose: this.$form.attr('data-' + ns + '-verbose'),
+                    fields: {}
                 };
 
             this.$form
-                // Disable client side validation in HTML 5
+            // Disable client side validation in HTML 5
                 .attr('novalidate', 'novalidate')
                 .addClass(this.options.elementClass)
                 // Disable the default submission first
-                .on('submit.' + ns, function(e) {
+                .on('submit.' + ns, function (e) {
                     e.preventDefault();
                     that.validate();
                 })
-                .on('click.' + ns, this.options.button.selector, function() {
-                    that.$submitButton  = $(this);
+                .on('click.' + ns, this.options.button.selector, function () {
+                    that.$submitButton = $(this);
                     // The user just click the submit button
                     that._submitIfValid = true;
                 });
@@ -176,8 +177,8 @@ if (typeof jQuery === 'undefined') {
                     .find('[name], [data-' + ns + '-field]')
                     .each(function () {
                         var $field = $(this),
-                            field  = $field.attr('name') || $field.attr('data-' + ns + '-field'),
-                            opts   = that._parseOptions($field);
+                            field = $field.attr('name') || $field.attr('data-' + ns + '-field'),
+                            opts = that._parseOptions($field);
                         if (opts) {
                             $field.attr('data-' + ns + '-field', field);
                             options.fields[field] = $.extend({}, opts, options.fields[field]);
@@ -217,24 +218,24 @@ if (typeof jQuery === 'undefined') {
 
             // Parse the add-on options from HTML attributes
             if (this.options.declarative === true || this.options.declarative === 'true') {
-                this.options = $.extend(true, this.options, { addOns: this._parseAddOnOptions() });
+                this.options = $.extend(true, this.options, {addOns: this._parseAddOnOptions()});
             }
 
             // When pressing Enter on any field in the form, the first submit button will do its job.
             // The form then will be submitted.
             // I create a first hidden submit button
             this.$hiddenButton = $('<button/>')
-                                    .attr('type', 'submit')
-                                    .prependTo(this.$form)
-                                    .addClass('fv-hidden-submit')
-                                    .css({ display: 'none', width: 0, height: 0 });
+                .attr('type', 'submit')
+                .prependTo(this.$form)
+                .addClass('fv-hidden-submit')
+                .css({display: 'none', width: 0, height: 0});
 
             this.$form
-                .on('click.' +  this._namespace, '[type="submit"]', function(e) {
+                .on('click.' + this._namespace, '[type="submit"]', function (e) {
                     // #746: Check if the button click handler returns false
                     if (!e.isDefaultPrevented()) {
                         var $target = $(e.target),
-                            // The button might contain HTML tag
+                        // The button might contain HTML tag
                             $button = $target.is('[type="submit"]') ? $target.eq(0) : $target.parent('[type="submit"]').eq(0);
 
                         // Don't perform validation when clicking on the submit button/input
@@ -264,12 +265,12 @@ if (typeof jQuery === 'undefined') {
 
             // Prepare the events
             if (this.options.onSuccess) {
-                this.$form.on(this.options.events.formSuccess, function(e) {
+                this.$form.on(this.options.events.formSuccess, function (e) {
                     FormValidation.Helper.call(that.options.onSuccess, [e]);
                 });
             }
             if (this.options.onError) {
-                this.$form.on(this.options.events.formError, function(e) {
+                this.$form.on(this.options.events.formError, function (e) {
                     FormValidation.Helper.call(that.options.onError, [e]);
                 });
             }
@@ -280,13 +281,13 @@ if (typeof jQuery === 'undefined') {
          *
          * @param {String|jQuery} field The field name or field element
          */
-        _initField: function(field) {
-            var ns     = this._namespace,
+        _initField: function (field) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     fields = this.getFieldElements(field);
@@ -315,25 +316,25 @@ if (typeof jQuery === 'undefined') {
                 this.options.fields[field].enabled = true;
             }
 
-            var that      = this,
-                total     = fields.length,
-                type      = fields.attr('type'),
+            var that = this,
+                total = fields.length,
+                type = fields.attr('type'),
                 updateAll = (total === 1) || ('radio' === type) || ('checkbox' === type),
-                trigger   = this._getFieldTrigger(fields.eq(0)),
-                events    = $.map(trigger, function(item) {
+                trigger = this._getFieldTrigger(fields.eq(0)),
+                events = $.map(trigger, function (item) {
                     return item + '.update.' + ns;
                 }).join(' ');
 
             for (var i = 0; i < total; i++) {
-                var $field    = fields.eq(i),
-                    row       = this.options.fields[field].row || this.options.row.selector,
-                    $parent   = $field.closest(row),
-                    // Allow user to indicate where the error messages are shown
-                    // Support backward
+                var $field = fields.eq(i),
+                    row = this.options.fields[field].row || this.options.row.selector,
+                    $parent = $field.closest(row),
+                // Allow user to indicate where the error messages are shown
+                // Support backward
                     container = ('function' === typeof (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container))
-                                ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
-                                : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container),
-                    $message  = (container && container !== 'tooltip' && container !== 'popover') ? $(container) : this._getMessageContainer($field, row);
+                        ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
+                        : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container),
+                    $message = (container && container !== 'tooltip' && container !== 'popover') ? $(container) : this._getMessageContainer($field, row);
 
                 if (container && container !== 'tooltip' && container !== 'popover') {
                     $message.addClass(this.options.err.clazz);
@@ -344,7 +345,7 @@ if (typeof jQuery === 'undefined') {
                 $parent.find('i[data-' + ns + '-icon-for="' + field + '"]').remove();
 
                 // Whenever the user change the field value, mark it as not validated yet
-                $field.off(events).on(events, function() {
+                $field.off(events).on(events, function () {
                     that.updateStatus($(this), that.STATUS_NOT_VALIDATED);
                 });
 
@@ -375,38 +376,37 @@ if (typeof jQuery === 'undefined') {
                 if (this.options.fields[field].icon !== false && this.options.fields[field].icon !== 'false'
                     && this.options.icon
                     && this.options.icon.valid && this.options.icon.invalid && this.options.icon.validating
-                    && (!updateAll || i === total - 1))
-                {
+                    && (!updateAll || i === total - 1)) {
                     // $parent.removeClass(this.options.row.valid).removeClass(this.options.row.invalid).addClass(this.options.row.feedback);
                     // Keep error messages which are populated from back-end
                     $parent.addClass(this.options.row.feedback);
                     var $icon = $('<i/>')
-                                    .css('display', 'none')
-                                    .addClass(this.options.icon.feedback)
-                                    .attr('data-' + ns + '-icon-for', field)
-                                    .insertAfter($field);
+                        .css('display', 'none')
+                        .addClass(this.options.icon.feedback)
+                        .attr('data-' + ns + '-icon-for', field)
+                        .insertAfter($field);
 
                     // Store the icon as a data of field element
                     (!updateAll ? $field : fields).data(ns + '.icon', $icon);
 
                     if ('tooltip' === container || 'popover' === container) {
                         (!updateAll ? $field : fields)
-                            .on(this.options.events.fieldError, function() {
+                            .on(this.options.events.fieldError, function () {
                                 $parent.addClass('fv-has-tooltip');
                             })
-                            .on(this.options.events.fieldSuccess, function() {
+                            .on(this.options.events.fieldSuccess, function () {
                                 $parent.removeClass('fv-has-tooltip');
                             });
 
                         $field
-                            // Show tooltip/popover message when field gets focus
+                        // Show tooltip/popover message when field gets focus
                             .off('focus.container.' + ns)
-                            .on('focus.container.' + ns, function() {
+                            .on('focus.container.' + ns, function () {
                                 that._showTooltip($field, container);
                             })
                             // and hide them when losing focus
                             .off('blur.container.' + ns)
-                            .on('blur.container.' + ns, function() {
+                            .on('blur.container.' + ns, function () {
                                 that._hideTooltip($field, container);
                             });
                     }
@@ -421,31 +421,31 @@ if (typeof jQuery === 'undefined') {
 
             // Prepare the events
             fields
-                .on(this.options.events.fieldSuccess, function(e, data) {
+                .on(this.options.events.fieldSuccess, function (e, data) {
                     var onSuccess = that.getOptions(data.field, null, 'onSuccess');
                     if (onSuccess) {
                         FormValidation.Helper.call(onSuccess, [e, data]);
                     }
                 })
-                .on(this.options.events.fieldError, function(e, data) {
+                .on(this.options.events.fieldError, function (e, data) {
                     var onError = that.getOptions(data.field, null, 'onError');
                     if (onError) {
                         FormValidation.Helper.call(onError, [e, data]);
                     }
                 })
-                .on(this.options.events.fieldStatus, function(e, data) {
+                .on(this.options.events.fieldStatus, function (e, data) {
                     var onStatus = that.getOptions(data.field, null, 'onStatus');
                     if (onStatus) {
                         FormValidation.Helper.call(onStatus, [e, data]);
                     }
                 })
-                .on(this.options.events.validatorError, function(e, data) {
+                .on(this.options.events.validatorError, function (e, data) {
                     var onError = that.getOptions(data.field, data.validator, 'onError');
                     if (onError) {
                         FormValidation.Helper.call(onError, [e, data]);
                     }
                 })
-                .on(this.options.events.validatorSuccess, function(e, data) {
+                .on(this.options.events.validatorSuccess, function (e, data) {
                     var onSuccess = that.getOptions(data.field, data.validator, 'onSuccess');
                     if (onSuccess) {
                         FormValidation.Helper.call(onSuccess, [e, data]);
@@ -453,7 +453,7 @@ if (typeof jQuery === 'undefined') {
                 });
 
             // Set live mode
-            this.onLiveChange(fields, 'live', function() {
+            this.onLiveChange(fields, 'live', function () {
                 if (that._exceedThreshold($(this))) {
                     that.validateField($(this));
                 }
@@ -474,11 +474,11 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @returns {Boolean}
          */
-        _isExcluded: function($field) {
-            var ns           = this._namespace,
+        _isExcluded: function ($field) {
+            var ns = this._namespace,
                 excludedAttr = $field.attr('data-' + ns + '-excluded'),
-                // I still need to check the 'name' attribute while initializing the field
-                field        = $field.attr('data-' + ns + '-field') || $field.attr('name');
+            // I still need to check the 'name' attribute while initializing the field
+                field = $field.attr('data-' + ns + '-field') || $field.attr('name');
 
             switch (true) {
                 case (!!field && this.options.fields && this.options.fields[field] && (this.options.fields[field].excluded === 'true' || this.options.fields[field].excluded === true)):
@@ -494,7 +494,7 @@ if (typeof jQuery === 'undefined') {
                     if (this.options.excluded) {
                         // Convert to array first
                         if ('string' === typeof this.options.excluded) {
-                            this.options.excluded = $.map(this.options.excluded.split(','), function(item) {
+                            this.options.excluded = $.map(this.options.excluded.split(','), function (item) {
                                 // Trim the spaces
                                 return $.trim(item);
                             });
@@ -503,8 +503,7 @@ if (typeof jQuery === 'undefined') {
                         var length = this.options.excluded.length;
                         for (var i = 0; i < length; i++) {
                             if (('string' === typeof this.options.excluded[i] && $field.is(this.options.excluded[i]))
-                                || ('function' === typeof this.options.excluded[i] && this.options.excluded[i].call(this, $field, this) === true))
-                            {
+                                || ('function' === typeof this.options.excluded[i] && this.options.excluded[i].call(this, $field, this) === true)) {
                                 return true;
                             }
                         }
@@ -519,17 +518,17 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @returns {String[]} The event names triggered on field change
          */
-        _getFieldTrigger: function($field) {
-            var ns      = this._namespace,
+        _getFieldTrigger: function ($field) {
+            var ns = this._namespace,
                 trigger = $field.data(ns + '.trigger');
             if (trigger) {
                 return trigger;
             }
 
-            var type  = $field.attr('type'),
-                name  = $field.attr('data-' + ns + '-field'),
+            var type = $field.attr('type'),
+                name = $field.attr('data-' + ns + '-field'),
                 event = ('radio' === type || 'checkbox' === type || 'file' === type || 'SELECT' === $field.get(0).tagName) ? 'change' : this._changeEvent;
-            trigger   = ((this.options.fields[name] ? this.options.fields[name].trigger : null) || this.options.trigger || event).split(' ');
+            trigger = ((this.options.fields[name] ? this.options.fields[name].trigger : null) || this.options.trigger || event).split(' ');
 
             // Since the trigger data is used many times, I need to cache it to use later
             $field.data(ns + '.trigger', trigger);
@@ -544,10 +543,9 @@ if (typeof jQuery === 'undefined') {
          * @param {String} validatorName The validator name
          * @returns {String}
          */
-        _getMessage: function(field, validatorName) {
+        _getMessage: function (field, validatorName) {
             if (!this.options.fields[field] || !FormValidation.Validator[validatorName]
-                || !this.options.fields[field].validators || !this.options.fields[field].validators[validatorName])
-            {
+                || !this.options.fields[field].validators || !this.options.fields[field].validators[validatorName]) {
                 return '';
             }
 
@@ -570,7 +568,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} row
          * @returns {jQuery}
          */
-        _getMessageContainer: function($field, row) {
+        _getMessageContainer: function ($field, row) {
             if (!this.options.err.parent) {
                 throw new Error('The err.parent option is not defined');
             }
@@ -597,9 +595,9 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {Object}
          */
-        _parseAddOnOptions: function() {
-            var ns     = this._namespace,
-                names  = this.$form.attr('data-' + ns + '-addons'),
+        _parseAddOnOptions: function () {
+            var ns = this._namespace,
+                names = this.$form.attr('data-' + ns + '-addons'),
                 addOns = this.options.addOns || {};
 
             if (names) {
@@ -640,9 +638,9 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @returns {Object}
          */
-        _parseOptions: function($field) {
-            var ns         = this._namespace,
-                field      = $field.attr('name') || $field.attr('data-' + ns + '-field'),
+        _parseOptions: function ($field) {
+            var ns = this._namespace,
+                field = $field.attr('name') || $field.attr('data-' + ns + '-field'),
                 validators = {},
                 validator,
                 v,          // Validator name
@@ -655,27 +653,26 @@ if (typeof jQuery === 'undefined') {
                 html5AttrMap;
 
             for (v in FormValidation.Validator) {
-                validator    = FormValidation.Validator[v];
-                attrName     = 'data-' + ns + '-' + v.toLowerCase(),
-                enabled      = $field.attr(attrName) + '';
+                validator = FormValidation.Validator[v];
+                attrName = 'data-' + ns + '-' + v.toLowerCase(),
+                    enabled = $field.attr(attrName) + '';
                 html5AttrMap = ('function' === typeof validator.enableByHtml5) ? validator.enableByHtml5($field) : null;
 
                 if ((html5AttrMap && enabled !== 'false')
-                    || (html5AttrMap !== true && ('' === enabled || 'true' === enabled || attrName === enabled.toLowerCase())))
-                {
+                    || (html5AttrMap !== true && ('' === enabled || 'true' === enabled || attrName === enabled.toLowerCase()))) {
                     // Try to parse the options via attributes
                     validator.html5Attributes = $.extend({}, {
-                                                    message: 'message',
-                                                    onerror: 'onError',
-                                                    onsuccess: 'onSuccess',
-                                                    transformer: 'transformer'
-                                                }, validator.html5Attributes);
+                        message: 'message',
+                        onerror: 'onError',
+                        onsuccess: 'onSuccess',
+                        transformer: 'transformer'
+                    }, validator.html5Attributes);
                     validators[v] = $.extend({}, html5AttrMap === true ? {} : html5AttrMap, validators[v]);
 
                     for (html5AttrName in validator.html5Attributes) {
-                        optionName  = validator.html5Attributes[html5AttrName];
+                        optionName = validator.html5Attributes[html5AttrName];
                         optionAttrName = 'data-' + ns + '-' + v.toLowerCase() + '-' + html5AttrName,
-                        optionValue = $field.attr(optionAttrName);
+                            optionValue = $field.attr(optionAttrName);
                         if (optionValue) {
                             if ('true' === optionValue || optionAttrName === optionValue.toLowerCase()) {
                                 optionValue = true;
@@ -689,23 +686,23 @@ if (typeof jQuery === 'undefined') {
             }
 
             var opts = {
-                    autoFocus:   $field.attr('data-' + ns + '-autofocus'),
-                    err:         $field.attr('data-' + ns + '-err-container') || $field.attr('data-' + ns + '-container'), // Support backward
-                    excluded:    $field.attr('data-' + ns + '-excluded'),
-                    icon:        $field.attr('data-' + ns + '-icon') || $field.attr('data-' + ns + '-feedbackicons') || (this.options.fields && this.options.fields[field] ? this.options.fields[field].feedbackIcons : null), // Support backward
-                    message:     $field.attr('data-' + ns + '-message'),
-                    onError:     $field.attr('data-' + ns + '-onerror'),
-                    onStatus:    $field.attr('data-' + ns + '-onstatus'),
-                    onSuccess:   $field.attr('data-' + ns + '-onsuccess'),
-                    row:         $field.attr('data-' + ns + '-row') || $field.attr('data-' + ns + '-group') || (this.options.fields && this.options.fields[field] ? this.options.fields[field].group : null), // Support backward
-                    selector:    $field.attr('data-' + ns + '-selector'),
-                    threshold:   $field.attr('data-' + ns + '-threshold'),
+                    autoFocus: $field.attr('data-' + ns + '-autofocus'),
+                    err: $field.attr('data-' + ns + '-err-container') || $field.attr('data-' + ns + '-container'), // Support backward
+                    excluded: $field.attr('data-' + ns + '-excluded'),
+                    icon: $field.attr('data-' + ns + '-icon') || $field.attr('data-' + ns + '-feedbackicons') || (this.options.fields && this.options.fields[field] ? this.options.fields[field].feedbackIcons : null), // Support backward
+                    message: $field.attr('data-' + ns + '-message'),
+                    onError: $field.attr('data-' + ns + '-onerror'),
+                    onStatus: $field.attr('data-' + ns + '-onstatus'),
+                    onSuccess: $field.attr('data-' + ns + '-onsuccess'),
+                    row: $field.attr('data-' + ns + '-row') || $field.attr('data-' + ns + '-group') || (this.options.fields && this.options.fields[field] ? this.options.fields[field].group : null), // Support backward
+                    selector: $field.attr('data-' + ns + '-selector'),
+                    threshold: $field.attr('data-' + ns + '-threshold'),
                     transformer: $field.attr('data-' + ns + '-transformer'),
-                    trigger:     $field.attr('data-' + ns + '-trigger'),
-                    verbose:     $field.attr('data-' + ns + '-verbose'),
-                    validators:  validators
+                    trigger: $field.attr('data-' + ns + '-trigger'),
+                    verbose: $field.attr('data-' + ns + '-verbose'),
+                    validators: validators
                 },
-                emptyOptions    = $.isEmptyObject(opts),        // Check if the field options are set using HTML attributes
+                emptyOptions = $.isEmptyObject(opts),        // Check if the field options are set using HTML attributes
                 emptyValidators = $.isEmptyObject(validators);  // Check if the field validators are set using HTML attributes
 
             if (!emptyValidators || (!emptyOptions && this.options.fields && this.options.fields[field])) {
@@ -719,14 +716,14 @@ if (typeof jQuery === 'undefined') {
         /**
          * Called when all validations are completed
          */
-        _submit: function() {
+        _submit: function () {
             var isValid = this.isValid();
             if (isValid === null) {
                 return;
             }
 
             var eventType = isValid ? this.options.events.formSuccess : this.options.events.formError,
-                e         = $.Event(eventType);
+                e = $.Event(eventType);
 
             this.$form.trigger(e);
 
@@ -747,7 +744,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @param {jQuery.Event} e The jQuery event object
          */
-        _onError: function(e) {
+        _onError: function (e) {
             if (e.isDefaultPrevented()) {
                 return;
             }
@@ -758,10 +755,10 @@ if (typeof jQuery === 'undefined') {
 
                 var that = this;
                 for (var field in this.options.fields) {
-                    (function(f) {
-                        var fields  = that.getFieldElements(f);
+                    (function (f) {
+                        var fields = that.getFieldElements(f);
                         if (fields.length) {
-                            that.onLiveChange(fields, 'live', function() {
+                            that.onLiveChange(fields, 'live', function () {
                                 if (that._exceedThreshold($(this))) {
                                     that.validateField($(this));
                                 }
@@ -774,7 +771,7 @@ if (typeof jQuery === 'undefined') {
             // Determined the first invalid field which will be focused on automatically
             var ns = this._namespace;
             for (var i = 0; i < this.$invalidFields.length; i++) {
-                var $field    = this.$invalidFields.eq(i),
+                var $field = this.$invalidFields.eq(i),
                     autoFocus = this.isOptionEnabled($field.attr('data-' + ns + '-field'), 'autoFocus');
                 if (autoFocus) {
                     // Focus the field
@@ -790,13 +787,13 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @param {String} [validatorName] The validator name
          */
-        _onFieldValidated: function($field, validatorName) {
-            var ns            = this._namespace,
-                field         = $field.attr('data-' + ns + '-field'),
-                validators    = this.options.fields[field].validators,
-                counter       = {},
+        _onFieldValidated: function ($field, validatorName) {
+            var ns = this._namespace,
+                field = $field.attr('data-' + ns + '-field'),
+                validators = this.options.fields[field].validators,
+                counter = {},
                 numValidators = 0,
-                data          = {
+                data = {
                     bv: this,   // Support backward
                     fv: this,
                     field: field,
@@ -820,9 +817,9 @@ if (typeof jQuery === 'undefined') {
             }
 
             counter[this.STATUS_NOT_VALIDATED] = 0;
-            counter[this.STATUS_VALIDATING]    = 0;
-            counter[this.STATUS_INVALID]       = 0;
-            counter[this.STATUS_VALID]         = 0;
+            counter[this.STATUS_VALIDATING] = 0;
+            counter[this.STATUS_INVALID] = 0;
+            counter[this.STATUS_VALID] = 0;
 
             for (var v in validators) {
                 if (validators[v].enabled === false) {
@@ -857,7 +854,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @param {jQuery.Event} e The jQuery event object
          */
-        _onSuccess: function(e) {
+        _onSuccess: function (e) {
             if (e.isDefaultPrevented()) {
                 return;
             }
@@ -877,7 +874,7 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @param {jQuery} $icon The icon element
          */
-        _fixIcon: function($field, $icon) {
+        _fixIcon: function ($field, $icon) {
         },
 
         /**
@@ -888,7 +885,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} message The message
          * @param {String} type Can be 'tooltip' or 'popover'
          */
-        _createTooltip: function($field, message, type) {
+        _createTooltip: function ($field, message, type) {
         },
 
         /**
@@ -897,7 +894,7 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @param {String} type Can be 'tooltip' or 'popover'
          */
-        _destroyTooltip: function($field, type) {
+        _destroyTooltip: function ($field, type) {
         },
 
         /**
@@ -906,7 +903,7 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @param {String} type Can be 'tooltip' or 'popover'
          */
-        _hideTooltip: function($field, type) {
+        _hideTooltip: function ($field, type) {
         },
 
         /**
@@ -915,7 +912,7 @@ if (typeof jQuery === 'undefined') {
          * @param {jQuery} $field The field element
          * @param {String} type Can be 'tooltip' or 'popover'
          */
-        _showTooltip: function($field, type) {
+        _showTooltip: function ($field, type) {
         },
 
         // ~~~~~~~~~~~~~~
@@ -926,7 +923,7 @@ if (typeof jQuery === 'undefined') {
          * Submit the form using default submission.
          * It also does not perform any validations when submitting the form
          */
-        defaultSubmit: function() {
+        defaultSubmit: function () {
             var ns = this._namespace;
             if (this.$submitButton) {
                 // Create hidden input to send the submit buttons
@@ -950,18 +947,18 @@ if (typeof jQuery === 'undefined') {
          * @param {Boolean} disabled Can be true or false
          * @returns {FormValidation.Base}
          */
-        disableSubmitButtons: function(disabled) {
+        disableSubmitButtons: function (disabled) {
             if (!disabled) {
                 this.$form
                     .find(this.options.button.selector)
-                        .removeAttr('disabled')
-                        .removeClass(this.options.button.disabled);
+                    .removeAttr('disabled')
+                    .removeClass(this.options.button.disabled);
             } else if (this.options.live !== 'disabled') {
                 // Don't disable if the live validating mode is disabled
                 this.$form
                     .find(this.options.button.selector)
-                        .attr('disabled', 'disabled')
-                        .addClass(this.options.button.disabled);
+                    .attr('disabled', 'disabled')
+                    .addClass(this.options.button.disabled);
             }
 
             return this;
@@ -973,7 +970,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} field The field name
          * @returns {null|jQuery[]}
          */
-        getFieldElements: function(field) {
+        getFieldElements: function (field) {
             if (!this._cacheFields[field]) {
                 if (this.options.fields[field] && this.options.fields[field].selector) {
                     // Look for the field inside the form first
@@ -995,7 +992,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} validatorName The validator name
          * @returns {String}
          */
-        getFieldValue: function(field, validatorName) {
+        getFieldValue: function (field, validatorName) {
             var $field, ns = this._namespace;
             if ('string' === typeof field) {
                 $field = this.getFieldElements(field);
@@ -1004,7 +1001,7 @@ if (typeof jQuery === 'undefined') {
                 }
             } else {
                 $field = field;
-                field  = $field.attr('data-' + ns + '-field');
+                field = $field.attr('data-' + ns + '-field');
             }
 
             if (!field || !this.options.fields[field]) {
@@ -1012,8 +1009,8 @@ if (typeof jQuery === 'undefined') {
             }
 
             var transformer = (this.options.fields[field].validators && this.options.fields[field].validators[validatorName]
-                                ? this.options.fields[field].validators[validatorName].transformer : null)
-                                || this.options.fields[field].transformer;
+                    ? this.options.fields[field].validators[validatorName].transformer : null)
+                || this.options.fields[field].transformer;
             return transformer ? FormValidation.Helper.call(transformer, [$field, validatorName, this]) : $field.val();
         },
 
@@ -1022,7 +1019,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {String}
          */
-        getNamespace: function() {
+        getNamespace: function () {
             return this._namespace;
         },
 
@@ -1034,7 +1031,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} [option] The option name
          * @return {String|Object}
          */
-        getOptions: function(field, validator, option) {
+        getOptions: function (field, validator, option) {
             var ns = this._namespace;
             if (!field) {
                 return option ? this.options[option] : this.options;
@@ -1064,7 +1061,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} validatorName The validator name
          * @returns {String} The status. Can be 'NOT_VALIDATED', 'VALIDATING', 'INVALID' or 'VALID'
          */
-        getStatus: function(field, validatorName) {
+        getStatus: function (field, validatorName) {
             var ns = this._namespace;
             switch (typeof field) {
                 case 'object':
@@ -1083,7 +1080,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} option The option name, "verbose", "autoFocus", for example
          * @returns {Boolean}
          */
-        isOptionEnabled: function(field, option) {
+        isOptionEnabled: function (field, option) {
             if (this.options.fields[field] && (this.options.fields[field][option] === 'true' || this.options.fields[field][option] === true)) {
                 return true;
             }
@@ -1101,7 +1098,7 @@ if (typeof jQuery === 'undefined') {
          * - false, if there is one invalid field
          * - null, if there is at least one field which is not validated yet or being validated
          */
-        isValid: function() {
+        isValid: function () {
             for (var field in this.options.fields) {
                 var isValidField = this.isValidField(field);
                 if (isValidField === null) {
@@ -1125,16 +1122,16 @@ if (typeof jQuery === 'undefined') {
          * - false, if there is one invalid field inside the container
          * - null, if the container consists of at least one field which is not validated yet or being validated
          */
-        isValidContainer: function(container) {
-            var that       = this,
-                ns         = this._namespace,
-                fields     = [],
+        isValidContainer: function (container) {
+            var that = this,
+                ns = this._namespace,
+                fields = [],
                 $container = ('string' === typeof container) ? $(container) : container;
             if ($container.length === 0) {
                 return true;
             }
 
-            $container.find('[data-' + ns + '-field]').each(function() {
+            $container.find('[data-' + ns + '-field]').each(function () {
                 var $field = $(this);
                 if (!that._isExcluded($field)) {
                     fields.push($field);
@@ -1143,10 +1140,10 @@ if (typeof jQuery === 'undefined') {
 
             var total = fields.length;
             for (var i = 0; i < total; i++) {
-                var $f      = fields[i],
-                    field   = $f.attr('data-' + ns + '-field'),
+                var $f = fields[i],
+                    field = $f.attr('data-' + ns + '-field'),
                     $errors = $f.data(ns + '.messages')
-                                .find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]');
+                        .find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]');
 
                 if ($errors.filter('[data-' + ns + '-result="' + this.STATUS_INVALID + '"]').length > 0) {
                     return false;
@@ -1154,8 +1151,7 @@ if (typeof jQuery === 'undefined') {
 
                 // If the field is not validated
                 if ($errors.filter('[data-' + ns + '-result="' + this.STATUS_NOT_VALIDATED + '"]').length > 0
-                    || $errors.filter('[data-' + ns + '-result="' + this.STATUS_VALIDATING + '"]').length > 0)
-                {
+                    || $errors.filter('[data-' + ns + '-result="' + this.STATUS_VALIDATING + '"]').length > 0) {
                     return null;
                 }
             }
@@ -1172,13 +1168,13 @@ if (typeof jQuery === 'undefined') {
          * - false, if the field doesn't pass any validator
          * - null, if there is at least one validator which isn't validated yet or being validated
          */
-        isValidField: function(field) {
-            var ns     = this._namespace,
+        isValidField: function (field) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     fields = this.getFieldElements(field);
@@ -1190,7 +1186,7 @@ if (typeof jQuery === 'undefined') {
                 return true;
             }
 
-            var type  = fields.attr('type'),
+            var type = fields.attr('type'),
                 total = ('radio' === type || 'checkbox' === type) ? 1 : fields.length,
                 $field, validatorName, status;
             for (var i = 0; i < total; i++) {
@@ -1223,14 +1219,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} namespace The event namespace
          * @returns {FormValidation.Base}
          */
-        offLiveChange: function($fields, namespace) {
+        offLiveChange: function ($fields, namespace) {
             if ($fields === null || $fields.length === 0) {
                 return this;
             }
 
-            var ns      = this._namespace,
+            var ns = this._namespace,
                 trigger = this._getFieldTrigger($fields.eq(0)),
-                events  = $.map(trigger, function(item) {
+                events = $.map(trigger, function (item) {
                     return item + '.' + namespace + '.' + ns;
                 }).join(' ');
 
@@ -1246,14 +1242,14 @@ if (typeof jQuery === 'undefined') {
          * @param {Function} handler The handler function
          * @returns {FormValidation.Base}
          */
-        onLiveChange: function($fields, namespace, handler) {
+        onLiveChange: function ($fields, namespace, handler) {
             if ($fields === null || $fields.length === 0) {
                 return this;
             }
 
-            var ns      = this._namespace,
+            var ns = this._namespace,
                 trigger = this._getFieldTrigger($fields.eq(0)),
-                events  = $.map(trigger, function(item) {
+                events = $.map(trigger, function (item) {
                     return item + '.' + namespace + '.' + ns;
                 }).join(' ');
 
@@ -1266,7 +1262,7 @@ if (typeof jQuery === 'undefined') {
                 case 'enabled':
                 /* falls through */
                 default:
-                    $fields.off(events).on(events, function(e) {
+                    $fields.off(events).on(events, function (e) {
                         handler.apply(this, arguments);
                     });
                     break;
@@ -1283,14 +1279,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} message The message
          * @returns {FormValidation.Base}
          */
-        updateMessage: function(field, validator, message) {
-            var that    = this,
-                ns      = this._namespace,
+        updateMessage: function (field, validator, message) {
+            var that = this,
+                ns = this._namespace,
                 $fields = $([]);
             switch (typeof field) {
                 case 'object':
                     $fields = field;
-                    field   = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     $fields = this.getFieldElements(field);
@@ -1299,7 +1295,7 @@ if (typeof jQuery === 'undefined') {
                     break;
             }
 
-            $fields.each(function() {
+            $fields.each(function () {
                 $(this)
                     .data(ns + '.messages')
                     .find('.' + that.options.err.clazz + '[data-' + ns + '-validator="' + validator + '"][data-' + ns + '-for="' + field + '"]').html(message);
@@ -1314,13 +1310,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} [validatorName] The validator name. If null, the method updates validity result for all validators
          * @returns {FormValidation.Base}
          */
-        updateStatus: function(field, status, validatorName) {
-            var ns     = this._namespace,
+        updateStatus: function (field, status, validatorName) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     fields = this.getFieldElements(field);
@@ -1339,26 +1335,26 @@ if (typeof jQuery === 'undefined') {
                 this._submitIfValid = false;
             }
 
-            var that  = this,
-                type  = fields.attr('type'),
-                row   = this.options.fields[field].row || this.options.row.selector,
+            var that = this,
+                type = fields.attr('type'),
+                row = this.options.fields[field].row || this.options.row.selector,
                 total = ('radio' === type || 'checkbox' === type) ? 1 : fields.length;
 
             for (var i = 0; i < total; i++) {
-                var $field       = fields.eq(i);
+                var $field = fields.eq(i);
                 if (this._isExcluded($field)) {
                     continue;
                 }
 
-                var $parent      = $field.closest(row),
-                    $message     = $field.data(ns + '.messages'),
-                    $allErrors   = $message.find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]'),
-                    $errors      = validatorName ? $allErrors.filter('[data-' + ns + '-validator="' + validatorName + '"]') : $allErrors,
-                    $icon        = $field.data(ns + '.icon'),
-                    // Support backward
-                    container    = ('function' === typeof (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container))
-                                    ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
-                                    : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container),
+                var $parent = $field.closest(row),
+                    $message = $field.data(ns + '.messages'),
+                    $allErrors = $message.find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]'),
+                    $errors = validatorName ? $allErrors.filter('[data-' + ns + '-validator="' + validatorName + '"]') : $allErrors,
+                    $icon = $field.data(ns + '.icon'),
+                // Support backward
+                    container = ('function' === typeof (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container))
+                        ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
+                        : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container),
                     isValidField = null;
 
                 // Update status
@@ -1395,13 +1391,13 @@ if (typeof jQuery === 'undefined') {
                         break;
 
                     case this.STATUS_VALID:
-                        var isValidating   = ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_VALIDATING +'"]').length > 0),
-                            isNotValidated = ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_NOT_VALIDATED +'"]').length > 0);
+                        var isValidating = ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_VALIDATING + '"]').length > 0),
+                            isNotValidated = ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_NOT_VALIDATED + '"]').length > 0);
 
                         // If the field is valid (passes all validators)
                         isValidField = (isValidating || isNotValidated)     // There are some validators that have not done
-                                     ? null
-                                     : ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_VALID +'"]').length === $allErrors.length); // All validators are completed
+                            ? null
+                            : ($allErrors.filter('[data-' + ns + '-result="' + this.STATUS_VALID + '"]').length === $allErrors.length); // All validators are completed
 
                         $field.removeClass(this.options.control.valid).removeClass(this.options.control.invalid);
 
@@ -1417,7 +1413,7 @@ if (typeof jQuery === 'undefined') {
                             $icon
                                 .removeClass(this.options.icon.invalid).removeClass(this.options.icon.validating).removeClass(this.options.icon.valid)
                                 .addClass(isValidField === null ? '' : (isValidField ? this.options.icon.valid
-                                                                                     : (isValidating ? this.options.icon.validating : this.options.icon.invalid)))
+                                    : (isValidating ? this.options.icon.validating : this.options.icon.invalid)))
                                 .show();
                         }
 
@@ -1468,7 +1464,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {FormValidation.Base}
          */
-        validate: function() {
+        validate: function () {
             if ($.isEmptyObject(this.options.fields)) {
                 this._submit();
                 return this;
@@ -1492,13 +1488,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String|jQuery} field The field name or field element
          * @returns {FormValidation.Base}
          */
-        validateField: function(field) {
-            var ns     = this._namespace,
+        validateField: function (field) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     fields = this.getFieldElements(field);
@@ -1511,12 +1507,12 @@ if (typeof jQuery === 'undefined') {
                 return this;
             }
 
-            var that       = this,
-                type       = fields.attr('type'),
-                total      = ('radio' === type || 'checkbox' === type) ? 1 : fields.length,
-                updateAll  = ('radio' === type || 'checkbox' === type),
+            var that = this,
+                type = fields.attr('type'),
+                total = ('radio' === type || 'checkbox' === type) ? 1 : fields.length,
+                updateAll = ('radio' === type || 'checkbox' === type),
                 validators = this.options.fields[field].validators,
-                verbose    = this.isOptionEnabled(field, 'verbose'),
+                verbose = this.isOptionEnabled(field, 'verbose'),
                 validatorName,
                 validateResult;
 
@@ -1553,7 +1549,7 @@ if (typeof jQuery === 'undefined') {
                         this.updateStatus(updateAll ? field : $field, this.STATUS_VALIDATING, validatorName);
                         $field.data(ns + '.dfs.' + validatorName, validateResult);
 
-                        validateResult.done(function($f, v, response) {
+                        validateResult.done(function ($f, v, response) {
                             // v is validator name
                             $f.removeData(ns + '.dfs.' + v).data(ns + '.response.' + v, response);
                             if (response.message) {
@@ -1606,13 +1602,13 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} [options] The validator rules
          * @returns {FormValidation.Base}
          */
-        addField: function(field, options) {
-            var ns     = this._namespace,
+        addField: function (field, options) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field') || field.attr('name');
+                    field = field.attr('data-' + ns + '-field') || field.attr('name');
                     break;
                 case 'string':
                     delete this._cacheFields[field];
@@ -1624,7 +1620,7 @@ if (typeof jQuery === 'undefined') {
 
             fields.attr('data-' + ns + '-field', field);
 
-            var type  = fields.attr('type'),
+            var type = fields.attr('type'),
                 total = ('radio' === type || 'checkbox' === type) ? 1 : fields.length;
 
             for (var i = 0; i < total; i++) {
@@ -1658,7 +1654,7 @@ if (typeof jQuery === 'undefined') {
          * Destroy the plugin
          * It will remove all error messages, feedback icons and turn off the events
          */
-        destroy: function() {
+        destroy: function () {
             var ns = this._namespace, i, field, fields, $field, validator, $icon, row;
 
             // Destroy the validators first
@@ -1671,8 +1667,8 @@ if (typeof jQuery === 'undefined') {
                             $field.data(ns + '.dfs.' + validator).reject();
                         }
                         $field.removeData(ns + '.result.' + validator)
-                              .removeData(ns + '.response.' + validator)
-                              .removeData(ns + '.dfs.' + validator);
+                            .removeData(ns + '.response.' + validator)
+                            .removeData(ns + '.dfs.' + validator);
 
                         // Destroy the validator
                         if ('function' === typeof FormValidation.Validator[validator].destroy) {
@@ -1685,21 +1681,21 @@ if (typeof jQuery === 'undefined') {
             // Remove messages and icons
             for (field in this.options.fields) {
                 fields = this.getFieldElements(field);
-                row    = this.options.fields[field].row || this.options.row.selector;
+                row = this.options.fields[field].row || this.options.row.selector;
                 for (i = 0; i < fields.length; i++) {
                     $field = fields.eq(i);
                     $field
-                        // Remove all error messages
+                    // Remove all error messages
                         .data(ns + '.messages')
-                            .find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]').remove().end()
-                            .end()
+                        .find('.' + this.options.err.clazz.split(' ').join('.') + '[data-' + ns + '-validator][data-' + ns + '-for="' + field + '"]').remove().end()
+                        .end()
                         .removeData(ns + '.messages')
                         // Remove feedback classes
                         .closest(row)
-                            .removeClass(this.options.row.valid)
-                            .removeClass(this.options.row.invalid)
-                            .removeClass(this.options.row.feedback)
-                            .end()
+                        .removeClass(this.options.row.valid)
+                        .removeClass(this.options.row.invalid)
+                        .removeClass(this.options.row.feedback)
+                        .end()
                         // Turn off events
                         .off('.' + ns)
                         .removeAttr('data-' + ns + '-field');
@@ -1707,8 +1703,8 @@ if (typeof jQuery === 'undefined') {
                     // Remove feedback icons, tooltip/popover container
                     // Support backward
                     var container = ('function' === typeof (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container))
-                                    ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
-                                    : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container);
+                        ? (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container).call(this, $field, this)
+                        : (this.options.fields[field].container || this.options.fields[field].err || this.options.err.container);
                     if ('tooltip' === container || 'popover' === container) {
                         this._destroyTooltip($field, container);
                     }
@@ -1718,8 +1714,8 @@ if (typeof jQuery === 'undefined') {
                         $icon.remove();
                     }
                     $field.removeData(ns + '.icon')
-                          // It's safe to remove trigger data here, because it might be used when destroying the validator
-                          .removeData(ns + '.trigger');
+                    // It's safe to remove trigger data here, because it might be used when destroying the validator
+                        .removeData(ns + '.trigger');
                 }
             }
 
@@ -1741,7 +1737,7 @@ if (typeof jQuery === 'undefined') {
                 // Remove generated hidden elements
                 .find('[data-' + ns + '-submit-hidden]').remove().end()
                 .find('[type="submit"]')
-                    .off('click.' + ns);
+                .off('click.' + ns);
         },
 
         /**
@@ -1752,14 +1748,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} [validatorName] The validator name. If null, all validators will be enabled/disabled
          * @returns {FormValidation.Base}
          */
-        enableFieldValidators: function(field, enabled, validatorName) {
+        enableFieldValidators: function (field, enabled, validatorName) {
             var validators = this.options.fields[field].validators;
 
             // Enable/disable particular validator
             if (validatorName
                 && validators
-                && validators[validatorName] && validators[validatorName].enabled !== enabled)
-            {
+                && validators[validatorName] && validators[validatorName].enabled !== enabled) {
                 this.options.fields[field].validators[validatorName].enabled = enabled;
                 this.updateStatus(field, this.STATUS_NOT_VALIDATED, validatorName);
             }
@@ -1794,9 +1789,9 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {String}
          */
-        getDynamicOption: function(field, option) {
+        getDynamicOption: function (field, option) {
             var $field = ('string' === typeof field) ? this.getFieldElements(field) : field,
-                value  = $field.val();
+                value = $field.val();
 
             // Option can be determined by
             // ... a function
@@ -1823,7 +1818,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {jQuery}
          */
-        getForm: function() {
+        getForm: function () {
             return this.$form;
         },
 
@@ -1832,7 +1827,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {jQuery[]}
          */
-        getInvalidFields: function() {
+        getInvalidFields: function () {
             return this.$invalidFields;
         },
 
@@ -1841,7 +1836,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @return {String}
          */
-        getLocale: function() {
+        getLocale: function () {
             return this.options.locale;
         },
 
@@ -1854,11 +1849,11 @@ if (typeof jQuery === 'undefined') {
          * If the validator is not defined, the method returns error messages of all validators
          * @returns {String[]}
          */
-        getMessages: function(field, validator) {
-            var that     = this,
-                ns       = this._namespace,
+        getMessages: function (field, validator) {
+            var that = this,
+                ns = this._namespace,
                 messages = [],
-                $fields  = $([]);
+                $fields = $([]);
 
             switch (true) {
                 case (field && 'object' === typeof field):
@@ -1877,12 +1872,12 @@ if (typeof jQuery === 'undefined') {
             }
 
             var filter = validator ? '[data-' + ns + '-validator="' + validator + '"]' : '';
-            $fields.each(function() {
+            $fields.each(function () {
                 messages = messages.concat(
                     $(this)
                         .data(ns + '.messages')
                         .find('.' + that.options.err.clazz + '[data-' + ns + '-for="' + $(this).attr('data-' + ns + '-field') + '"][data-' + ns + '-result="' + that.STATUS_INVALID + '"]' + filter)
-                        .map(function() {
+                        .map(function () {
                             var v = $(this).attr('data-' + ns + '-validator'),
                                 f = $(this).attr('data-' + ns + '-for');
                             return (that.options.fields[f].validators[v].enabled === false) ? '' : $(this).html();
@@ -1899,7 +1894,7 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {jQuery}
          */
-        getSubmitButton: function() {
+        getSubmitButton: function () {
             return this.$submitButton;
         },
 
@@ -1909,13 +1904,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String|jQuery} field The field name or field element
          * @returns {FormValidation.Base}
          */
-        removeField: function(field) {
-            var ns     = this._namespace,
+        removeField: function (field) {
+            var ns = this._namespace,
                 fields = $([]);
             switch (typeof field) {
                 case 'object':
                     fields = field;
-                    field  = field.attr('data-' + ns + '-field') || field.attr('name');
+                    field = field.attr('data-' + ns + '-field') || field.attr('name');
                     fields.attr('data-' + ns + '-field', field);
                     break;
                 case 'string':
@@ -1929,7 +1924,7 @@ if (typeof jQuery === 'undefined') {
                 return this;
             }
 
-            var type  = fields.attr('type'),
+            var type = fields.attr('type'),
                 total = ('radio' === type || 'checkbox' === type) ? 1 : fields.length;
 
             for (var i = 0; i < total; i++) {
@@ -1966,13 +1961,13 @@ if (typeof jQuery === 'undefined') {
          * @param {Boolean} [resetValue] If true, the method resets field value to empty or remove checked/selected attribute (for radio/checkbox)
          * @returns {FormValidation.Base}
          */
-        resetField: function(field, resetValue) {
-            var ns      = this._namespace,
+        resetField: function (field, resetValue) {
+            var ns = this._namespace,
                 $fields = $([]);
             switch (typeof field) {
                 case 'object':
                     $fields = field;
-                    field   = field.attr('data-' + ns + '-field');
+                    field = field.attr('data-' + ns + '-field');
                     break;
                 case 'string':
                     $fields = this.getFieldElements(field);
@@ -2007,13 +2002,13 @@ if (typeof jQuery === 'undefined') {
          * @param {Boolean} [resetValue] If true, the method resets field value to empty or remove checked/selected attribute (for radio/checkbox)
          * @returns {FormValidation.Base}
          */
-        resetForm: function(resetValue) {
+        resetForm: function (resetValue) {
             for (var field in this.options.fields) {
                 this.resetField(field, resetValue);
             }
 
             this.$invalidFields = $([]);
-            this.$submitButton  = null;
+            this.$submitButton = null;
 
             // Enable submit buttons
             this.disableSubmitButtons(false);
@@ -2028,7 +2023,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String|jQuery} field The field name of field element
          * @returns {FormValidation.Base}
          */
-        revalidateField: function(field) {
+        revalidateField: function (field) {
             this.updateStatus(field, this.STATUS_NOT_VALIDATED)
                 .validateField(field);
 
@@ -2041,7 +2036,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} locale The locale in format of countrycode_LANGUAGECODE
          * @returns {FormValidation.Base}
          */
-        setLocale: function(locale) {
+        setLocale: function (locale) {
             this.options.locale = locale;
             this.$form.trigger($.Event(this.options.events.localeChanged), {
                 locale: locale,
@@ -2061,7 +2056,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The value to set
          * @returns {FormValidation.Base}
          */
-        updateOption: function(field, validator, option, value) {
+        updateOption: function (field, validator, option, value) {
             var ns = this._namespace;
             if ('object' === typeof field) {
                 field = field.attr('data-' + ns + '-field');
@@ -2081,16 +2076,16 @@ if (typeof jQuery === 'undefined') {
          * @param {String|jQuery} container The container selector or element
          * @returns {FormValidation.Base}
          */
-        validateContainer: function(container) {
-            var that       = this,
-                ns         = this._namespace,
-                fields     = [],
+        validateContainer: function (container) {
+            var that = this,
+                ns = this._namespace,
+                fields = [],
                 $container = ('string' === typeof container) ? $(container) : container;
             if ($container.length === 0) {
                 return this;
             }
 
-            $container.find('[data-' + ns + '-field]').each(function() {
+            $container.find('[data-' + ns + '-field]').each(function () {
                 var $field = $(this);
                 if (!that._isExcluded($field)) {
                     fields.push($field);
@@ -2107,15 +2102,15 @@ if (typeof jQuery === 'undefined') {
     };
 
     // Plugin definition
-    $.fn.formValidation = function(option) {
+    $.fn.formValidation = function (option) {
         var params = arguments;
-        return this.each(function() {
-            var $this   = $(this),
-                data    = $this.data('formValidation'),
+        return this.each(function () {
+            var $this = $(this),
+                data = $this.data('formValidation'),
                 options = 'object' === typeof option && option;
             if (!data) {
                 var framework = (options.framework || $this.attr('data-fv-framework') || 'bootstrap').toLowerCase(),
-                    clazz     = framework.substr(0, 1).toUpperCase() + framework.substr(1);
+                    clazz = framework.substr(0, 1).toUpperCase() + framework.substr(1);
 
                 if (typeof FormValidation.Framework[clazz] === 'undefined') {
                     throw new Error('The class FormValidation.Framework.' + clazz + ' is not implemented');
@@ -2123,7 +2118,7 @@ if (typeof jQuery === 'undefined') {
 
                 data = new FormValidation.Framework[clazz](this, options);
                 $this.addClass('fv-form-' + framework)
-                     .data('formValidation', data);
+                    .data('formValidation', data);
             }
 
             // Allow to call plugin method
@@ -2273,7 +2268,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     // Helper methods, which can be used in validator class
     FormValidation.Helper = {
         /**
@@ -2285,15 +2280,15 @@ if (typeof jQuery === 'undefined') {
          * - a function
          * @param {Array} args The callback arguments
          */
-        call: function(functionName, args) {
+        call: function (functionName, args) {
             if ('function' === typeof functionName) {
                 return functionName.apply(this, args);
             } else if ('string' === typeof functionName) {
                 if ('()' === functionName.substring(functionName.length - 2)) {
                     functionName = functionName.substring(0, functionName.length - 2);
                 }
-                var ns      = functionName.split('.'),
-                    func    = ns.pop(),
+                var ns = functionName.split('.'),
+                    func = ns.pop(),
                     context = window;
                 for (var i = 0; i < ns.length; i++) {
                     context = context[ns[i]];
@@ -2312,7 +2307,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Boolean} [notInFuture] If true, the date must not be in the future
          * @returns {Boolean}
          */
-        date: function(year, month, day, notInFuture) {
+        date: function (year, month, day, notInFuture) {
             if (isNaN(year) || isNaN(month) || isNaN(day)) {
                 return false;
             }
@@ -2320,9 +2315,9 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            day   = parseInt(day, 10);
+            day = parseInt(day, 10);
             month = parseInt(month, 10);
-            year  = parseInt(year, 10);
+            year = parseInt(year, 10);
 
             if (year < 1000 || year > 9999 || month <= 0 || month > 12) {
                 return false;
@@ -2339,10 +2334,10 @@ if (typeof jQuery === 'undefined') {
             }
 
             if (notInFuture === true) {
-                var currentDate  = new Date(),
-                    currentYear  = currentDate.getFullYear(),
+                var currentDate = new Date(),
+                    currentYear = currentDate.getFullYear(),
                     currentMonth = currentDate.getMonth(),
-                    currentDay   = currentDate.getDate();
+                    currentDay = currentDate.getDate();
                 return (year < currentYear
                 || (year === currentYear && month - 1 < currentMonth)
                 || (year === currentYear && month - 1 === currentMonth && day < currentDay));
@@ -2360,7 +2355,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Array} parameters
          * @returns {String}
          */
-        format: function(message, parameters) {
+        format: function (message, parameters) {
             if (!$.isArray(parameters)) {
                 parameters = [parameters];
             }
@@ -2380,11 +2375,11 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value
          * @returns {Boolean}
          */
-        luhn: function(value) {
-            var length  = value.length,
-                mul     = 0,
+        luhn: function (value) {
+            var length = value.length,
+                mul = 0,
                 prodArr = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]],
-                sum     = 0;
+                sum = 0;
 
             while (length--) {
                 sum += prodArr[mul][parseInt(value.charAt(length), 10)];
@@ -2400,8 +2395,8 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value
          * @returns {Boolean}
          */
-        mod11And10: function(value) {
-            var check  = 5,
+        mod11And10: function (value) {
+            var check = 5,
                 length = value.length;
             for (var i = 0; i < length; i++) {
                 check = (((check || 10) * 2) % 11 + parseInt(value.charAt(i), 10)) % 10;
@@ -2419,11 +2414,11 @@ if (typeof jQuery === 'undefined') {
          * @param {String} [alphabet]
          * @returns {Boolean}
          */
-        mod37And36: function(value, alphabet) {
+        mod37And36: function (value, alphabet) {
             alphabet = alphabet || '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             var modulus = alphabet.length,
-                length  = value.length,
-                check   = Math.floor(modulus / 2);
+                length = value.length,
+                check = Math.floor(modulus / 2);
             for (var i = 0; i < length; i++) {
                 check = (((check || modulus) * 2) % (modulus + 1) + alphabet.indexOf(value.charAt(i))) % modulus;
             }
@@ -2431,7 +2426,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             base64: {
@@ -2450,7 +2445,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'base64');
             if (value === '') {
                 return true;
@@ -2460,7 +2455,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             between: {
@@ -2478,7 +2473,7 @@ if (typeof jQuery === 'undefined') {
             inclusive: 'inclusive'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             if ('range' === $field.attr('type')) {
                 return {
                     min: $field.attr('min'),
@@ -2508,41 +2503,41 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'between');
             if (value === '') {
                 return true;
             }
 
-			value = this._format(value);
+            value = this._format(value);
             if (!$.isNumeric(value)) {
                 return false;
             }
 
-            var locale   = validator.getLocale(),
-                min      = $.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min),
-                max      = $.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max),
+            var locale = validator.getLocale(),
+                min = $.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min),
+                max = $.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max),
                 minValue = this._format(min),
                 maxValue = this._format(max);
 
             value = parseFloat(value);
-			return (options.inclusive === true || options.inclusive === undefined)
-                    ? {
-                        valid: value >= minValue && value <= maxValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].between['default'], [min, max])
-                    }
-                    : {
-                        valid: value > minValue  && value <  maxValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].between.notInclusive, [min, max])
-                    };
+            return (options.inclusive === true || options.inclusive === undefined)
+                ? {
+                valid: value >= minValue && value <= maxValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].between['default'], [min, max])
+            }
+                : {
+                valid: value > minValue && value < maxValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].between.notInclusive, [min, max])
+            };
         },
 
-        _format: function(value) {
+        _format: function (value) {
             return (value + '').replace(',', '.');
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             bic: {
@@ -2564,7 +2559,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'bic');
             if (value === '') {
                 return true;
@@ -2573,7 +2568,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.Validator.blank = {
         /**
          * Placeholder validator that can be used to display a custom validation message
@@ -2597,12 +2592,12 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             return true;
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             callback: {
@@ -2632,14 +2627,14 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Deferred}
          */
-        validate: function(validator, $field, options) {
-            var value  = validator.getFieldValue($field, 'callback'),
-                dfd    = new $.Deferred(),
-                result = { valid: true };
+        validate: function (validator, $field, options) {
+            var value = validator.getFieldValue($field, 'callback'),
+                dfd = new $.Deferred(),
+                result = {valid: true};
 
             if (options.callback) {
                 var response = FormValidation.Helper.call(options.callback, [value, validator, $field]);
-                result = ('boolean' === typeof response) ? { valid: response } : response;
+                result = ('boolean' === typeof response) ? {valid: response} : response;
             }
 
             dfd.resolve($field, 'callback', result);
@@ -2647,7 +2642,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             choice: {
@@ -2685,16 +2680,16 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Object}
          */
-        validate: function(validator, $field, options) {
-            var locale     = validator.getLocale(),
-                ns         = validator.getNamespace(),
+        validate: function (validator, $field, options) {
+            var locale = validator.getLocale(),
+                ns = validator.getNamespace(),
                 numChoices = $field.is('select')
-                            ? validator.getFieldElements($field.attr('data-' + ns + '-field')).find('option').filter(':selected').length
-                            : validator.getFieldElements($field.attr('data-' + ns + '-field')).filter(':checked').length,
-                min        = options.min ? ($.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min)) : null,
-                max        = options.max ? ($.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max)) : null,
-                isValid    = true,
-                message    = options.message || FormValidation.I18n[locale].choice['default'];
+                    ? validator.getFieldElements($field.attr('data-' + ns + '-field')).find('option').filter(':selected').length
+                    : validator.getFieldElements($field.attr('data-' + ns + '-field')).filter(':checked').length,
+                min = options.min ? ($.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min)) : null,
+                max = options.max ? ($.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max)) : null,
+                isValid = true,
+                message = options.message || FormValidation.I18n[locale].choice['default'];
 
             if ((min && numChoices < parseInt(min, 10)) || (max && numChoices > parseInt(max, 10))) {
                 isValid = false;
@@ -2717,11 +2712,11 @@ if (typeof jQuery === 'undefined') {
                     break;
             }
 
-            return { valid: isValid, message: message };
+            return {valid: isValid, message: message};
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             color: {
@@ -2736,7 +2731,7 @@ if (typeof jQuery === 'undefined') {
             type: 'type'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             return ('color' === $field.attr('type'));
         },
 
@@ -2807,7 +2802,7 @@ if (typeof jQuery === 'undefined') {
          * - type: The array of valid color types
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'color');
             if (value === '') {
                 return true;
@@ -2829,8 +2824,8 @@ if (typeof jQuery === 'undefined') {
                 isValid = false;
 
             for (var i = 0; i < types.length; i++) {
-                type    = types[i];
-                method  = '_' + type.toLowerCase();
+                type = types[i];
+                method = '_' + type.toLowerCase();
                 isValid = isValid || this[method](value);
                 if (isValid) {
                     return true;
@@ -2840,36 +2835,36 @@ if (typeof jQuery === 'undefined') {
             return false;
         },
 
-        _hex: function(value) {
+        _hex: function (value) {
             return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);
         },
 
-        _hsl: function(value) {
+        _hsl: function (value) {
             return /^hsl\((\s*(-?\d+)\s*,)(\s*(\b(0?\d{1,2}|100)\b%)\s*,)(\s*(\b(0?\d{1,2}|100)\b%)\s*)\)$/.test(value);
         },
 
-        _hsla: function(value) {
+        _hsla: function (value) {
             return /^hsla\((\s*(-?\d+)\s*,)(\s*(\b(0?\d{1,2}|100)\b%)\s*,){2}(\s*(0?(\.\d+)?|1(\.0+)?)\s*)\)$/.test(value);
         },
 
-        _keyword: function(value) {
+        _keyword: function (value) {
             return $.inArray(value, this.KEYWORD_COLORS) >= 0;
         },
 
-        _rgb: function(value) {
+        _rgb: function (value) {
             var regexInteger = /^rgb\((\s*(\b([01]?\d{1,2}|2[0-4]\d|25[0-5])\b)\s*,){2}(\s*(\b([01]?\d{1,2}|2[0-4]\d|25[0-5])\b)\s*)\)$/,
                 regexPercent = /^rgb\((\s*(\b(0?\d{1,2}|100)\b%)\s*,){2}(\s*(\b(0?\d{1,2}|100)\b%)\s*)\)$/;
             return regexInteger.test(value) || regexPercent.test(value);
         },
 
-        _rgba: function(value) {
+        _rgba: function (value) {
             var regexInteger = /^rgba\((\s*(\b([01]?\d{1,2}|2[0-4]\d|25[0-5])\b)\s*,){3}(\s*(0?(\.\d+)?|1(\.0+)?)\s*)\)$/,
                 regexPercent = /^rgba\((\s*(\b(0?\d{1,2}|100)\b%)\s*,){3}(\s*(0?(\.\d+)?|1(\.0+)?)\s*)\)$/;
             return regexInteger.test(value) || regexPercent.test(value);
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             creditCard: {
@@ -2889,7 +2884,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'creditCard');
             if (value === '') {
                 return true;
@@ -2922,11 +2917,11 @@ if (typeof jQuery === 'undefined') {
                 DISCOVER: {
                     length: [16],
                     prefix: ['6011', '622126', '622127', '622128', '622129', '62213',
-                             '62214', '62215', '62216', '62217', '62218', '62219',
-                             '6222', '6223', '6224', '6225', '6226', '6227', '6228',
-                             '62290', '62291', '622920', '622921', '622922', '622923',
-                             '622924', '622925', '644', '645', '646', '647', '648',
-                             '649', '65']
+                        '62214', '62215', '62216', '62217', '62218', '62219',
+                        '6222', '6223', '6224', '6225', '6226', '6227', '6228',
+                        '62290', '62291', '622920', '622921', '622922', '622923',
+                        '622924', '622925', '644', '645', '646', '647', '648',
+                        '649', '65']
                 },
                 JCB: {
                     length: [16],
@@ -2951,9 +2946,9 @@ if (typeof jQuery === 'undefined') {
                 UNIONPAY: {
                     length: [16, 17, 18, 19],
                     prefix: ['622126', '622127', '622128', '622129', '62213', '62214',
-                             '62215', '62216', '62217', '62218', '62219', '6222', '6223',
-                             '6224', '6225', '6226', '6227', '6228', '62290', '62291',
-                             '622920', '622921', '622922', '622923', '622924', '622925']
+                        '62215', '62216', '62217', '62218', '62219', '6222', '6223',
+                        '6224', '6225', '6226', '6227', '6228', '62290', '62291',
+                        '622920', '622921', '622922', '622923', '622924', '622925']
                 },
                 VISA: {
                     length: [16],
@@ -2979,7 +2974,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             cusip: {
@@ -3002,7 +2997,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'cusip');
             if (value === '') {
                 return true;
@@ -3013,15 +3008,15 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var converted = $.map(value.split(''), function(item) {
-                                var code = item.charCodeAt(0);
-                                return (code >= 'A'.charCodeAt(0) && code <= 'Z'.charCodeAt(0))
-                                            // Replace A, B, C, ..., Z with 10, 11, ..., 35
-                                            ? (code - 'A'.charCodeAt(0) + 10)
-                                            : item;
-                            }),
-                length    = converted.length,
-                sum       = 0;
+            var converted = $.map(value.split(''), function (item) {
+                    var code = item.charCodeAt(0);
+                    return (code >= 'A'.charCodeAt(0) && code <= 'Z'.charCodeAt(0))
+                        // Replace A, B, C, ..., Z with 10, 11, ..., 35
+                        ? (code - 'A'.charCodeAt(0) + 10)
+                        : item;
+                }),
+                length = converted.length,
+                sum = 0;
             for (var i = 0; i < length - 1; i++) {
                 var num = parseInt(converted[i], 10);
                 if (i % 2 !== 0) {
@@ -3038,7 +3033,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             cvv: {
@@ -3061,10 +3056,10 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - creditCardField: The credit card number field
          */
-        init: function(validator, $field, options) {
+        init: function (validator, $field, options) {
             if (options.creditCardField) {
                 var creditCardField = validator.getFieldElements(options.creditCardField);
-                validator.onLiveChange(creditCardField, 'live_cvv', function() {
+                validator.onLiveChange(creditCardField, 'live_cvv', function () {
                     var status = validator.getStatus($field, 'cvv');
                     if (status !== validator.STATUS_NOT_VALIDATED) {
                         validator.revalidateField($field);
@@ -3081,7 +3076,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - creditCardField: The credit card number field
          */
-        destroy: function(validator, $field, options) {
+        destroy: function (validator, $field, options) {
             if (options.creditCardField) {
                 var creditCardField = validator.getFieldElements(options.creditCardField);
                 validator.offLiveChange(creditCardField, 'live_cvv');
@@ -3098,7 +3093,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'cvv');
             if (value === '') {
                 return true;
@@ -3117,7 +3112,7 @@ if (typeof jQuery === 'undefined') {
             if (creditCard === '') {
                 return true;
             }
-            
+
             creditCard = creditCard.replace(/\D/g, '');
 
             // Supported credit card types
@@ -3137,11 +3132,11 @@ if (typeof jQuery === 'undefined') {
                 DISCOVER: {
                     length: [16],
                     prefix: ['6011', '622126', '622127', '622128', '622129', '62213',
-                             '62214', '62215', '62216', '62217', '62218', '62219',
-                             '6222', '6223', '6224', '6225', '6226', '6227', '6228',
-                             '62290', '62291', '622920', '622921', '622922', '622923',
-                             '622924', '622925', '644', '645', '646', '647', '648',
-                             '649', '65']
+                        '62214', '62215', '62216', '62217', '62218', '62219',
+                        '6222', '6223', '6224', '6225', '6226', '6227', '6228',
+                        '62290', '62291', '622920', '622921', '622922', '622923',
+                        '622924', '622925', '644', '645', '646', '647', '648',
+                        '649', '65']
                 },
                 JCB: {
                     length: [16],
@@ -3166,9 +3161,9 @@ if (typeof jQuery === 'undefined') {
                 UNIONPAY: {
                     length: [16, 17, 18, 19],
                     prefix: ['622126', '622127', '622128', '622129', '62213', '62214',
-                             '62215', '62216', '62217', '62218', '62219', '6222', '6223',
-                             '6224', '6225', '6226', '6227', '6228', '62290', '62291',
-                             '622920', '622921', '622922', '622923', '622924', '622925']
+                        '62215', '62216', '62217', '62218', '62219', '6222', '6223',
+                        '6224', '6225', '6226', '6227', '6228', '62290', '62291',
+                        '622920', '622921', '622922', '622923', '622924', '622925']
                 },
                 VISA: {
                     length: [16],
@@ -3188,12 +3183,12 @@ if (typeof jQuery === 'undefined') {
             }
 
             return (creditCardType === null)
-                        ? false
-                        : (('AMERICAN_EXPRESS' === creditCardType) ? (value.length === 4) : (value.length === 3));
+                ? false
+                : (('AMERICAN_EXPRESS' === creditCardType) ? (value.length === 4) : (value.length === 3));
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             date: {
@@ -3234,7 +3229,7 @@ if (typeof jQuery === 'undefined') {
          * ii) date, time and A (indicating AM or PM)
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'date');
             if (value === '') {
                 return true;
@@ -3247,15 +3242,15 @@ if (typeof jQuery === 'undefined') {
                 options.format = 'YYYY-MM-DD';
             }
 
-            var locale     = validator.getLocale(),
-                message    = options.message || FormValidation.I18n[locale].date['default'],
-                formats    = options.format.split(' '),
+            var locale = validator.getLocale(),
+                message = options.message || FormValidation.I18n[locale].date['default'],
+                formats = options.format.split(' '),
                 dateFormat = formats[0],
                 timeFormat = (formats.length > 1) ? formats[1] : null,
-                amOrPm     = (formats.length > 2) ? formats[2] : null,
-                sections   = value.split(' '),
-                date       = sections[0],
-                time       = (sections.length > 1) ? sections[1] : null;
+                amOrPm = (formats.length > 2) ? formats[2] : null,
+                sections = value.split(' '),
+                date = sections[0],
+                time = (sections.length > 1) ? sections[1] : null;
 
             if (formats.length !== sections.length) {
                 return {
@@ -3277,7 +3272,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Determine the date
-            date       = date.split(separator);
+            date = date.split(separator);
             dateFormat = dateFormat.split(separator);
             if (date.length !== dateFormat.length) {
                 return {
@@ -3286,9 +3281,9 @@ if (typeof jQuery === 'undefined') {
                 };
             }
 
-            var year  = date[$.inArray('YYYY', dateFormat)],
+            var year = date[$.inArray('YYYY', dateFormat)],
                 month = date[$.inArray('MM', dateFormat)],
-                day   = date[$.inArray('DD', dateFormat)];
+                day = date[$.inArray('DD', dateFormat)];
 
             if (!year || !month || !day || year.length !== 4) {
                 return {
@@ -3301,7 +3296,7 @@ if (typeof jQuery === 'undefined') {
             var minutes = null, hours = null, seconds = null;
             if (timeFormat) {
                 timeFormat = timeFormat.split(':');
-                time       = time.split(':');
+                time = time.split(':');
 
                 if (timeFormat.length !== time.length) {
                     return {
@@ -3310,7 +3305,7 @@ if (typeof jQuery === 'undefined') {
                     };
                 }
 
-                hours   = time.length > 0 ? time[0] : null;
+                hours = time.length > 0 ? time[0] : null;
                 minutes = time.length > 1 ? time[1] : null;
                 seconds = time.length > 2 ? time[2] : null;
 
@@ -3374,10 +3369,10 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Validate day, month, and year
-            var valid     = FormValidation.Helper.date(year, month, day),
-                // declare the date, min and max objects
-                min       = null,
-                max       = null,
+            var valid = FormValidation.Helper.date(year, month, day),
+            // declare the date, min and max objects
+                min = null,
+                max = null,
                 minOption = options.min,
                 maxOption = options.max;
 
@@ -3386,7 +3381,7 @@ if (typeof jQuery === 'undefined') {
                     minOption = validator.getDynamicOption($field, minOption);
                 }
 
-                min       = minOption instanceof Date ? minOption : this._parseDate(minOption, dateFormat, separator);
+                min = minOption instanceof Date ? minOption : this._parseDate(minOption, dateFormat, separator);
                 // In order to avoid displaying a date string like "Mon Dec 08 2014 19:14:12 GMT+0000 (WET)"
                 minOption = minOption instanceof Date ? this._formatDate(minOption, options.format) : minOption;
             }
@@ -3396,26 +3391,26 @@ if (typeof jQuery === 'undefined') {
                     maxOption = validator.getDynamicOption($field, maxOption);
                 }
 
-                max       = maxOption instanceof Date ? maxOption : this._parseDate(maxOption, dateFormat, separator);
+                max = maxOption instanceof Date ? maxOption : this._parseDate(maxOption, dateFormat, separator);
                 // In order to avoid displaying a date string like "Mon Dec 08 2014 19:14:12 GMT+0000 (WET)"
                 maxOption = maxOption instanceof Date ? this._formatDate(maxOption, options.format) : maxOption;
             }
 
-            date = new Date(year, month -1, day, hours, minutes, seconds);
+            date = new Date(year, month - 1, day, hours, minutes, seconds);
 
             switch (true) {
                 case (minOption && !maxOption && valid):
-                    valid   = date.getTime() >= min.getTime();
+                    valid = date.getTime() >= min.getTime();
                     message = options.message || FormValidation.Helper.format(FormValidation.I18n[locale].date.min, minOption);
                     break;
 
                 case (maxOption && !minOption && valid):
-                    valid   = date.getTime() <= max.getTime();
+                    valid = date.getTime() <= max.getTime();
                     message = options.message || FormValidation.Helper.format(FormValidation.I18n[locale].date.max, maxOption);
                     break;
 
                 case (maxOption && minOption && valid):
-                    valid   = date.getTime() <= max.getTime() && date.getTime() >= min.getTime();
+                    valid = date.getTime() <= max.getTime() && date.getTime() >= min.getTime();
                     message = options.message || FormValidation.Helper.format(FormValidation.I18n[locale].date.range, [minOption, maxOption]);
                     break;
 
@@ -3441,24 +3436,24 @@ if (typeof jQuery === 'undefined') {
          * @param {String} separator The separator used to separate the date, month, and year
          * @returns {Date}
          */
-        _parseDate: function(date, format, separator) {
-            var minutes     = 0, hours = 0, seconds = 0,
-                sections    = date.split(' '),
+        _parseDate: function (date, format, separator) {
+            var minutes = 0, hours = 0, seconds = 0,
+                sections = date.split(' '),
                 dateSection = sections[0],
                 timeSection = (sections.length > 1) ? sections[1] : null;
 
             dateSection = dateSection.split(separator);
-            var year  = dateSection[$.inArray('YYYY', format)],
+            var year = dateSection[$.inArray('YYYY', format)],
                 month = dateSection[$.inArray('MM', format)],
-                day   = dateSection[$.inArray('DD', format)];
+                day = dateSection[$.inArray('DD', format)];
             if (timeSection) {
                 timeSection = timeSection.split(':');
-                hours       = timeSection.length > 0 ? timeSection[0] : null;
-                minutes     = timeSection.length > 1 ? timeSection[1] : null;
-                seconds     = timeSection.length > 2 ? timeSection[2] : null;
+                hours = timeSection.length > 0 ? timeSection[0] : null;
+                minutes = timeSection.length > 1 ? timeSection[1] : null;
+                seconds = timeSection.length > 2 ? timeSection[2] : null;
             }
 
-            return new Date(year, month -1, day, hours, minutes, seconds);
+            return new Date(year, month - 1, day, hours, minutes, seconds);
         },
 
         /**
@@ -3483,74 +3478,74 @@ if (typeof jQuery === 'undefined') {
          *      ss      Seconds with leading zeros (00 through 59)
          * @returns {String}
          */
-        _formatDate: function(date, format) {
+        _formatDate: function (date, format) {
             format = format
-                        .replace(/Y/g, 'y')
-                        .replace(/M/g, 'm')
-                        .replace(/D/g, 'd')
-                        .replace(/:m/g, ':M')
-                        .replace(/:mm/g, ':MM')
-                        .replace(/:S/, ':s')
-                        .replace(/:SS/, ':ss');
+                .replace(/Y/g, 'y')
+                .replace(/M/g, 'm')
+                .replace(/D/g, 'd')
+                .replace(/:m/g, ':M')
+                .replace(/:mm/g, ':MM')
+                .replace(/:S/, ':s')
+                .replace(/:SS/, ':ss');
 
             var replacer = {
-                d: function(date) {
+                d: function (date) {
                     return date.getDate();
                 },
-                dd: function(date) {
+                dd: function (date) {
                     var d = date.getDate();
                     return (d < 10) ? '0' + d : d;
                 },
-                m: function(date) {
+                m: function (date) {
                     return date.getMonth() + 1;
                 },
-                mm: function(date) {
+                mm: function (date) {
                     var m = date.getMonth() + 1;
                     return m < 10 ? '0' + m : m;
                 },
-                yy: function(date) {
+                yy: function (date) {
                     return ('' + date.getFullYear()).substr(2);
                 },
-                yyyy: function(date) {
+                yyyy: function (date) {
                     return date.getFullYear();
                 },
-                h: function(date) {
+                h: function (date) {
                     return date.getHours() % 12 || 12;
                 },
-                hh: function(date) {
+                hh: function (date) {
                     var h = date.getHours() % 12 || 12;
                     return h < 10 ? '0' + h : h;
                 },
-                H: function(date) {
+                H: function (date) {
                     return date.getHours();
                 },
-                HH: function(date) {
+                HH: function (date) {
                     var H = date.getHours();
                     return H < 10 ? '0' + H : H;
                 },
-                M: function(date) {
+                M: function (date) {
                     return date.getMinutes();
                 },
-                MM: function(date) {
+                MM: function (date) {
                     var M = date.getMinutes();
                     return M < 10 ? '0' + M : M;
                 },
-                s: function(date) {
+                s: function (date) {
                     return date.getSeconds();
                 },
-                ss: function(date) {
+                ss: function (date) {
                     var s = date.getSeconds();
                     return s < 10 ? '0' + s : s;
                 }
             };
 
-            return format.replace(/d{1,4}|m{1,4}|yy(?:yy)?|([HhMs])\1?|"[^"]*"|'[^']*'/g, function(match) {
+            return format.replace(/d{1,4}|m{1,4}|yy(?:yy)?|([HhMs])\1?|"[^"]*"|'[^']*'/g, function (match) {
                 return replacer[match] ? replacer[match](date) : match.slice(1, match.length - 1);
             });
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             different: {
@@ -3573,11 +3568,11 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - field: The name of field that will be used to compare with current one
          */
-        init: function(validator, $field, options) {
+        init: function (validator, $field, options) {
             var fields = options.field.split(',');
             for (var i = 0; i < fields.length; i++) {
                 var compareWith = validator.getFieldElements(fields[i]);
-                validator.onLiveChange(compareWith, 'live_different', function() {
+                validator.onLiveChange(compareWith, 'live_different', function () {
                     var status = validator.getStatus($field, 'different');
                     if (status !== validator.STATUS_NOT_VALIDATED) {
                         validator.revalidateField($field);
@@ -3594,7 +3589,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - field: The name of field that will be used to compare with current one
          */
-        destroy: function(validator, $field, options) {
+        destroy: function (validator, $field, options) {
             var fields = options.field.split(',');
             for (var i = 0; i < fields.length; i++) {
                 var compareWith = validator.getFieldElements(fields[i]);
@@ -3612,13 +3607,13 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'different');
             if (value === '') {
                 return true;
             }
 
-            var fields  = options.field.split(','),
+            var fields = options.field.split(','),
                 isValid = true;
 
             for (var i = 0; i < fields.length; i++) {
@@ -3639,7 +3634,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             digits: {
@@ -3657,7 +3652,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} [options]
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'digits');
             if (value === '') {
                 return true;
@@ -3667,7 +3662,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             ean: {
@@ -3690,7 +3685,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'ean');
             if (value === '') {
                 return true;
@@ -3701,7 +3696,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             var length = value.length,
-                sum    = 0,
+                sum = 0,
                 weight = (length === 8) ? [3, 1] : [1, 3];
             for (var i = 0; i < length - 1; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i % 2];
@@ -3711,7 +3706,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             ein: {
@@ -3749,7 +3744,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Object|Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'ein');
             if (value === '') {
                 return true;
@@ -3773,7 +3768,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             emailAddress: {
@@ -3789,7 +3784,7 @@ if (typeof jQuery === 'undefined') {
             separator: 'separator'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             return ('email' === $field.attr('type'));
         },
 
@@ -3803,7 +3798,7 @@ if (typeof jQuery === 'undefined') {
          * - separator: Regex for character or characters expected as separator between addresses; default is comma /[,;]/, i.e. comma or semicolon.
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'emailAddress');
             if (value === '') {
                 return true;
@@ -3811,7 +3806,7 @@ if (typeof jQuery === 'undefined') {
 
             // Email address regular expression
             // http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
-            var emailRegExp   = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+            var emailRegExp = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
                 allowMultiple = options.multiple === true || options.multiple === 'true';
 
             if (allowMultiple) {
@@ -3830,15 +3825,15 @@ if (typeof jQuery === 'undefined') {
             }
         },
 
-        _splitEmailAddresses: function(emailAddresses, separator) {
-            var quotedFragments     = emailAddresses.split(/"/),
+        _splitEmailAddresses: function (emailAddresses, separator) {
+            var quotedFragments = emailAddresses.split(/"/),
                 quotedFragmentCount = quotedFragments.length,
-                emailAddressArray   = [],
-                nextEmailAddress    = '';
+                emailAddressArray = [],
+                nextEmailAddress = '';
 
             for (var i = 0; i < quotedFragmentCount; i++) {
                 if (i % 2 === 0) {
-                    var splitEmailAddressFragments     = quotedFragments[i].split(separator),
+                    var splitEmailAddressFragments = quotedFragments[i].split(separator),
                         splitEmailAddressFragmentCount = splitEmailAddressFragments.length;
 
                     if (splitEmailAddressFragmentCount === 1) {
@@ -3864,7 +3859,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             file: {
@@ -3903,7 +3898,7 @@ if (typeof jQuery === 'undefined') {
          * - type: The allowed MIME type, separated by a comma
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'file');
             if (value === '') {
                 return true;
@@ -3911,13 +3906,13 @@ if (typeof jQuery === 'undefined') {
 
             var ext,
                 extensions = options.extension ? options.extension.toLowerCase().split(',') : null,
-                types      = options.type      ? options.type.toLowerCase().split(',')      : null,
-                html5      = (window.File && window.FileList && window.FileReader);
+                types = options.type ? options.type.toLowerCase().split(',') : null,
+                html5 = (window.File && window.FileList && window.FileReader);
 
             if (html5) {
                 // Get FileList instance
-                var files     = $field.get(0).files,
-                    total     = files.length,
+                var files = $field.get(0).files,
+                    total = files.length,
                     totalSize = 0;
 
                 if ((options.maxFiles && total > parseInt(options.maxFiles, 10))        // Check the maxFiles
@@ -3928,7 +3923,7 @@ if (typeof jQuery === 'undefined') {
 
                 for (var i = 0; i < total; i++) {
                     totalSize += files[i].size;
-                    ext        = files[i].name.substr(files[i].name.lastIndexOf('.') + 1);
+                    ext = files[i].name.substr(files[i].name.lastIndexOf('.') + 1);
 
                     if ((options.minSize && files[i].size < parseInt(options.minSize, 10))                      // Check the minSize
                         || (options.maxSize && files[i].size > parseInt(options.maxSize, 10))                   // Check the maxSize
@@ -3956,7 +3951,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             greaterThan: {
@@ -3973,9 +3968,9 @@ if (typeof jQuery === 'undefined') {
             inclusive: 'inclusive'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             var type = $field.attr('type'),
-                min  = $field.attr('min');
+                min = $field.attr('min');
             if (min && type !== 'date') {
                 return {
                     value: min
@@ -4001,39 +3996,39 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'greaterThan');
             if (value === '') {
                 return true;
             }
-            
+
             value = this._format(value);
             if (!$.isNumeric(value)) {
                 return false;
             }
 
-            var locale         = validator.getLocale(),
-                compareTo      = $.isNumeric(options.value) ? options.value : validator.getDynamicOption($field, options.value),
+            var locale = validator.getLocale(),
+                compareTo = $.isNumeric(options.value) ? options.value : validator.getDynamicOption($field, options.value),
                 compareToValue = this._format(compareTo);
 
             value = parseFloat(value);
-			return (options.inclusive === true || options.inclusive === undefined)
-                    ? {
-                        valid: value >= compareToValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].greaterThan['default'], compareTo)
-                    }
-                    : {
-                        valid: value > compareToValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].greaterThan.notInclusive, compareTo)
-                    };
+            return (options.inclusive === true || options.inclusive === undefined)
+                ? {
+                valid: value >= compareToValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].greaterThan['default'], compareTo)
+            }
+                : {
+                valid: value > compareToValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].greaterThan.notInclusive, compareTo)
+            };
         },
 
-        _format: function(value) {
+        _format: function (value) {
             return (value + '').replace(',', '.');
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             grid: {
@@ -4056,7 +4051,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'grid');
             if (value === '') {
                 return true;
@@ -4074,7 +4069,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             hex: {
@@ -4093,7 +4088,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'hex');
             if (value === '') {
                 return true;
@@ -4103,7 +4098,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             iban: {
@@ -4300,7 +4295,7 @@ if (typeof jQuery === 'undefined') {
          *      - A callback function that returns the country code
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'iban');
             if (value === '') {
                 return true;
@@ -4328,16 +4323,16 @@ if (typeof jQuery === 'undefined') {
             }
 
             value = value.substr(4) + value.substr(0, 4);
-            value = $.map(value.split(''), function(n) {
+            value = $.map(value.split(''), function (n) {
                 var code = n.charCodeAt(0);
                 return (code >= 'A'.charCodeAt(0) && code <= 'Z'.charCodeAt(0))
-                        // Replace A, B, C, ..., Z with 10, 11, ..., 35
-                        ? (code - 'A'.charCodeAt(0) + 10)
-                        : n;
+                    // Replace A, B, C, ..., Z with 10, 11, ..., 35
+                    ? (code - 'A'.charCodeAt(0) + 10)
+                    : n;
             });
             value = value.join('');
 
-            var temp   = parseInt(value.substr(0, 1), 10),
+            var temp = parseInt(value.substr(0, 1), 10),
                 length = value.length;
             for (var i = 1; i < length; ++i) {
                 temp = (temp * 10 + parseInt(value.substr(i, 1), 10)) % 97;
@@ -4350,7 +4345,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             id: {
@@ -4417,13 +4412,13 @@ if (typeof jQuery === 'undefined') {
          *      - A callback function that returns the country code
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'id');
             if (value === '') {
                 return true;
             }
 
-            var locale  = validator.getLocale(),
+            var locale = validator.getLocale(),
                 country = options.country;
             if (!country) {
                 country = value.substr(0, 2);
@@ -4436,13 +4431,13 @@ if (typeof jQuery === 'undefined') {
                 return true;
             }
 
-            var method  = ['_', country.toLowerCase()].join('');
+            var method = ['_', country.toLowerCase()].join('');
             return this[method](value)
-                    ? true
-                    : {
-                        valid: false,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].id.country, FormValidation.I18n[locale].id.countries[country.toUpperCase()])
-                    };
+                ? true
+                : {
+                valid: false,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].id.country, FormValidation.I18n[locale].id.countries[country.toUpperCase()])
+            };
         },
 
         /**
@@ -4458,15 +4453,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} countryCode The ISO country code, can be BA, MK, ME, RS, SI
          * @returns {Boolean}
          */
-        _validateJMBG: function(value, countryCode) {
+        _validateJMBG: function (value, countryCode) {
             if (!/^\d{13}$/.test(value)) {
                 return false;
             }
-            var day   = parseInt(value.substr(0, 2), 10),
+            var day = parseInt(value.substr(0, 2), 10),
                 month = parseInt(value.substr(2, 2), 10),
-                year  = parseInt(value.substr(4, 3), 10),
-                rr    = parseInt(value.substr(7, 2), 10),
-                k     = parseInt(value.substr(12, 1), 10);
+                year = parseInt(value.substr(4, 3), 10),
+                rr = parseInt(value.substr(7, 2), 10),
+                k = parseInt(value.substr(12, 1), 10);
 
             // Validate date of birth
             // FIXME: Validate the year of birth
@@ -4513,23 +4508,23 @@ if (typeof jQuery === 'undefined') {
             }
         },
 
-        _ba: function(value) {
+        _ba: function (value) {
             return this._validateJMBG(value, 'BA');
         },
-        _mk: function(value) {
+        _mk: function (value) {
             return this._validateJMBG(value, 'MK');
         },
-        _me: function(value) {
+        _me: function (value) {
             return this._validateJMBG(value, 'ME');
         },
-        _rs: function(value) {
+        _rs: function (value) {
             return this._validateJMBG(value, 'RS');
         },
 
         /**
          * Examples: 0101006500006
          */
-        _si: function(value) {
+        _si: function (value) {
             return this._validateJMBG(value, 'SI');
         },
 
@@ -4543,15 +4538,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _bg: function(value) {
+        _bg: function (value) {
             if (!/^\d{10}$/.test(value) && !/^\d{6}\s\d{3}\s\d{1}$/.test(value)) {
                 return false;
             }
             value = value.replace(/\s/g, '');
             // Check the birth date
-            var year  = parseInt(value.substr(0, 2), 10) + 1900,
+            var year = parseInt(value.substr(0, 2), 10) + 1900,
                 month = parseInt(value.substr(2, 2), 10),
-                day   = parseInt(value.substr(4, 2), 10);
+                day = parseInt(value.substr(4, 2), 10);
             if (month > 40) {
                 year += 100;
                 month -= 40;
@@ -4564,7 +4559,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [2, 4, 8, 5, 10, 9, 7, 3, 6];
             for (var i = 0; i < 9; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -4583,7 +4578,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _br: function(value) {
+        _br: function (value) {
             value = value.replace(/\D/g, '');
 
             if (/^1{11}|2{11}|3{11}|4{11}|5{11}|6{11}|7{11}|8{11}|9{11}|0{11}$/.test(value)) {
@@ -4624,13 +4619,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _ch: function(value) {
+        _ch: function (value) {
             if (!/^756[\.]{0,1}[0-9]{4}[\.]{0,1}[0-9]{4}[\.]{0,1}[0-9]{2}$/.test(value)) {
                 return false;
             }
             value = value.replace(/\D/g, '').substr(3);
             var length = value.length,
-                sum    = 0,
+                sum = 0,
                 weight = (length === 8) ? [3, 1] : [1, 3];
             for (var i = 0; i < length - 1; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i % 2];
@@ -4649,7 +4644,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _cl: function(value) {
+        _cl: function (value) {
             if (!/^\d{7,8}[-]{0,1}[0-9K]$/i.test(value)) {
                 return false;
             }
@@ -4657,7 +4652,7 @@ if (typeof jQuery === 'undefined') {
             while (value.length < 9) {
                 value = '0' + value;
             }
-            var sum    = 0,
+            var sum = 0,
                 weight = [3, 2, 7, 6, 5, 4, 3, 2];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -4695,13 +4690,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _cn: function(value) {
+        _cn: function (value) {
             // Basic format check (18 or 15 digits, considering X in checksum)
             value = value.trim();
             if (!/^\d{15}$/.test(value) && !/^\d{17}[\dXx]{1}$/.test(value)) {
                 return false;
             }
-            
+
             // Check China PR Administrative division code
             var adminDivisionCodes = {
                 11: {
@@ -5151,24 +5146,23 @@ if (typeof jQuery === 'undefined') {
                     43: [0, 1, [21, 26]],
                     90: [[0, 4]], 27: [[0, 2], 22, 23]
                 },
-                71: { 0: [0] },
-                81: { 0: [0] },
-                82: { 0: [0] }
+                71: {0: [0]},
+                81: {0: [0]},
+                82: {0: [0]}
             };
-            
-            var provincial  = parseInt(value.substr(0, 2), 10),
+
+            var provincial = parseInt(value.substr(0, 2), 10),
                 prefectural = parseInt(value.substr(2, 2), 10),
-                county      = parseInt(value.substr(4, 2), 10);
-            
+                county = parseInt(value.substr(4, 2), 10);
+
             if (!adminDivisionCodes[provincial] || !adminDivisionCodes[provincial][prefectural]) {
                 return false;
             }
-            var inRange  = false,
+            var inRange = false,
                 rangeDef = adminDivisionCodes[provincial][prefectural];
             for (var i = 0; i < rangeDef.length; i++) {
                 if (($.isArray(rangeDef[i]) && rangeDef[i][0] <= county && county <= rangeDef[i][1])
-                    || (!$.isArray(rangeDef[i]) && county === rangeDef[i]))
-                {
+                    || (!$.isArray(rangeDef[i]) && county === rangeDef[i])) {
                     inRange = true;
                     break;
                 }
@@ -5177,24 +5171,24 @@ if (typeof jQuery === 'undefined') {
             if (!inRange) {
                 return false;
             }
-            
+
             // Check date of birth
             var dob;
             if (value.length === 18) {
                 dob = value.substr(6, 8);
-            } else /* length == 15 */ { 
+            } else /* length == 15 */ {
                 dob = '19' + value.substr(6, 6);
             }
-            var year  = parseInt(dob.substr(0, 4), 10),
+            var year = parseInt(dob.substr(0, 4), 10),
                 month = parseInt(dob.substr(4, 2), 10),
-                day   = parseInt(dob.substr(6, 2), 10);
+                day = parseInt(dob.substr(6, 2), 10);
             if (!FormValidation.Helper.date(year, month, day)) {
                 return false;
             }
-            
+
             // Check checksum (18-digit system only)
             if (value.length === 18) {
-                var sum    = 0,
+                var sum = 0,
                     weight = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
                 for (i = 0; i < 17; i++) {
                     sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -5203,10 +5197,10 @@ if (typeof jQuery === 'undefined') {
                 var checksum = (value.charAt(17).toUpperCase() !== 'X') ? parseInt(value.charAt(17), 10) : 10;
                 return checksum === sum;
             }
-            
+
             return true;
         },
-        
+
         /**
          * Validate Czech national identification number (RC)
          * Examples:
@@ -5216,13 +5210,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _cz: function(value) {
+        _cz: function (value) {
             if (!/^\d{9,10}$/.test(value)) {
                 return false;
             }
-            var year  = 1900 + parseInt(value.substr(0, 2), 10),
+            var year = 1900 + parseInt(value.substr(0, 2), 10),
                 month = parseInt(value.substr(2, 2), 10) % 50 % 20,
-                day   = parseInt(value.substr(4, 2), 10);
+                day = parseInt(value.substr(4, 2), 10);
             if (value.length === 9) {
                 if (year >= 1980) {
                     year -= 100;
@@ -5260,14 +5254,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _dk: function(value) {
+        _dk: function (value) {
             if (!/^[0-9]{6}[-]{0,1}[0-9]{4}$/.test(value)) {
                 return false;
             }
             value = value.replace(/-/g, '');
-            var day   = parseInt(value.substr(0, 2), 10),
+            var day = parseInt(value.substr(0, 2), 10),
                 month = parseInt(value.substr(2, 2), 10),
-                year  = parseInt(value.substr(4, 2), 10);
+                year = parseInt(value.substr(4, 2), 10);
 
             switch (true) {
                 case ('5678'.indexOf(value.charAt(6)) !== -1 && year >= 58):
@@ -5294,7 +5288,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _ee: function(value) {
+        _ee: function (value) {
             // Use the same format as Lithuanian Personal Code
             return this._lt(value);
         },
@@ -5318,7 +5312,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _es: function(value) {
+        _es: function (value) {
             var isDNI = /^[0-9]{8}[-]{0,1}[A-HJ-NP-TV-Z]$/.test(value),
                 isNIE = /^[XYZ][-]{0,1}[0-9]{7}[-]{0,1}[A-HJ-NP-TV-Z]$/.test(value),
                 isCIF = /^[A-HNPQS][-]{0,1}[0-9]{7}[-]{0,1}[0-9A-J]$/.test(value);
@@ -5340,9 +5334,9 @@ if (typeof jQuery === 'undefined') {
                 return (check === value.substr(8, 1));
             } else {
                 check = value.substr(1, 7);
-                var letter  = value[0],
+                var letter = value[0],
                     control = value.substr(-1),
-                    sum     = 0;
+                    sum = 0;
 
                 // The digits in the even positions are added to the sum directly.
                 // The ones in the odd positions are multiplied by 2 and then added to the sum.
@@ -5366,7 +5360,7 @@ if (typeof jQuery === 'undefined') {
                 if (lastDigit !== 0) {
                     lastDigit = 10 - lastDigit;
                 }
-                
+
                 if ('KQS'.indexOf(letter) !== -1) {
                     // If the CIF starts with a K, Q or S, the control digit must be a letter
                     return (control === 'JABCDEFGHI'[lastDigit]);
@@ -5389,13 +5383,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _fi: function(value) {
+        _fi: function (value) {
             if (!/^[0-9]{6}[-+A][0-9]{3}[0-9ABCDEFHJKLMNPRSTUVWXY]$/.test(value)) {
                 return false;
             }
-            var day       = parseInt(value.substr(0, 2), 10),
-                month     = parseInt(value.substr(2, 2), 10),
-                year      = parseInt(value.substr(4, 2), 10),
+            var day = parseInt(value.substr(0, 2), 10),
+                month = parseInt(value.substr(2, 2), 10),
+                year = parseInt(value.substr(4, 2), 10),
                 centuries = {
                     '+': 1800,
                     '-': 1900,
@@ -5425,7 +5419,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _hr: function(value) {
+        _hr: function (value) {
             if (!/^[0-9]{11}$/.test(value)) {
                 return false;
             }
@@ -5442,17 +5436,17 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _ie: function(value) {
+        _ie: function (value) {
             if (!/^\d{7}[A-W][AHWTX]?$/.test(value)) {
                 return false;
             }
 
-            var getCheckDigit = function(value) {
+            var getCheckDigit = function (value) {
                 while (value.length < 7) {
                     value = '0' + value;
                 }
                 var alphabet = 'WABCDEFGHIJKLMNOPQRSTUV',
-                    sum      = 0;
+                    sum = 0;
                 for (var i = 0; i < 7; i++) {
                     sum += parseInt(value.charAt(i), 10) * (8 - i);
                 }
@@ -5479,14 +5473,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _is: function(value) {
+        _is: function (value) {
             if (!/^[0-9]{6}[-]{0,1}[0-9]{4}$/.test(value)) {
                 return false;
             }
             value = value.replace(/-/g, '');
-            var day     = parseInt(value.substr(0, 2), 10),
-                month   = parseInt(value.substr(2, 2), 10),
-                year    = parseInt(value.substr(4, 2), 10),
+            var day = parseInt(value.substr(0, 2), 10),
+                month = parseInt(value.substr(2, 2), 10),
+                year = parseInt(value.substr(4, 2), 10),
                 century = parseInt(value.charAt(9), 10);
 
             year = (century === 9) ? (1900 + year) : ((20 + century) * 100 + year);
@@ -5494,7 +5488,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
             // Validate the check digit
-            var sum    = 0,
+            var sum = 0,
                 weight = [3, 2, 7, 6, 5, 4, 3, 2];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -5514,14 +5508,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _lt: function(value) {
+        _lt: function (value) {
             if (!/^[0-9]{11}$/.test(value)) {
                 return false;
             }
-            var gender  = parseInt(value.charAt(0), 10),
-                year    = parseInt(value.substr(1, 2), 10),
-                month   = parseInt(value.substr(3, 2), 10),
-                day     = parseInt(value.substr(5, 2), 10),
+            var gender = parseInt(value.charAt(0), 10),
+                year = parseInt(value.substr(1, 2), 10),
+                month = parseInt(value.substr(3, 2), 10),
+                day = parseInt(value.substr(5, 2), 10),
                 century = (gender % 2 === 0) ? (17 + gender / 2) : (17 + (gender + 1) / 2);
             year = century * 100 + year;
             if (!FormValidation.Helper.date(year, month, day, true)) {
@@ -5529,7 +5523,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Validate the check digit
-            var sum    = 0,
+            var sum = 0,
                 weight = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1];
             for (var i = 0; i < 10; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -5540,7 +5534,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Re-calculate the check digit
-            sum    = 0;
+            sum = 0;
             weight = [3, 4, 5, 6, 7, 8, 9, 1, 2, 3];
             for (i = 0; i < 10; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -5562,15 +5556,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _lv: function(value) {
+        _lv: function (value) {
             if (!/^[0-9]{6}[-]{0,1}[0-9]{5}$/.test(value)) {
                 return false;
             }
             value = value.replace(/\D/g, '');
             // Check birth date
-            var day   = parseInt(value.substr(0, 2), 10),
+            var day = parseInt(value.substr(0, 2), 10),
                 month = parseInt(value.substr(2, 2), 10),
-                year  = parseInt(value.substr(4, 2), 10);
+                year = parseInt(value.substr(4, 2), 10);
             year = year + 1800 + parseInt(value.charAt(6), 10) * 100;
 
             if (!FormValidation.Helper.date(year, month, day, true)) {
@@ -5578,7 +5572,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Check personal code
-            var sum    = 0,
+            var sum = 0,
                 weight = [10, 5, 8, 4, 2, 1, 6, 3, 7, 9];
             for (var i = 0; i < 10; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -5597,7 +5591,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _nl: function(value) {
+        _nl: function (value) {
             while (value.length < 9) {
                 value = '0' + value;
             }
@@ -5608,7 +5602,7 @@ if (typeof jQuery === 'undefined') {
             if (parseInt(value, 10) === 0) {
                 return false;
             }
-            var sum    = 0,
+            var sum = 0,
                 length = value.length;
             for (var i = 0; i < length - 1; i++) {
                 sum += (9 - i) * parseInt(value.charAt(i), 10);
@@ -5619,21 +5613,21 @@ if (typeof jQuery === 'undefined') {
             }
             return (sum + '' === value.charAt(length - 1));
         },
-        
+
         /**
          * Validate Poland citizen number (PESEL)
-         * 
+         *
          * @see http://en.wikipedia.org/wiki/National_identification_number#Poland
          * @see http://en.wikipedia.org/wiki/PESEL
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _pl: function(value) {
+        _pl: function (value) {
             if (!/^[0-9]{11}$/.test(value)) {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 length = value.length,
                 weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3, 7];
 
@@ -5659,7 +5653,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _ro: function(value) {
+        _ro: function (value) {
             if (!/^[0-9]{13}$/.test(value)) {
                 return false;
             }
@@ -5669,10 +5663,10 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Determine the date of birth
-            var year      = parseInt(value.substr(1, 2), 10),
-                month     = parseInt(value.substr(3, 2), 10),
-                day       = parseInt(value.substr(5, 2), 10),
-                // The year of date is determined base on the gender
+            var year = parseInt(value.substr(1, 2), 10),
+                month = parseInt(value.substr(3, 2), 10),
+                day = parseInt(value.substr(5, 2), 10),
+            // The year of date is determined base on the gender
                 centuries = {
                     '1': 1900,  // Male born between 1900 and 1999
                     '2': 1900,  // Female born between 1900 and 1999
@@ -5692,7 +5686,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Validate the check digit
-            var sum    = 0,
+            var sum = 0,
                 weight = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9],
                 length = value.length;
             for (var i = 0; i < length - 1; i++) {
@@ -5715,15 +5709,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _se: function(value) {
+        _se: function (value) {
             if (!/^[0-9]{10}$/.test(value) && !/^[0-9]{6}[-|+][0-9]{4}$/.test(value)) {
                 return false;
             }
             value = value.replace(/[^0-9]/g, '');
 
-            var year  = parseInt(value.substr(0, 2), 10) + 1900,
+            var year = parseInt(value.substr(0, 2), 10) + 1900,
                 month = parseInt(value.substr(2, 2), 10),
-                day   = parseInt(value.substr(4, 2), 10);
+                day = parseInt(value.substr(4, 2), 10);
             if (!FormValidation.Helper.date(year, month, day)) {
                 return false;
             }
@@ -5741,7 +5735,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _sk: function(value) {
+        _sk: function (value) {
             // Slovakia uses the same format as Czech Republic
             return this._cz(value);
         },
@@ -5753,7 +5747,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _sm: function(value) {
+        _sm: function (value) {
             return /^\d{5}$/.test(value);
         },
 
@@ -5767,7 +5761,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _th: function(value) {
+        _th: function (value) {
             if (value.length !== 13) {
                 return false;
             }
@@ -5790,14 +5784,14 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The ID
          * @returns {Boolean}
          */
-        _za: function(value) {
+        _za: function (value) {
             if (!/^[0-9]{10}[0|1][8|9][0-9]$/.test(value)) {
                 return false;
             }
-            var year        = parseInt(value.substr(0, 2), 10),
+            var year = parseInt(value.substr(0, 2), 10),
                 currentYear = new Date().getFullYear() % 100,
-                month       = parseInt(value.substr(2, 2), 10),
-                day         = parseInt(value.substr(4, 2), 10);
+                month = parseInt(value.substr(2, 2), 10),
+                day = parseInt(value.substr(4, 2), 10);
             year = (year >= currentYear) ? (year + 1900) : (year + 2000);
 
             if (!FormValidation.Helper.date(year, month, day)) {
@@ -5809,7 +5803,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             identical: {
@@ -5832,9 +5826,9 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - field: The name of field that will be used to compare with current one
          */
-        init: function(validator, $field, options) {
+        init: function (validator, $field, options) {
             var compareWith = validator.getFieldElements(options.field);
-            validator.onLiveChange(compareWith, 'live_identical', function() {
+            validator.onLiveChange(compareWith, 'live_identical', function () {
                 var status = validator.getStatus($field, 'identical');
                 if (status !== validator.STATUS_NOT_VALIDATED) {
                     validator.revalidateField($field);
@@ -5850,7 +5844,7 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options Consists of the following key:
          * - field: The name of field that will be used to compare with current one
          */
-        destroy: function(validator, $field, options) {
+        destroy: function (validator, $field, options) {
             var compareWith = validator.getFieldElements(options.field);
             validator.offLiveChange(compareWith, 'live_identical');
         },
@@ -5864,8 +5858,8 @@ if (typeof jQuery === 'undefined') {
          * - field: The name of field that will be used to compare with current one
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
-            var value       = validator.getFieldValue($field, 'identical'),
+        validate: function (validator, $field, options) {
+            var value = validator.getFieldValue($field, 'identical'),
                 compareWith = validator.getFieldElements(options.field);
             if (compareWith === null || compareWith.length === 0) {
                 return true;
@@ -5881,7 +5875,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             imei: {
@@ -5904,7 +5898,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'imei');
             if (value === '') {
                 return true;
@@ -5929,7 +5923,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             imo: {
@@ -5952,7 +5946,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'imo');
             if (value === '') {
                 return true;
@@ -5961,11 +5955,11 @@ if (typeof jQuery === 'undefined') {
             if (!/^IMO \d{7}$/i.test(value)) {
                 return false;
             }
-            
+
             // Grab just the digits
-            var sum    = 0,
+            var sum = 0,
                 digits = value.replace(/^.*(\d{7})$/, '$1');
-            
+
             // Go over each char, multiplying by the inverse of it's position
             // IMO 9176187
             // (9 * 7) + (1 * 6) + (7 * 5) + (6 * 4) + (1 * 3) + (8 * 2) = 147
@@ -5978,7 +5972,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             integer: {
@@ -5988,7 +5982,7 @@ if (typeof jQuery === 'undefined') {
     });
 
     FormValidation.Validator.integer = {
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             return ('number' === $field.attr('type')) && ($field.attr('step') === undefined || $field.attr('step') % 1 === 0);
         },
 
@@ -6001,7 +5995,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             if (this.enableByHtml5($field) && $field.get(0).validity && $field.get(0).validity.badInput === true) {
                 return false;
             }
@@ -6014,7 +6008,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             ip: {
@@ -6043,34 +6037,34 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'ip');
             if (value === '') {
                 return true;
             }
-            options = $.extend({}, { ipv4: true, ipv6: true }, options);
+            options = $.extend({}, {ipv4: true, ipv6: true}, options);
 
-            var locale    = validator.getLocale(),
+            var locale = validator.getLocale(),
                 ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
                 ipv6Regex = /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/,
-                valid     = false,
+                valid = false,
                 message;
 
             switch (true) {
                 case (options.ipv4 && !options.ipv6):
-                    valid   = ipv4Regex.test(value);
+                    valid = ipv4Regex.test(value);
                     message = options.message || FormValidation.I18n[locale].ip.ipv4;
                     break;
 
                 case (!options.ipv4 && options.ipv6):
-                    valid   = ipv6Regex.test(value);
+                    valid = ipv6Regex.test(value);
                     message = options.message || FormValidation.I18n[locale].ip.ipv6;
                     break;
 
                 case (options.ipv4 && options.ipv6):
                 /* falls through */
                 default:
-                    valid   = ipv4Regex.test(value) || ipv6Regex.test(value);
+                    valid = ipv4Regex.test(value) || ipv6Regex.test(value);
                     message = options.message || FormValidation.I18n[locale].ip['default'];
                     break;
             }
@@ -6082,7 +6076,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             isbn: {
@@ -6109,7 +6103,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'isbn');
             if (value === '') {
                 return true;
@@ -6135,9 +6129,9 @@ if (typeof jQuery === 'undefined') {
 
             // Replace all special characters except digits and X
             value = value.replace(/[^0-9X]/gi, '');
-            var chars  = value.split(''),
+            var chars = value.split(''),
                 length = chars.length,
-                sum    = 0,
+                sum = 0,
                 i,
                 checksum;
 
@@ -6172,7 +6166,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             isin: {
@@ -6199,7 +6193,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'isin');
             if (value === '') {
                 return true;
@@ -6212,7 +6206,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             var converted = '',
-                length    = value.length;
+                length = value.length;
             // Convert letters to number
             for (var i = 0; i < length - 1; i++) {
                 var c = value.charCodeAt(i);
@@ -6220,8 +6214,8 @@ if (typeof jQuery === 'undefined') {
             }
 
             var digits = '',
-                n      = converted.length,
-                group  = (n % 2 !== 0) ? 0 : 1;
+                n = converted.length,
+                group = (n % 2 !== 0) ? 0 : 1;
             for (i = 0; i < n; i++) {
                 digits += (parseInt(converted[i], 10) * ((i % 2) === group ? 2 : 1) + '');
             }
@@ -6235,7 +6229,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             ismn: {
@@ -6258,7 +6252,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'ismn');
             if (value === '') {
                 return true;
@@ -6288,7 +6282,7 @@ if (typeof jQuery === 'undefined') {
             // Replace all special characters except digits
             value = value.replace(/[^0-9]/gi, '');
             var length = value.length,
-                sum    = 0,
+                sum = 0,
                 weight = [1, 3];
             for (var i = 0; i < length - 1; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i % 2];
@@ -6298,7 +6292,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             issn: {
@@ -6321,7 +6315,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'issn');
             if (value === '') {
                 return true;
@@ -6334,9 +6328,9 @@ if (typeof jQuery === 'undefined') {
 
             // Replace all special characters except digits and X
             value = value.replace(/[^0-9X]/gi, '');
-            var chars  = value.split(''),
+            var chars = value.split(''),
                 length = chars.length,
-                sum    = 0;
+                sum = 0;
 
             if (chars[7] === 'X') {
                 chars[7] = 10;
@@ -6348,7 +6342,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             lessThan: {
@@ -6365,9 +6359,9 @@ if (typeof jQuery === 'undefined') {
             inclusive: 'inclusive'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             var type = $field.attr('type'),
-                max  = $field.attr('max');
+                max = $field.attr('max');
             if (max && type !== 'date') {
                 return {
                     value: max
@@ -6393,39 +6387,39 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'lessThan');
             if (value === '') {
                 return true;
             }
-            
-			value = this._format(value);
+
+            value = this._format(value);
             if (!$.isNumeric(value)) {
                 return false;
             }
 
-            var locale         = validator.getLocale(),
-                compareTo      = $.isNumeric(options.value) ? options.value : validator.getDynamicOption($field, options.value),
+            var locale = validator.getLocale(),
+                compareTo = $.isNumeric(options.value) ? options.value : validator.getDynamicOption($field, options.value),
                 compareToValue = this._format(compareTo);
 
             value = parseFloat(value);
             return (options.inclusive === true || options.inclusive === undefined)
-                    ? {
-                        valid: value <= compareToValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].lessThan['default'], compareTo)
-                    }
-                    : {
-                        valid: value < compareToValue,
-                        message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].lessThan.notInclusive, compareTo)
-                    };
+                ? {
+                valid: value <= compareToValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].lessThan['default'], compareTo)
+            }
+                : {
+                valid: value < compareToValue,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].lessThan.notInclusive, compareTo)
+            };
         },
 
-        _format: function(value) {
+        _format: function (value) {
             return (value + '').replace(',', '.');
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             mac: {
@@ -6444,7 +6438,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'mac');
             if (value === '') {
                 return true;
@@ -6454,7 +6448,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             meid: {
@@ -6477,7 +6471,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'meid');
             if (value === '') {
                 return true;
@@ -6520,10 +6514,10 @@ if (typeof jQuery === 'undefined') {
 
                     // If the last digit of the calc is 0, the check digit is 0
                     return (sum % 10 === 0)
-                            ? (cd === '0')
-                            // Subtract it from the next highest 10s number (64 goes to 70) and subtract the sum
-                            // Double it and turn it into a hex char
-                            : (cd === ((Math.floor((sum + 10) / 10) * 10 - sum) * 2).toString(16));
+                        ? (cd === '0')
+                        // Subtract it from the next highest 10s number (64 goes to 70) and subtract the sum
+                        // Double it and turn it into a hex char
+                        : (cd === ((Math.floor((sum + 10) / 10) * 10 - sum) * 2).toString(16));
 
                 // 14 digit hex representation (no check digit)
                 case /^[0-9A-F]{14}$/i.test(value):
@@ -6541,7 +6535,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             notEmpty: {
@@ -6551,7 +6545,7 @@ if (typeof jQuery === 'undefined') {
     });
 
     FormValidation.Validator.notEmpty = {
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             var required = $field.attr('required') + '';
             return ('required' === required || 'true' === required);
         },
@@ -6564,14 +6558,14 @@ if (typeof jQuery === 'undefined') {
          * @param {Object} options
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var type = $field.attr('type');
             if ('radio' === type || 'checkbox' === type) {
                 var ns = validator.getNamespace();
                 return validator
-                            .getFieldElements($field.attr('data-' + ns + '-field'))
-                            .filter(':checked')
-                            .length > 0;
+                        .getFieldElements($field.attr('data-' + ns + '-field'))
+                        .filter(':checked')
+                        .length > 0;
             }
 
             if ('number' === type && $field.get(0).validity && $field.get(0).validity.badInput === true) {
@@ -6583,7 +6577,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             numeric: {
@@ -6598,7 +6592,7 @@ if (typeof jQuery === 'undefined') {
             separator: 'separator'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             return ('number' === $field.attr('type')) && ($field.attr('step') !== undefined) && ($field.attr('step') % 1 !== 0);
         },
 
@@ -6612,7 +6606,7 @@ if (typeof jQuery === 'undefined') {
          * - separator: The decimal separator. Can be "." (default), ","
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             if (this.enableByHtml5($field) && $field.get(0).validity && $field.get(0).validity.badInput === true) {
                 return false;
             }
@@ -6630,7 +6624,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             phone: {
@@ -6687,13 +6681,13 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'phone');
             if (value === '') {
                 return true;
             }
 
-            var locale  = validator.getLocale(),
+            var locale = validator.getLocale(),
                 country = options.country;
             if (typeof country !== 'string' || $.inArray(country, this.COUNTRY_CODES) === -1) {
                 // Try to determine the country
@@ -6708,26 +6702,26 @@ if (typeof jQuery === 'undefined') {
             switch (country.toUpperCase()) {
                 case 'AE':
                     // http://regexr.com/39tak
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(((\+|00)?971[\s\.-]?(\(0\)[\s\.-]?)?|0)(\(5(0|2|5|6)\)|5(0|2|5|6)|2|3|4|6|7|9)|60)([\s\.-]?[0-9]){7}$/).test(value);
                     break;
-                    
+
                 case 'BG':
                     // https://regex101.com/r/yE6vN4/1
                     // See http://en.wikipedia.org/wiki/Telephone_numbers_in_Bulgaria
-                    value   = value.replace(/\+|\s|-|\/|\(|\)/gi,'');
+                    value = value.replace(/\+|\s|-|\/|\(|\)/gi, '');
                     isValid = (/^(0|359|00)(((700|900)[0-9]{5}|((800)[0-9]{5}|(800)[0-9]{4}))|(87|88|89)([0-9]{7})|((2[0-9]{7})|(([3-9][0-9])(([0-9]{6})|([0-9]{5})))))$/).test(value);
                     break;
 
                 case 'BR':
                     // http://regexr.com/399m1
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(([\d]{4}[-.\s]{1}[\d]{2,3}[-.\s]{1}[\d]{2}[-.\s]{1}[\d]{2})|([\d]{4}[-.\s]{1}[\d]{3}[-.\s]{1}[\d]{4})|((\(?\+?[0-9]{2}\)?\s?)?(\(?\d{2}\)?\s?)?\d{4,5}[-.\s]?\d{4}))$/).test(value);
                     break;
 
                 case 'CN':
                     // http://regexr.com/39dq4
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^((00|\+)?(86(?:-| )))?((\d{11})|(\d{3}[- ]{1}\d{4}[- ]{1}\d{4})|((\d{2,4}[- ]){1}(\d{7,8}|(\d{3,4}[- ]{1}\d{4}))([- ]{1}\d{1,4})?))$/).test(value);
                     break;
 
@@ -6738,7 +6732,7 @@ if (typeof jQuery === 'undefined') {
 
                 case 'DE':
                     // http://regexr.com/39pkg
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(((((((00|\+)49[ \-/]?)|0)[1-9][0-9]{1,4})[ \-/]?)|((((00|\+)49\()|\(0)[1-9][0-9]{1,4}\)[ \-/]?))[0-9]{1,7}([ \-/]?[0-9]{1,5})?)$/).test(value);
                     break;
 
@@ -6747,7 +6741,7 @@ if (typeof jQuery === 'undefined') {
                     // 8 digit phone number not starting with a 0 or 1. Can have 1 space
                     // between each character except inside the country code.
                     // http://regex101.com/r/sS8fO4/1
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(\+45|0045|\(45\))?\s?[2-9](\s?\d){7}$/).test(value);
                     break;
 
@@ -6760,48 +6754,48 @@ if (typeof jQuery === 'undefined') {
                     //     8: Premium-rate services.
                     // There are also special 5-digit and 3-digit numbers, but
                     // maybe it would be overkill to include them all.
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(?:(?:(?:\+|00)34\D?))?(?:5|6|7|8|9)(?:\d\D?){8}$/).test(value);
                     break;
 
                 case 'FR':
                     // http://regexr.com/39a2p
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(?:(?:(?:\+|00)33[ ]?(?:\(0\)[ ]?)?)|0){1}[1-9]{1}([ .-]?)(?:\d{2}\1?){3}\d{2}$/).test(value);
                     break;
 
-            	case 'GB':
+                case 'GB':
                     // http://aa-asterisk.org.uk/index.php/Regular_Expressions_for_Validating_and_Formatting_GB_Telephone_Numbers#Match_GB_telephone_number_in_any_format
                     // http://regexr.com/38uhv
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^\(?(?:(?:0(?:0|11)\)?[\s-]?\(?|\+)44\)?[\s-]?\(?(?:0\)?[\s-]?\(?)?|0)(?:\d{2}\)?[\s-]?\d{4}[\s-]?\d{4}|\d{3}\)?[\s-]?\d{3}[\s-]?\d{3,4}|\d{4}\)?[\s-]?(?:\d{5}|\d{3}[\s-]?\d{3})|\d{5}\)?[\s-]?\d{4,5}|8(?:00[\s-]?11[\s-]?11|45[\s-]?46[\s-]?4\d))(?:(?:[\s-]?(?:x|ext\.?\s?|\#)\d+)?)$/).test(value);
                     break;
-            
+
                 case 'IN':
                     // http://stackoverflow.com/questions/18351553/regular-expression-validation-for-indian-phone-number-and-mobile-number
                     // http://regex101.com/r/qL6eZ5/1
                     // May begin with +91. Supports mobile and land line numbers
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/((\+?)((0[ -]+)*|(91 )*)(\d{12}|\d{10}))|\d{5}([- ]*)\d{6}/).test(value);
                     break;
-                    
+
                 case 'MA':
                     // http://en.wikipedia.org/wiki/Telephone_numbers_in_Morocco
                     // http://regexr.com/399n8
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^(?:(?:(?:\+|00)212[\s]?(?:[\s]?\(0\)[\s]?)?)|0){1}(?:5[\s.-]?[2-3]|6[\s.-]?[13-9]){1}[0-9]{1}(?:[\s.-]?\d{2}){3}$/).test(value);
                     break;
-                
+
                 case 'NL':
                     // http://en.wikipedia.org/wiki/Telephone_numbers_in_the_Netherlands
                     // http://regexr.com/3aevr
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^((\+|00(\s|\s?\-\s?)?)31(\s|\s?\-\s?)?(\(0\)[\-\s]?)?|0)[1-9]((\s|\s?\-\s?)?[0-9])((\s|\s?-\s?)?[0-9])((\s|\s?-\s?)?[0-9])\s?[0-9]\s?[0-9]\s?[0-9]\s?[0-9]\s?[0-9]$/gm).test(value);
                     break;
-                
+
                 case 'PK':
                     // http://regex101.com/r/yH8aV9/2
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^0?3[0-9]{2}[0-9]{7}$/).test(value);
                     break;
 
@@ -6828,10 +6822,10 @@ if (typeof jQuery === 'undefined') {
 
                 case 'VE':
                     // http://regex101.com/r/eM2yY0/6
-                    value   = $.trim(value);
+                    value = $.trim(value);
                     isValid = (/^0(?:2(?:12|4[0-9]|5[1-9]|6[0-9]|7[0-8]|8[1-35-8]|9[1-5]|3[45789])|4(?:1[246]|2[46]))\d{7}$/).test(value);
                     break;
-  
+
                 case 'US':
                 /* falls through */
                 default:
@@ -6850,7 +6844,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             regexp: {
@@ -6865,7 +6859,7 @@ if (typeof jQuery === 'undefined') {
             regexp: 'regexp'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             var pattern = $field.attr('pattern');
             if (pattern) {
                 return {
@@ -6885,7 +6879,7 @@ if (typeof jQuery === 'undefined') {
          * - regexp: The regular expression you need to check
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'regexp');
             if (value === '') {
                 return true;
@@ -6896,7 +6890,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             remote: {
@@ -6921,8 +6915,8 @@ if (typeof jQuery === 'undefined') {
         /**
          * Destroy the timer when destroying the FormValidation (using validator.destroy() method)
          */
-        destroy: function(validator, $field, options) {
-            var ns    = validator.getNamespace(),
+        destroy: function (validator, $field, options) {
+            var ns = validator.getNamespace(),
                 timer = $field.data(ns + '.remote.timer');
             if (timer) {
                 clearTimeout(timer);
@@ -6953,17 +6947,17 @@ if (typeof jQuery === 'undefined') {
          * This is useful when connecting to external remote server or APIs provided by 3rd parties
          * @returns {Deferred}
          */
-        validate: function(validator, $field, options) {
-            var ns    = validator.getNamespace(),
+        validate: function (validator, $field, options) {
+            var ns = validator.getNamespace(),
                 value = validator.getFieldValue($field, 'remote'),
-                dfd   = new $.Deferred();
+                dfd = new $.Deferred();
             if (value === '') {
-                dfd.resolve($field, 'remote', { valid: true });
+                dfd.resolve($field, 'remote', {valid: true});
                 return dfd;
             }
-            var name     = $field.attr('data-' + ns + '-field'),
-                data     = options.data || {},
-                url      = options.url,
+            var name = $field.attr('data-' + ns + '-field'),
+                data = options.data || {},
+                url = options.url,
                 validKey = options.validKey || 'valid';
 
             // Support dynamic data
@@ -6998,23 +6992,23 @@ if (typeof jQuery === 'undefined') {
                 var xhr = $.ajax(ajaxOptions);
 
                 xhr
-                    .success(function(response) {
+                    .success(function (response) {
                         response.valid = response[validKey] === true || response[validKey] === 'true';
                         dfd.resolve($field, 'remote', response);
                     })
-                    .error(function(response) {
+                    .error(function (response) {
                         dfd.resolve($field, 'remote', {
                             valid: false
                         });
                     });
 
-                dfd.fail(function() {
+                dfd.fail(function () {
                     xhr.abort();
                 });
 
                 return dfd;
             }
-            
+
             if (options.delay) {
                 // Since the form might have multiple fields with the same name
                 // I have to attach the timer to the field element
@@ -7030,7 +7024,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             rtn: {
@@ -7052,7 +7046,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'rtn');
             if (value === '') {
                 return true;
@@ -7064,15 +7058,15 @@ if (typeof jQuery === 'undefined') {
 
             var sum = 0;
             for (var i = 0; i < value.length; i += 3) {
-                sum += parseInt(value.charAt(i),     10) * 3
-                    +  parseInt(value.charAt(i + 1), 10) * 7
-                    +  parseInt(value.charAt(i + 2), 10);
+                sum += parseInt(value.charAt(i), 10) * 3
+                    + parseInt(value.charAt(i + 1), 10) * 7
+                    + parseInt(value.charAt(i + 2), 10);
             }
             return (sum !== 0 && sum % 10 === 0);
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             sedol: {
@@ -7094,7 +7088,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'sedol');
             if (value === '') {
                 return true;
@@ -7105,59 +7099,59 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [1, 3, 1, 7, 3, 9, 1],
                 length = value.length;
             for (var i = 0; i < length - 1; i++) {
-	            sum += weight[i] * parseInt(value.charAt(i), 36);
-	        }
-	        sum = (10 - sum % 10) % 10;
+                sum += weight[i] * parseInt(value.charAt(i), 36);
+            }
+            sum = (10 - sum % 10) % 10;
             return sum + '' === value.charAt(length - 1);
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
-		'en_US': {
-			siren: {
-				'default': 'Please enter a valid SIREN number'
-			}
-		}
+        'en_US': {
+            siren: {
+                'default': 'Please enter a valid SIREN number'
+            }
+        }
     });
 
-	FormValidation.Validator.siren = {
-		/**
-		 * Check if a string is a siren number
-		 *
-		 * @param {FormValidation.Base} validator The validator plugin instance
-		 * @param {jQuery} $field Field element
-		 * @param {Object} options Consist of key:
+    FormValidation.Validator.siren = {
+        /**
+         * Check if a string is a siren number
+         *
+         * @param {FormValidation.Base} validator The validator plugin instance
+         * @param {jQuery} $field Field element
+         * @param {Object} options Consist of key:
          * - message: The invalid message
-		 * @returns {Boolean}
-		 */
-		validate: function(validator, $field, options) {
-			var value = validator.getFieldValue($field, 'siren');
-			if (value === '') {
-				return true;
-			}
+         * @returns {Boolean}
+         */
+        validate: function (validator, $field, options) {
+            var value = validator.getFieldValue($field, 'siren');
+            if (value === '') {
+                return true;
+            }
 
             if (!/^\d{9}$/.test(value)) {
                 return false;
             }
             return FormValidation.Helper.luhn(value);
-		}
-	};
+        }
+    };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
-		'en_US': {
-			siret: {
-				'default': 'Please enter a valid SIRET number'
-			}
-		}
+        'en_US': {
+            siret: {
+                'default': 'Please enter a valid SIRET number'
+            }
+        }
     });
 
-	FormValidation.Validator.siret = {
+    FormValidation.Validator.siret = {
         /**
          * Check if a string is a siret number
          *
@@ -7167,30 +7161,30 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-		validate: function(validator, $field, options) {
-			var value = validator.getFieldValue($field, 'siret');
-			if (value === '') {
-				return true;
-			}
+        validate: function (validator, $field, options) {
+            var value = validator.getFieldValue($field, 'siret');
+            if (value === '') {
+                return true;
+            }
 
-			var sum    = 0,
+            var sum = 0,
                 length = value.length,
                 tmp;
-			for (var i = 0; i < length; i++) {
+            for (var i = 0; i < length; i++) {
                 tmp = parseInt(value.charAt(i), 10);
-				if ((i % 2) === 0) {
-					tmp = tmp * 2;
-					if (tmp > 9) {
-						tmp -= 9;
-					}
-				}
-				sum += tmp;
-			}
-			return (sum % 10 === 0);
-		}
-	};
+                if ((i % 2) === 0) {
+                    tmp = tmp * 2;
+                    if (tmp > 9) {
+                        tmp -= 9;
+                    }
+                }
+                sum += tmp;
+            }
+            return (sum % 10 === 0);
+        }
+    };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             step: {
@@ -7217,22 +7211,22 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'step');
             if (value === '') {
                 return true;
             }
 
-            options = $.extend({}, { baseValue: 0, step: 1 }, options);
-            value   = parseFloat(value);
+            options = $.extend({}, {baseValue: 0, step: 1}, options);
+            value = parseFloat(value);
             if (!$.isNumeric(value)) {
                 return false;
             }
 
-            var round = function(x, precision) {
+            var round = function (x, precision) {
                     var m = Math.pow(10, precision);
                     x = x * m;
-                    var sign   = (x > 0) | -(x < 0),
+                    var sign = (x > 0) | -(x < 0),
                         isHalf = (x % 1 === 0.5 * sign);
                     if (isHalf) {
                         return (Math.floor(x) + (sign > 0)) / m;
@@ -7240,18 +7234,18 @@ if (typeof jQuery === 'undefined') {
                         return Math.round(x) / m;
                     }
                 },
-                floatMod = function(x, y) {
+                floatMod = function (x, y) {
                     if (y === 0.0) {
                         return 1.0;
                     }
-                    var dotX      = (x + '').split('.'),
-                        dotY      = (y + '').split('.'),
+                    var dotX = (x + '').split('.'),
+                        dotY = (y + '').split('.'),
                         precision = ((dotX.length === 1) ? 0 : dotX[1].length) + ((dotY.length === 1) ? 0 : dotY[1].length);
                     return round(x - y * Math.floor(x / y), precision);
                 };
 
             var locale = validator.getLocale(),
-                mod    = floatMod(value - options.baseValue, options.step);
+                mod = floatMod(value - options.baseValue, options.step);
             return {
                 valid: mod === 0.0 || mod === options.step,
                 message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].step['default'], [options.step])
@@ -7259,7 +7253,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             stringCase: {
@@ -7285,13 +7279,13 @@ if (typeof jQuery === 'undefined') {
          * - case: Can be 'lower' (default) or 'upper'
          * @returns {Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'stringCase');
             if (value === '') {
                 return true;
             }
 
-            var locale     = validator.getLocale(),
+            var locale = validator.getLocale(),
                 stringCase = (options['case'] || 'lower').toLowerCase();
             return {
                 valid: ('upper' === stringCase) ? value === value.toUpperCase() : value === value.toLowerCase(),
@@ -7300,7 +7294,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             stringLength: {
@@ -7321,8 +7315,8 @@ if (typeof jQuery === 'undefined') {
             utf8bytes: 'utf8Bytes'
         },
 
-        enableByHtml5: function($field) {
-            var options   = {},
+        enableByHtml5: function ($field) {
+            var options = {},
                 maxLength = $field.attr('maxlength'),
                 minLength = $field.attr('minlength');
             if (maxLength) {
@@ -7355,7 +7349,7 @@ if (typeof jQuery === 'undefined') {
          * - utf8bytes: Evaluate string length in UTF-8 bytes, default to false
          * @returns {Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'stringLength');
             if (options.trim === true || options.trim === 'true') {
                 value = $.trim(value);
@@ -7365,28 +7359,28 @@ if (typeof jQuery === 'undefined') {
                 return true;
             }
 
-            var locale     = validator.getLocale(),
-                min        = $.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min),
-                max        = $.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max),
-                // Credit to http://stackoverflow.com/a/23329386 (@lovasoa) for UTF-8 byte length code
-                utf8Length = function(str) {
-                                 var s = str.length;
-                                 for (var i = str.length - 1; i >= 0; i--) {
-                                     var code = str.charCodeAt(i);
-                                     if (code > 0x7f && code <= 0x7ff) {
-                                         s++;
-                                     } else if (code > 0x7ff && code <= 0xffff) {
-                                         s += 2;
-                                     }
-                                     if (code >= 0xDC00 && code <= 0xDFFF) {
-                                         i--;
-                                     }
-                                 }
-                                 return s;
-                             },
-                length     = options.utf8Bytes ? utf8Length(value) : value.length,
-                isValid    = true,
-                message    = options.message || FormValidation.I18n[locale].stringLength['default'];
+            var locale = validator.getLocale(),
+                min = $.isNumeric(options.min) ? options.min : validator.getDynamicOption($field, options.min),
+                max = $.isNumeric(options.max) ? options.max : validator.getDynamicOption($field, options.max),
+            // Credit to http://stackoverflow.com/a/23329386 (@lovasoa) for UTF-8 byte length code
+                utf8Length = function (str) {
+                    var s = str.length;
+                    for (var i = str.length - 1; i >= 0; i--) {
+                        var code = str.charCodeAt(i);
+                        if (code > 0x7f && code <= 0x7ff) {
+                            s++;
+                        } else if (code > 0x7ff && code <= 0xffff) {
+                            s += 2;
+                        }
+                        if (code >= 0xDC00 && code <= 0xDFFF) {
+                            i--;
+                        }
+                    }
+                    return s;
+                },
+                length = options.utf8Bytes ? utf8Length(value) : value.length,
+                isValid = true,
+                message = options.message || FormValidation.I18n[locale].stringLength['default'];
 
             if ((min && length < parseInt(min, 10)) || (max && length > parseInt(max, 10))) {
                 isValid = false;
@@ -7416,7 +7410,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             uri: {
@@ -7433,7 +7427,7 @@ if (typeof jQuery === 'undefined') {
             protocol: 'protocol'
         },
 
-        enableByHtml5: function($field) {
+        enableByHtml5: function ($field) {
             return ('url' === $field.attr('type'));
         },
 
@@ -7449,7 +7443,7 @@ if (typeof jQuery === 'undefined') {
          * - protocol: The protocols, separated by a comma. Default to "http, https, ftp"
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'uri');
             if (value === '') {
                 return true;
@@ -7488,10 +7482,10 @@ if (typeof jQuery === 'undefined') {
             //
             // - Add option to validate without protocol
             //
-            var allowLocal         = options.allowLocal === true || options.allowLocal === 'true',
+            var allowLocal = options.allowLocal === true || options.allowLocal === 'true',
                 allowEmptyProtocol = options.allowEmptyProtocol === true || options.allowEmptyProtocol === 'true',
-                protocol           = (options.protocol || 'http, https, ftp').split(',').join('|').replace(/\s/g, ''),
-                urlExp             = new RegExp(
+                protocol = (options.protocol || 'http, https, ftp').split(',').join('|').replace(/\s/g, ''),
+                urlExp = new RegExp(
                     "^" +
                     // protocol identifier
                     "(?:(?:" + protocol + ")://)" +
@@ -7505,8 +7499,8 @@ if (typeof jQuery === 'undefined') {
                     (allowLocal
                         ? ''
                         : ("(?!(?:10|127)(?:\\.\\d{1,3}){3})" +
-                           "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" +
-                           "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})")) +
+                    "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" +
+                    "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})")) +
                     // IP address dotted notation octets
                     // excludes loopback network 0.0.0.0
                     // excludes reserved space >= 224.0.0.0
@@ -7536,7 +7530,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             uuid: {
@@ -7563,14 +7557,14 @@ if (typeof jQuery === 'undefined') {
          * - version: Can be 3, 4, 5, null
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'uuid');
             if (value === '') {
                 return true;
             }
 
             // See the format at http://en.wikipedia.org/wiki/Universally_unique_identifier#Variants_and_versions
-            var locale   = validator.getLocale(),
+            var locale = validator.getLocale(),
                 patterns = {
                     '3': /^[0-9A-F]{8}-[0-9A-F]{4}-3[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$/i,
                     '4': /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i,
@@ -7581,13 +7575,13 @@ if (typeof jQuery === 'undefined') {
             return {
                 valid: (null === patterns[version]) ? true : patterns[version].test(value),
                 message: options.version
-                            ? FormValidation.Helper.format(options.message || FormValidation.I18n[locale].uuid.version, options.version)
-                            : (options.message || FormValidation.I18n[locale].uuid['default'])
+                    ? FormValidation.Helper.format(options.message || FormValidation.I18n[locale].uuid.version, options.version)
+                    : (options.message || FormValidation.I18n[locale].uuid['default'])
             };
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             vat: {
@@ -7663,13 +7657,13 @@ if (typeof jQuery === 'undefined') {
          *      - A callback function that returns the country code
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'vat');
             if (value === '') {
                 return true;
             }
 
-            var locale  = validator.getLocale(),
+            var locale = validator.getLocale(),
                 country = options.country;
             if (!country) {
                 country = value.substr(0, 2);
@@ -7682,13 +7676,13 @@ if (typeof jQuery === 'undefined') {
                 return true;
             }
 
-            var method  = ['_', country.toLowerCase()].join('');
+            var method = ['_', country.toLowerCase()].join('');
             return this[method](value)
                 ? true
                 : {
-                    valid: false,
-                    message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].vat.country, FormValidation.I18n[locale].vat.countries[country.toUpperCase()])
-                };
+                valid: false,
+                message: FormValidation.Helper.format(options.message || FormValidation.I18n[locale].vat.country, FormValidation.I18n[locale].vat.countries[country.toUpperCase()])
+            };
         },
 
         // VAT validators
@@ -7702,7 +7696,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _at: function(value) {
+        _at: function (value) {
             if (/^ATU[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -7711,9 +7705,9 @@ if (typeof jQuery === 'undefined') {
             }
 
             value = value.substr(1);
-            var sum    = 0,
+            var sum = 0,
                 weight = [1, 2, 1, 2, 1, 2, 1],
-                temp   = 0;
+                temp = 0;
             for (var i = 0; i < 7; i++) {
                 temp = parseInt(value.charAt(i), 10) * weight[i];
                 if (temp > 9) {
@@ -7739,7 +7733,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _be: function(value) {
+        _be: function (value) {
             if (/^BE[0]{0,1}[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -7770,7 +7764,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _bg: function(value) {
+        _bg: function (value) {
             if (/^BG[0-9]{9,10}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -7798,11 +7792,11 @@ if (typeof jQuery === 'undefined') {
             // Physical persons, foreigners and others
             else if (value.length === 10) {
                 // Validate Bulgarian national identification numbers
-                var egn = function(value) {
+                var egn = function (value) {
                         // Check the birth date
-                        var year  = parseInt(value.substr(0, 2), 10) + 1900,
+                        var year = parseInt(value.substr(0, 2), 10) + 1900,
                             month = parseInt(value.substr(2, 2), 10),
-                            day   = parseInt(value.substr(4, 2), 10);
+                            day = parseInt(value.substr(4, 2), 10);
                         if (month > 40) {
                             year += 100;
                             month -= 40;
@@ -7815,7 +7809,7 @@ if (typeof jQuery === 'undefined') {
                             return false;
                         }
 
-                        var sum    = 0,
+                        var sum = 0,
                             weight = [2, 4, 8, 5, 10, 9, 7, 3, 6];
                         for (var i = 0; i < 9; i++) {
                             sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -7823,9 +7817,9 @@ if (typeof jQuery === 'undefined') {
                         sum = (sum % 11) % 10;
                         return (sum + '' === value.substr(9, 1));
                     },
-                    // Validate Bulgarian personal number of a foreigner
-                    pnf = function(value) {
-                        var sum    = 0,
+                // Validate Bulgarian personal number of a foreigner
+                    pnf = function (value) {
+                        var sum = 0,
                             weight = [21, 19, 17, 13, 11, 9, 7, 3, 1];
                         for (var i = 0; i < 9; i++) {
                             sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -7833,9 +7827,9 @@ if (typeof jQuery === 'undefined') {
                         sum = sum % 10;
                         return (sum + '' === value.substr(9, 1));
                     },
-                    // Finally, consider it as a VAT number
-                    vat = function(value) {
-                        var sum    = 0,
+                // Finally, consider it as a VAT number
+                    vat = function (value) {
+                        var sum = 0,
                             weight = [4, 3, 2, 7, 6, 5, 4, 3, 2];
                         for (var i = 0; i < 9; i++) {
                             sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -7854,14 +7848,14 @@ if (typeof jQuery === 'undefined') {
 
             return false;
         },
-        
+
         /**
          * Validate Brazilian VAT number (CNPJ)
          *
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _br: function(value) {
+        _br: function (value) {
             if (value === '') {
                 return true;
             }
@@ -7874,17 +7868,16 @@ if (typeof jQuery === 'undefined') {
             if (cnpj === '00000000000000' || cnpj === '11111111111111' || cnpj === '22222222222222' ||
                 cnpj === '33333333333333' || cnpj === '44444444444444' || cnpj === '55555555555555' ||
                 cnpj === '66666666666666' || cnpj === '77777777777777' || cnpj === '88888888888888' ||
-                cnpj === '99999999999999')
-            {
+                cnpj === '99999999999999') {
                 return false;
             }
 
             // Validate verification digits
-            var length  = cnpj.length - 2,
+            var length = cnpj.length - 2,
                 numbers = cnpj.substring(0, length),
-                digits  = cnpj.substring(length),
-                sum     = 0,
-                pos     = length - 7;
+                digits = cnpj.substring(length),
+                sum = 0,
+                pos = length - 7;
 
             for (var i = length; i >= 1; i--) {
                 sum += parseInt(numbers.charAt(length - i), 10) * pos--;
@@ -7898,10 +7891,10 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            length  = length + 1;
+            length = length + 1;
             numbers = cnpj.substring(0, length);
-            sum     = 0;
-            pos     = length - 7;
+            sum = 0;
+            pos = length - 7;
             for (i = length; i >= 1; i--) {
                 sum += parseInt(numbers.charAt(length - i), 10) * pos--;
                 if (pos < 2) {
@@ -7919,7 +7912,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ch: function(value) {
+        _ch: function (value) {
             if (/^CHE[0-9]{9}(MWST)?$/.test(value)) {
                 value = value.substr(2);
             }
@@ -7928,7 +7921,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             value = value.substr(1);
-            var sum    = 0,
+            var sum = 0,
                 weight = [5, 4, 3, 2, 7, 6, 5, 4];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -7954,7 +7947,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _cy: function(value) {
+        _cy: function (value) {
             if (/^CY[0-5|9]{1}[0-9]{7}[A-Z]{1}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -7968,9 +7961,9 @@ if (typeof jQuery === 'undefined') {
             }
 
             // Extract the next digit and multiply by the counter.
-            var sum         = 0,
+            var sum = 0,
                 translation = {
-                    '0': 1,  '1': 0,  '2': 5,  '3': 7,  '4': 9,
+                    '0': 1, '1': 0, '2': 5, '3': 7, '4': 9,
                     '5': 13, '6': 15, '7': 17, '8': 19, '9': 21
                 };
             for (var i = 0; i < 8; i++) {
@@ -7999,7 +7992,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _cz: function(value) {
+        _cz: function (value) {
             if (/^CZ[0-9]{8,10}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8008,7 +8001,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             var sum = 0,
-                i   = 0;
+                i = 0;
             if (value.length === 8) {
                 // Do not allow to start with '9'
                 if (value.charAt(0) + '' === '9') {
@@ -8045,9 +8038,9 @@ if (typeof jQuery === 'undefined') {
                 return (sum + '' === value.substr(8, 1));
             } else if (value.length === 9 || value.length === 10) {
                 // Validate Czech birth number (Rodné číslo), which is also national identifier
-                var year  = 1900 + parseInt(value.substr(0, 2), 10),
+                var year = 1900 + parseInt(value.substr(0, 2), 10),
                     month = parseInt(value.substr(2, 2), 10) % 50 % 20,
-                    day   = parseInt(value.substr(4, 2), 10);
+                    day = parseInt(value.substr(4, 2), 10);
                 if (value.length === 9) {
                     if (year >= 1980) {
                         year -= 100;
@@ -8087,7 +8080,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _de: function(value) {
+        _de: function (value) {
             if (/^DE[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8107,7 +8100,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _dk: function(value) {
+        _dk: function (value) {
             if (/^DK[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8115,7 +8108,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [2, 7, 6, 5, 4, 3, 2, 1];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8133,7 +8126,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ee: function(value) {
+        _ee: function (value) {
             if (/^EE[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8141,7 +8134,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [3, 7, 1, 3, 7, 1, 3, 7, 1];
             for (var i = 0; i < 9; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8164,7 +8157,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _es: function(value) {
+        _es: function (value) {
             if (/^ES[0-9A-Z][0-9]{7}[0-9A-Z]$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8172,18 +8165,18 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var dni = function(value) {
+            var dni = function (value) {
                     var check = parseInt(value.substr(0, 8), 10);
                     check = 'TRWAGMYFPDXBNJZSQVHLCKE'[check % 23];
                     return (check + '' === value.substr(8, 1));
                 },
-                nie = function(value) {
+                nie = function (value) {
                     var check = ['XYZ'.indexOf(value.charAt(0)), value.substr(1)].join('');
                     check = parseInt(check, 10);
                     check = 'TRWAGMYFPDXBNJZSQVHLCKE'[check % 23];
                     return (check + '' === value.substr(8, 1));
                 },
-                cif = function(value) {
+                cif = function (value) {
                     var first = value.charAt(0), check;
                     if ('KLM'.indexOf(first) !== -1) {
                         // K: Spanish younger than 14 year old
@@ -8193,9 +8186,9 @@ if (typeof jQuery === 'undefined') {
                         check = 'TRWAGMYFPDXBNJZSQVHLCKE'[check % 23];
                         return (check + '' === value.substr(8, 1));
                     } else if ('ABCDEFGHJNPQRSUVW'.indexOf(first) !== -1) {
-                        var sum    = 0,
+                        var sum = 0,
                             weight = [2, 1, 2, 1, 2, 1, 2],
-                            temp   = 0;
+                            temp = 0;
 
                         for (var i = 0; i < 7; i++) {
                             temp = parseInt(value.charAt(i + 1), 10) * weight[i];
@@ -8230,7 +8223,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _fi: function(value) {
+        _fi: function (value) {
             if (/^FI[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8238,7 +8231,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [7, 9, 10, 5, 8, 4, 2, 1];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8258,7 +8251,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _fr: function(value) {
+        _fr: function (value) {
             if (/^FR[0-9A-Z]{2}[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8296,38 +8289,35 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _gb: function(value) {
+        _gb: function (value) {
             if (/^GB[0-9]{9}$/.test(value)             /* Standard */
                 || /^GB[0-9]{12}$/.test(value)         /* Branches */
                 || /^GBGD[0-9]{3}$/.test(value)        /* Government department */
                 || /^GBHA[0-9]{3}$/.test(value)        /* Health authority */
-                || /^GB(GD|HA)8888[0-9]{5}$/.test(value))
-            {
+                || /^GB(GD|HA)8888[0-9]{5}$/.test(value)) {
                 value = value.substr(2);
             }
             if (!/^[0-9]{9}$/.test(value)
                 && !/^[0-9]{12}$/.test(value)
                 && !/^GD[0-9]{3}$/.test(value)
                 && !/^HA[0-9]{3}$/.test(value)
-                && !/^(GD|HA)8888[0-9]{5}$/.test(value))
-            {
+                && !/^(GD|HA)8888[0-9]{5}$/.test(value)) {
                 return false;
             }
 
             var length = value.length;
             if (length === 5) {
-                var firstTwo  = value.substr(0, 2),
+                var firstTwo = value.substr(0, 2),
                     lastThree = parseInt(value.substr(2), 10);
                 return ('GD' === firstTwo && lastThree < 500) || ('HA' === firstTwo && lastThree >= 500);
             } else if (length === 11 && ('GD8888' === value.substr(0, 6) || 'HA8888' === value.substr(0, 6))) {
                 if (('GD' === value.substr(0, 2) && parseInt(value.substr(6, 3), 10) >= 500)
-                    || ('HA' === value.substr(0, 2) && parseInt(value.substr(6, 3), 10) < 500))
-                {
+                    || ('HA' === value.substr(0, 2) && parseInt(value.substr(6, 3), 10) < 500)) {
                     return false;
                 }
                 return (parseInt(value.substr(6, 3), 10) % 97 === parseInt(value.substr(9, 2), 10));
             } else if (length === 9 || length === 12) {
-                var sum    = 0,
+                var sum = 0,
                     weight = [8, 7, 6, 5, 4, 3, 2, 10, 1];
                 for (var i = 0; i < 9; i++) {
                     sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8353,7 +8343,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _gr: function(value) {
+        _gr: function (value) {
             if (/^(GR|EL)[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8365,7 +8355,7 @@ if (typeof jQuery === 'undefined') {
                 value = '0' + value;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [256, 128, 64, 32, 16, 8, 4, 2];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8376,7 +8366,7 @@ if (typeof jQuery === 'undefined') {
         },
 
         // EL is traditionally prefix of Greek VAT numbers
-        _el: function(value) {
+        _el: function (value) {
             return this._gr(value);
         },
 
@@ -8389,7 +8379,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _hu: function(value) {
+        _hu: function (value) {
             if (/^HU[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8397,7 +8387,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [9, 7, 3, 1, 9, 7, 3, 1];
 
             for (var i = 0; i < 8; i++) {
@@ -8416,7 +8406,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _hr: function(value) {
+        _hr: function (value) {
             if (/^HR[0-9]{11}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8436,7 +8426,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ie: function(value) {
+        _ie: function (value) {
             if (/^IE[0-9]{1}[0-9A-Z\*\+]{1}[0-9]{5}[A-Z]{1,2}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8444,12 +8434,12 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var getCheckDigit = function(value) {
+            var getCheckDigit = function (value) {
                 while (value.length < 7) {
                     value = '0' + value;
                 }
                 var alphabet = 'WABCDEFGHIJKLMNOPQRSTUV',
-                    sum      = 0;
+                    sum = 0;
                 for (var i = 0; i < 7; i++) {
                     sum += parseInt(value.charAt(i), 10) * (8 - i);
                 }
@@ -8478,7 +8468,7 @@ if (typeof jQuery === 'undefined') {
          * @params {String} value VAT number
          * @returns {Boolean}
          */
-        _is: function(value) {
+        _is: function (value) {
             if (/^IS[0-9]{5,6}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8498,7 +8488,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _it: function(value) {
+        _it: function (value) {
             if (/^IT[0-9]{11}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8531,7 +8521,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _lt: function(value) {
+        _lt: function (value) {
             if (/^LT([0-9]{7}1[0-9]{1}|[0-9]{10}1[0-9]{1})$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8540,7 +8530,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             var length = value.length,
-                sum    = 0,
+                sum = 0,
                 i;
             for (i = 0; i < length - 1; i++) {
                 sum += parseInt(value.charAt(i), 10) * (1 + i % 9);
@@ -8565,7 +8555,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _lu: function(value) {
+        _lu: function (value) {
             if (/^LU[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8585,7 +8575,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _lv: function(value) {
+        _lv: function (value) {
             if (/^LV[0-9]{11}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8593,14 +8583,14 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var first  = parseInt(value.charAt(0), 10),
-                sum    = 0,
+            var first = parseInt(value.charAt(0), 10),
+                sum = 0,
                 weight = [],
                 i,
                 length = value.length;
             if (first > 3) {
                 // Legal entity
-                sum    = 0;
+                sum = 0;
                 weight = [9, 1, 4, 8, 3, 10, 2, 5, 7, 6, 1];
                 for (i = 0; i < length; i++) {
                     sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8609,9 +8599,9 @@ if (typeof jQuery === 'undefined') {
                 return (sum === 3);
             } else {
                 // Check birth date
-                var day   = parseInt(value.substr(0, 2), 10),
+                var day = parseInt(value.substr(0, 2), 10),
                     month = parseInt(value.substr(2, 2), 10),
-                    year  = parseInt(value.substr(4, 2), 10);
+                    year = parseInt(value.substr(4, 2), 10);
                 year = year + 1800 + parseInt(value.charAt(6), 10) * 100;
 
                 if (!FormValidation.Helper.date(year, month, day)) {
@@ -8619,7 +8609,7 @@ if (typeof jQuery === 'undefined') {
                 }
 
                 // Check personal code
-                sum    = 0;
+                sum = 0;
                 weight = [10, 5, 8, 4, 2, 1, 6, 3, 7, 9];
                 for (i = 0; i < length - 1; i++) {
                     sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8638,7 +8628,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _mt: function(value) {
+        _mt: function (value) {
             if (/^MT[0-9]{8}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8646,7 +8636,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [3, 4, 6, 7, 8, 9, 10, 1];
 
             for (var i = 0; i < 8; i++) {
@@ -8665,15 +8655,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _nl: function(value) {
+        _nl: function (value) {
             if (/^NL[0-9]{9}B[0-9]{2}$/.test(value)) {
-               value = value.substr(2);
+                value = value.substr(2);
             }
             if (!/^[0-9]{9}B[0-9]{2}$/.test(value)) {
-               return false;
+                return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [9, 8, 7, 6, 5, 4, 3, 2];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8693,15 +8683,15 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _no: function(value) {
+        _no: function (value) {
             if (/^NO[0-9]{9}$/.test(value)) {
-               value = value.substr(2);
+                value = value.substr(2);
             }
             if (!/^[0-9]{9}$/.test(value)) {
-               return false;
+                return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [3, 2, 7, 6, 5, 4, 3, 2];
             for (var i = 0; i < 8; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8723,7 +8713,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _pl: function(value) {
+        _pl: function (value) {
             if (/^PL[0-9]{10}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8731,7 +8721,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [6, 5, 7, 2, 3, 4, 5, 6, 7, -1];
 
             for (var i = 0; i < 10; i++) {
@@ -8750,7 +8740,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _pt: function(value) {
+        _pt: function (value) {
             if (/^PT[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8758,7 +8748,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [9, 8, 7, 6, 5, 4, 3, 2];
 
             for (var i = 0; i < 8; i++) {
@@ -8780,7 +8770,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ro: function(value) {
+        _ro: function (value) {
             if (/^RO[1-9][0-9]{1,9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8790,7 +8780,7 @@ if (typeof jQuery === 'undefined') {
 
             var length = value.length,
                 weight = [7, 5, 3, 2, 1, 7, 5, 3, 2].slice(10 - length),
-                sum    = 0;
+                sum = 0;
             for (var i = 0; i < length - 1; i++) {
                 sum += parseInt(value.charAt(i), 10) * weight[i];
             }
@@ -8805,7 +8795,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ru: function(value) {
+        _ru: function (value) {
             if (/^RU([0-9]{10}|[0-9]{12})$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8815,7 +8805,7 @@ if (typeof jQuery === 'undefined') {
 
             var i = 0;
             if (value.length === 10) {
-                var sum    = 0,
+                var sum = 0,
                     weight = [2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
                 for (i = 0; i < 10; i++) {
                     sum += parseInt(value.charAt(i), 10) * weight[i];
@@ -8827,9 +8817,9 @@ if (typeof jQuery === 'undefined') {
 
                 return (sum + '' === value.substr(9, 1));
             } else if (value.length === 12) {
-                var sum1    = 0,
+                var sum1 = 0,
                     weight1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0],
-                    sum2    = 0,
+                    sum2 = 0,
                     weight2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
 
                 for (i = 0; i < 11; i++) {
@@ -8857,7 +8847,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _rs: function(value) {
+        _rs: function (value) {
             if (/^RS[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8865,7 +8855,7 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var sum  = 10,
+            var sum = 10,
                 temp = 0;
             for (var i = 0; i < 8; i++) {
                 temp = (parseInt(value.charAt(i), 10) + sum) % 10;
@@ -8887,7 +8877,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _se: function(value) {
+        _se: function (value) {
             if (/^SE[0-9]{10}01$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8909,7 +8899,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _si: function(value) {
+        _si: function (value) {
             // The Slovenian VAT numbers don't start with zero
             var res = value.match(/^(SI)?([1-9][0-9]{7})$/);
             if (!res) {
@@ -8919,7 +8909,7 @@ if (typeof jQuery === 'undefined') {
                 value = value.substr(2);
             }
 
-            var sum    = 0,
+            var sum = 0,
                 weight = [8, 7, 6, 5, 4, 3, 2];
 
             for (var i = 0; i < 7; i++) {
@@ -8941,7 +8931,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _sk: function(value) {
+        _sk: function (value) {
             if (/^SK[1-9][0-9][(2-4)|(6-9)][0-9]{7}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8961,7 +8951,7 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value VAT number
          * @returns {Boolean}
          */
-        _ve: function(value) {
+        _ve: function (value) {
             if (/^VE[VEJPG][0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -8969,14 +8959,14 @@ if (typeof jQuery === 'undefined') {
                 return false;
             }
 
-            var types  = {
+            var types = {
                     'V': 4,
                     'E': 8,
                     'J': 12,
                     'P': 16,
                     'G': 20
                 },
-                sum    = types[value.charAt(0)],
+                sum = types[value.charAt(0)],
                 weight = [3, 2, 7, 6, 5, 4, 3, 2];
 
             for (var i = 0; i < 8; i++) {
@@ -8999,7 +8989,7 @@ if (typeof jQuery === 'undefined') {
          * @params {String} value VAT number
          * @returns {Boolean}
          */
-         _za: function(value) {
+        _za: function (value) {
             if (/^ZA4[0-9]{9}$/.test(value)) {
                 value = value.substr(2);
             }
@@ -9008,7 +8998,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             vin: {
@@ -9027,7 +9017,7 @@ if (typeof jQuery === 'undefined') {
          * - message: The invalid message
          * @returns {Boolean}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'vin');
             if (value === '') {
                 return true;
@@ -9039,15 +9029,15 @@ if (typeof jQuery === 'undefined') {
             }
 
             value = value.toUpperCase();
-            var chars   = {
-                    A: 1,   B: 2,   C: 3,   D: 4,   E: 5,   F: 6,   G: 7,   H: 8,
-                    J: 1,   K: 2,   L: 3,   M: 4,   N: 5,           P: 7,           R: 9,
-                            S: 2,   T: 3,   U: 4,   V: 5,   W: 6,   X: 7,   Y: 8,   Z: 9,
+            var chars = {
+                    A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8,
+                    J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
+                    S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9,
                     '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '0': 0
                 },
                 weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2],
-                sum     = 0,
-                length  = value.length;
+                sum = 0,
+                length = value.length;
             for (var i = 0; i < length; i++) {
                 sum += chars[value.charAt(i) + ''] * weights[i];
             }
@@ -9061,7 +9051,7 @@ if (typeof jQuery === 'undefined') {
         }
     };
 }(jQuery));
-;(function($) {
+;(function ($) {
     FormValidation.I18n = $.extend(true, FormValidation.I18n || {}, {
         'en_US': {
             zipCode: {
@@ -9128,13 +9118,13 @@ if (typeof jQuery === 'undefined') {
          *
          * @returns {Boolean|Object}
          */
-        validate: function(validator, $field, options) {
+        validate: function (validator, $field, options) {
             var value = validator.getFieldValue($field, 'zipCode');
             if (value === '' || !options.country) {
                 return true;
             }
 
-            var locale  = validator.getLocale(),
+            var locale = validator.getLocale(),
                 country = options.country;
             if (typeof country !== 'string' || $.inArray(country, this.COUNTRY_CODES) === -1) {
                 // Try to determine the country
@@ -9281,13 +9271,13 @@ if (typeof jQuery === 'undefined') {
          * @param {String} value The postcode
          * @returns {Boolean}
          */
-        _gb: function(value) {
-            var firstChar  = '[ABCDEFGHIJKLMNOPRSTUWYZ]',     // Does not accept QVX
+        _gb: function (value) {
+            var firstChar = '[ABCDEFGHIJKLMNOPRSTUWYZ]',     // Does not accept QVX
                 secondChar = '[ABCDEFGHKLMNOPQRSTUVWXY]',     // Does not accept IJZ
-                thirdChar  = '[ABCDEFGHJKPMNRSTUVWXY]',
+                thirdChar = '[ABCDEFGHJKPMNRSTUVWXY]',
                 fourthChar = '[ABEHMNPRVWXY]',
-                fifthChar  = '[ABDEFGHJLNPQRSTUWXYZ]',
-                regexps    = [
+                fifthChar = '[ABDEFGHJLNPQRSTUWXYZ]',
+                regexps = [
                     // AN NAA, ANN NAA, AAN NAA, AANN NAA format
                     new RegExp('^(' + firstChar + '{1}' + secondChar + '?[0-9]{1,2})(\\s*)([0-9]{1}' + fifthChar + '{2})$', 'i'),
                     // ANA NAA
