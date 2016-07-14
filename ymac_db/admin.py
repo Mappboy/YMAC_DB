@@ -27,7 +27,7 @@ from .forms import *
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Spatial Data Exists')
 
-    parameter_name = 'geom'
+    parameter_name = 'has_geom'
 
     def lookups(self, request, model_admin):
         """
@@ -38,8 +38,8 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         in the right sidebar.
         """
         return (
-            (True, _('Exists')),
-            (False, _('No Spatial Data')),
+            ('False', _('Exists')),
+            ('True', _('No Spatial Data')),
         )
 
     def queryset(self, request, queryset):
@@ -53,7 +53,41 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         if not self.value():
             return queryset.all()
         else:
-            return queryset.filter(geom__isnull=self.value())
+            return queryset.filter(geom__isnull=bool(self.value()))
+
+
+class HasReportFilter(baseadmin.SimpleListFilter):
+    title = _('Linked Report')
+
+    parameter_name = 'has_report'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('False', _('Linked')),
+            ('True', _('No Report')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(documents__isnull=False)
+        else:
+            return queryset.filter(documents__isnull=True)
 
 
 class ClaimDataPathFilter(baseadmin.SimpleListFilter):
@@ -528,7 +562,11 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 
 class HeritageSurveyDocumentInline(admin.TabularInline):
     model = HeritageSurvey.documents.through
+    form = SurveyDocumentForm
 
+
+class HeritageSurveyInline(admin.TabularInline):
+    model = HeritageSurvey
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
@@ -765,6 +803,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     inlines = [
         HeritageSurveyDocumentInline
     ]
+
 
 
 @admin.register(SurveyTripCleaning)
@@ -1137,7 +1176,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'survey_group__group_name',
         'survey_type',
         'project_status',
-        # HasGeomFilter
+        HasGeomFilter,
+        HasReportFilter,
     ]
 
 

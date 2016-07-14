@@ -17,13 +17,26 @@ if form.is_valid():
 
 from django.views.generic import View
 from django.views.generic.edit import FormView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import Context
+from django.contrib import messages
 from django.core.serializers import serialize
+from dal import autocomplete
 from django.http import *
 from .forms import *
 from .models import HeritageSurvey
+import requests
+import json
 
+try:
+    from urllib.parse import quote_plus, urlencode
+except:
+    from urllib import quote_plus, urlencode
+
+TOKEN = "91e61ba3c8b7101ddf7a6ee8a0ddc935acd77089"
+SERVER_URL = "ymac-dc3-app1:8080"
+REPO = 'Data Download'
+WORKSPACE = 'nats_halfwaycalcs.fmw'
 
 def index(request):
     return render(request, 'base.html')
@@ -59,7 +72,7 @@ def data_download(request):
 
 class RegionDistanceView(FormView):
     """
-    This should possibly be using Ajax to send Json back to table
+    This should possibly be using Ajax to send Json back to table.
     """
     template_name = 'region_distances.html'
     form_class = RegionDistanceForm
@@ -68,8 +81,52 @@ class RegionDistanceView(FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        form.display_table()
-        return HttpResponse()
+        data = form.cleaned_data
+        outputs = [
+            ('ESRISHAPE', 'Shapefile'),
+            ('XLSXW', 'Excel'),
+            ('OGCKML', 'Google Earth'),
+        ]
+        dl_buttons = []
+        data['token'] = TOKEN
+        for output, name in outputs:
+            button = ("http://{}/fmedatadownload/{}/{}?{}&Output={}".format(SERVER_URL,
+                                                                            quote_plus(REPO),
+                                                                            quote_plus(WORKSPACE),
+                                                                            urlencode(data),
+                                                                            output), name)
+            dl_buttons.append(button)
+        data['Output'] = 'JSON'
+        if data:
+            fme_json = requests.get("http://{}/fmedatastreaming/{}/{}".format(SERVER_URL,
+                                                                              quote_plus(REPO),
+                                                                              quote_plus(WORKSPACE),
+                                                                              ),
+                                    params=data
+                                    )
+
+            # Couldn't find address
+            print(fme_json.status_code)
+            if (fme_json.status_code == 422):
+
+                if data['origin'].lower() == 'groningen' or \
+                                data['destination'].lower() == 'groningen':
+                    messages.error(self.request, "Groningen is a stupid place.")
+                else:
+                    messages.error(self.request,
+                                   "Couldn't find directions from {} to {}. Speak to Cam".format(data['origin'],
+                                                                                                 data['destination']))
+                return redirect('/workbenches/region_distance/', context={'errormsg': True})
+            table_json = fme_json.json()
+            for ft in table_json:
+                del ft['json_featuretype']
+                del ft['json_geometry']
+                del ft['json_ogc_wkt_crs']
+            return render(self.request, 'dyna_table.html', context={'data': table_json, 'buttons': dl_buttons})
+
+
+            # See what happens when we reply wiht JsonResponse
+        return super(RegionDistanceView, self).form_valid(form)
 
 def get_site(request):
     # if this is a POST request we need to process the form data
@@ -138,3 +195,17 @@ def convert_shz(request):
     :return: Return response with serialized geojson of file.
     """
     return HttpResponse()
+
+
+class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return HeritageSurvey.objects.none()
+
+        qs = HeritageSurvey.objects.all()
+
+        if self.q:
+            qs = qs.filter(survey_trip_survey_id__istartswith=self.q)
+
+        return qs

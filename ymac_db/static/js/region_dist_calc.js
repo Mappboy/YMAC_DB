@@ -15,11 +15,11 @@ function showTableResults(json) {
     // The following is to write out the full return object
     // for visualization of the example
     //We don't care for this stuff
-    json.forEach(function (el, i) {
+    /*json.forEach(function (el, i) {
         delete el.json_featuretype;
         delete el.json_geometry;
         delete el.json_ogc_wkt_crs;
-    });
+     });*/
     var headers = {};
     data = JSON.stringify(json, undefined, 4);
     tableData = data;
@@ -137,34 +137,6 @@ function downloadFile(json) {
 }
 
 function runDataDownload() {
-    var repository = document.getElementById("repo_selector").value;
-    var workspace = $("#repository").text();
-    var form = $("#output_form");
-    var inputs = $(".form-control");
-    var checks = $(".checkbox");
-    //var params = { "publishedParameters" : [] };
-    //var publishedParameters = params.publishedParameters;
-    var params = "";
-    inputs.each(function (i, el) {
-        if (el.id != "repo_selector") {
-            //If type = select then add first and iterate over array
-            if (el.type == "select-multiple") {
-                var name = el.id;
-                $('#' + el.id).val().forEach(function (el, i) {
-                    params += name + "=" + el + "&";
-                });
-            } else {
-                params += el.id + "=" + el.value + "&";
-            }
-            // Remove trailing & from string
-        }
-    });
-    checks.each(function (i, c) {
-        var checkbox = $(c).find('input');
-        if (checkbox.prop("checked")) {
-            params += checkbox[0].id + "=True";
-        }
-    });
     params = params.substr(0, params.length - 1);
     FMEServer.runDataDownload("Data Download", "nats_halwaycalcs.fmw", params, downloadFile);
 }
@@ -172,8 +144,6 @@ function runDataDownload() {
 function runStreamingMap() {
     //IF STREAMING WE SHOULD EITHER SHOW TABLE OF DATA USING JSON
     //OR STREAM TO A GOOGLE MAP OR LEAFLET
-    var workspace = document.getElementById("repo_selector").value;
-    var repository = $("#repository").text();
     var form = $("#output-form");
     var inputs = $(".form-control");
     var checks = $(".checkbox");
@@ -234,8 +204,6 @@ function runStreamingMap() {
 function runStreamingTab() {
     //IF STREAMING WE SHOULD EITHER SHOW TABLE OF DATA USING JSON
     //OR STREAM TO A GOOGLE MAP OR LEAFLET
-    var repository = document.getElementById("repo_selector").value;
-    var workspace = $("#repository").text();
     var form = $("#output-form");
     var inputs = $(".form-control");
     var checks = $(".checkbox");
@@ -264,79 +232,19 @@ function runStreamingTab() {
     FMEServer.runDataStreaming("Data Download", "nats_halwaycalcs.fmw", params, showTableResults);
 }
 
-function generateForm(json) {
-    var returnstring = "";
-    // list of defaults to set
-    var procdefaults = [];
-    $('#output_req').show();
-    json.forEach(function (param) {
-
-        //We need to check the type of param
-        var type = param.type;
-        console.log(type);
-        //LOOKUP_CHOICE = Select
-        //DIRNAME = Textbox
-        switch (type) {
-            case "LOOKUP_LISTBOX":
-            case "LOOKUP_CHOICE":
-                returnstring += '<div class="form-group"><label class="control-label" for="' + param.name + '">' + param.description + '</label>';
-                returnstring += '<select type="select" id="' + param.name + '" class="form-control">';
-                param.listOptions.forEach(function (options) {
-                    returnstring += '<option value="' + options.value + '">' + options.caption + '</option>';
-                });
-                returnstring += '</select>';
-                break;
-            case "LISTBOX":
-                returnstring += '<div class="form-group"><label class="control-label" for="' + param.name + '">' + param.description + '</label>';
-                returnstring += '<select multiple type="select" size="10" id="' + param.name + '" class="form-control">';
-                param.listOptions.forEach(function (options) {
-                    returnstring += '<option value="' + options.value + '">' + options.caption + '</option>';
-                });
-                returnstring += '</select>';
-                break;
-            case "CHOICE":
-                returnstring += '<div class="checkbox">';
-                returnstring += '<label><input type="checkbox" id="' + param.name + '" value="' + param.defaultValue + '">' + param.description + '</input></label>';
-                break;
-            default:
-                returnstring += '<div class="form-group"><label class="control-label" for="' + param.name + '">' + param.description + '</label>';
-                returnstring += '<input id="' + param.name + '" class="form-control" type="text"\>';
-                procdefaults.push([param.name, param.defaultValue]);
-        }
-        returnstring += '</div>';
-    });
-    returnstring += '<input class="btn btn-default" value="Submit" onclick="runRequest();" />';
-    $("#output-form").html(returnstring);
-    procdefaults.forEach(function (defaults) {
-        console.log(defaults[0]);
-        $("#" + defaults[0]).val(defaults[1]);
-    });
-}
 
 function runRequest() {
-    var outputType = $('#output_request').val();
+    var outputType = $('#id_output').val();
     var outputRequest = outputType;
-    if (outputType == "table") {
+    if (outputType == "JSON") {
         //Should set output type in here to json
         runStreamingTab();
-    } else if (outputType == "googleEarth") {
+    } else if (outputType == "GEOJSON") {
         //Setoutput == OGCKML
-        runStreamingMap();
-    } else if (outputType == "customizableMap") {
-        //Set output == Geojson
         runStreamingMap();
     } else {
         runDataDownload();
     }
-}
-function generateRepos(json) {
-    console.log(json);
-    formFields.push(json);
-    json.forEach(function (param) {
-        if (Boolean(param.title.trim()) && Boolean(param.name.trim())) {
-            $("#repo_selector").append($('<option></option>').attr("value", param.name).text(param.title));
-        }
-    });
 }
 
 $(document).ready(function () {

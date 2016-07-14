@@ -3,30 +3,41 @@
 {% load bootstrap3 %}
 
 {% block extra_css %}
-    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dynatable.css" %}"/>
 {% endblock %}
 {% block head_js %}
-    {{ form.media }}
     <script type='text/javascript' src={% static "js/jquery1.9.js" %}></script>
     <script type='text/javascript' src={% static "js/bootstrap.min.js" %}></script>
     <script type='text/javascript' src="{% static "js/FMEServer.js" %}"></script>
-    <script type='text/javascript' src="{% static "js/jquery.dynatable.js" %}"></script>
     <script type='text/javascript' src="{% static "js/region_dist_calc.js" %}"></script>
 {% endblock %}
 {% block fme %}
+    <div class="col-sm-9 col-md-10 main">
+    <h1 id="repository" class="page-header">Find Distances within a Region</h1>
+    <!-- maybe include action and method if in dj-->
+    {% if errormsg %}{% endif %}{% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <div {% if message.tags %} class="{{ message.tags }} alert alert-danger"  {% else %}
+                                           class="alert alert-danger"  {% endif %}role="alert">
+                    {{ message }}</div>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <form action="/workbenches/region_distance/" method="post" class="form">
-        {% bootstrap_form form %}
+        {% csrf_token %}{% bootstrap_form form %}
         {% buttons %}
             <button type="submit" class="btn btn-primary">
                 {% bootstrap_icon "star" %} Get Distances
             </button>
         {% endbuttons %}
     </form>
+    <div id="results" class="row top-buffer"></div>
 {% endblock %}
 {% block footer %}
-    <footer class="footer">
+    <footer class="footer fixed">    {{ form.media }}
         <div class="container">
             <p class="text-muted">&copy; YMAC 2015</p>
         </div>
     </footer>
 {% endblock %}
+
