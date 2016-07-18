@@ -472,29 +472,29 @@ class HeritageSurvey(models.Model):
                                          help_text="Any comments or data relating to the data")
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
                                     null=True)
-    survey_methodologies = models.ManyToManyField('SurveyMethodology', blank=True)
-    survey_group = models.ForeignKey('SurveyGroup', blank=True, null=True)
+    survey_methodologies = models.ManyToManyField('SurveyMethodology', db_index=True, blank=True)
+    survey_group = models.ForeignKey('SurveyGroup', db_index=True, blank=True, null=True)
     proponent = models.ForeignKey('Proponent', on_delete=models.CASCADE, blank=True, null=True)
-    proponent_codes = models.ManyToManyField('SurveyProponentCode', blank=True,
+    proponent_codes = models.ManyToManyField('SurveyProponentCode', db_index=True, blank=True,
                                              help_text="Any proponent codes relating to the survey"
                                                        " i.e RIO Area Codes AR-00-00000")
-    sampling_meth = models.ForeignKey('SampleMethodology', db_column='sampling_meth',
+    sampling_meth = models.ForeignKey('SampleMethodology', db_index=True, db_column='sampling_meth',
                                       on_delete=models.CASCADE, default=6, blank=True, null=True)
-    sampling_conf = models.ForeignKey('SamplingConfidence', on_delete=models.CASCADE, default=5, blank=True, null=True)
-    project_name = models.TextField(blank=True, null=True, help_text="Internal or Survey Project Name")
-    project_status = models.CharField(max_length=25, default=3, choices=project_status, blank=True, null=True)
+    sampling_conf = models.ForeignKey('SamplingConfidence', db_index=True, on_delete=models.CASCADE, default=5, blank=True, null=True)
+    project_name = models.TextField(blank=True, db_index=True, null=True, help_text="Internal or Survey Project Name")
+    project_status = models.CharField(max_length=25, db_index=True, default=3, choices=project_status, blank=True, null=True)
     survey_region = models.CharField(max_length=15, choices=ymac_region, blank=True, null=True)
     survey_description = models.TextField(blank=True, null=True,
                                           help_text="Description of the proposed or actual survey")
     survey_note = models.TextField(blank=True, null=True, help_text="Additional Survey notes")
-    created_by = models.ForeignKey('SiteUser', related_name='created_user', blank=True, null=True)
+    created_by = models.ForeignKey('SiteUser', db_index=True, related_name='created_user', blank=True, null=True)
     date_create = models.DateField(blank=True, null=True)
-    mod_by = models.ForeignKey('SiteUser', related_name='mod_user', blank=True, null=True)
+    mod_by = models.ForeignKey('SiteUser', db_index=True, related_name='mod_user', blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
-    consultants = models.ManyToManyField('Consultant', blank=True, help_text="Consultants for survey")
-    documents = models.ManyToManyField(SurveyDocument, blank=True, help_text="Related documents")
-    folder_location = models.TextField(blank=True, help_text="Location on Z drive of folder")
+    consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
+    documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, help_text="Related documents")
+    folder_location = models.TextField(blank=True, db_index=True, help_text="Location on Z drive of folder")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):

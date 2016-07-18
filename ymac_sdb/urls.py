@@ -31,5 +31,7 @@ urlpatterns = [
     url(r'^heritage_surveys/', views.SurveyView.as_view()),
     url(r'^heritagesurvey-autocomplete/$', views.HeritageSurveyAutocomplete.as_view(),
         name='heritagesurvey-autocomplete'),
+    url(r'^surveytrip-autocomplete/$', views.HeritageSurveyTripAutocomplete.as_view(),
+        name='surveytrip-autocomplete'),
     url(r'^', admin.site.urls),
 ]

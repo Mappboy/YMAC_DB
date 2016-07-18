@@ -680,6 +680,7 @@ class FileCleanUpAdmin(baseadmin.ModelAdmin):
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     def surveys(self, obj):
+        # Todo use prefetch
         print(obj)
         try:
             return ";\n".join([smart_text(hs.survey_trip) for hs in obj.heritagesurvey_set.all()])
@@ -689,6 +690,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     surveys.short_description = "Surveys"
 
     def url_to_edit(self, request, queryset):
+        # Use prefetch
         trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
                                                reverse('admin:%s_%s_change' % (
                                                    hs._meta.app_label, hs._meta.model_name),
@@ -1068,6 +1070,8 @@ def export_as_shz(modeladmin, request, queryset):
 
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
+    HeritageSurvey.objects.prefetch_related('survey_group')
+    HeritageSurvey.objects.prefetch_related('proponent')
     fields = (
         'survey_trip',
         'project_name',
@@ -1140,6 +1144,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     datastatus.short_description = "Status"
 
     def propname(self, obj):
+
         if obj.proponent:
             return smart_text(obj.proponent.name)
         return ''
@@ -1179,6 +1184,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HasGeomFilter,
         HasReportFilter,
     ]
+    form = HeritageSurveyForm
 
 
 @admin.register(DaaSite)
@@ -1208,6 +1214,7 @@ class DAASiteAdmin(admin.GeoModelAdmin):
         'region',
         SiteTypeFilter
     ]
+
 
 
 geom_models = [

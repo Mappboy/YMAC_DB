@@ -4,6 +4,7 @@ from dal import autocomplete
 from .models import *
 from leaflet.forms.widgets import LeafletWidget
 from datetimewidget.widgets import DateWidget
+from suit.widgets import SuitDateWidget
 
 
 # ADD Site Document Inline
@@ -69,3 +70,22 @@ class RegionDistanceForm(baseform.Form):
     region = baseform.ChoiceField(label="Region", choices=[('Pilbara', 'Pilbara'),
                                                       ('Geraldton', 'Geraldton')])
     petrol_cost = baseform.FloatField(required=False)
+
+
+class HeritageSurveyForm(baseform.ModelForm):
+    """
+    TODO:   - Add SuitDateWidget
+            - LinkedSelect
+            - Use ModelSelect2Multiple
+    """
+    class Meta:
+        model = HeritageSurvey
+        fields = '__all__'
+        widgets = {
+            'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
+            'date_create': SuitDateWidget(),
+            'date_mod': SuitDateWidget(),
+        }
+    #survey_trip = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('survey_trip').all())
+    #consultants = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('consultants').all())
+    #proponent = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('proponent').all())
