@@ -468,14 +468,14 @@ class HeritageSurvey(models.Model):
     data_status = models.ForeignKey('SurveyStatus', blank=True, null=True, db_index=True,
                                     help_text="For current spatial data is"
                                             " it proposed or after survey completion (Actual)")
-    data_source = models.ManyToManyField('SurveyCleaning', blank=True, null=True,
+    data_source = models.ManyToManyField('SurveyCleaning', blank=True,
                                          help_text="Any comments or data relating to the data")
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
                                     null=True)
-    survey_methodologies = models.ManyToManyField('SurveyMethodology', blank=True, null=True, )
+    survey_methodologies = models.ManyToManyField('SurveyMethodology', blank=True)
     survey_group = models.ForeignKey('SurveyGroup', blank=True, null=True)
     proponent = models.ForeignKey('Proponent', on_delete=models.CASCADE, blank=True, null=True)
-    proponent_codes = models.ManyToManyField('SurveyProponentCode', null=True, blank=True,
+    proponent_codes = models.ManyToManyField('SurveyProponentCode', blank=True,
                                              help_text="Any proponent codes relating to the survey"
                                                        " i.e RIO Area Codes AR-00-00000")
     sampling_meth = models.ForeignKey('SampleMethodology', db_column='sampling_meth',
@@ -492,7 +492,7 @@ class HeritageSurvey(models.Model):
     mod_by = models.ForeignKey('SiteUser', related_name='mod_user', blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
-    consultants = models.ManyToManyField('Consultant', blank=True, null=True, help_text="Consultants for survey")
+    consultants = models.ManyToManyField('Consultant', blank=True, help_text="Consultants for survey")
     documents = models.ManyToManyField(SurveyDocument, blank=True, help_text="Related documents")
     folder_location = models.TextField(blank=True, help_text="Location on Z drive of folder")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
@@ -1039,13 +1039,13 @@ class YMACSpatialRequest(models.Model):
     """
     Still need to add in the choices for each
     """
-    user = models.ForeignKey(RequestUser, blank=True)
+    user = models.ForeignKey(RequestUser, blank=True, db_index=True)
     request_type = models.ForeignKey('RequestType',
                                      help_text="Please try to determine what sort of request "
                                                "you have before completing this form.")
     region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
     claim = models.ManyToManyField(YmacClaim, blank=True)
-    job_desc = models.TextField()
+    job_desc = models.TextField(db_index=True)
     job_control = models.CharField(max_length=9, blank=True)
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
@@ -1075,6 +1075,9 @@ class YMACSpatialRequest(models.Model):
     assigned_to = models.ForeignKey(YmacStaff, blank=True)
     time_spent = models.IntegerField(blank=True)
     related_jobs = models.ManyToManyField("self")
+
+    def __str__(self):
+        return smart_text("Request for {}: {} ".format(self.user, self.job_desc))
 
 
 @python_2_unicode_compatible
