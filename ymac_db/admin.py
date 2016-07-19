@@ -562,12 +562,12 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 
 class HeritageSurveyDocumentInline(admin.TabularInline):
     model = HeritageSurvey.documents.through
-    form = SurveyDocumentForm
+    #form = SurveyDocumentForm
 
 
 class HeritageSurveyInline(admin.TabularInline):
     model = HeritageSurvey
-    form = HeritageSurveyInlineForm
+    #form = HeritageSurveyInlineForm
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
@@ -805,7 +805,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                           'document_type',
                           )
     inlines = [
-        HeritageSurveyDocumentInline
+        #HeritageSurveyDocumentInline
     ]
     form = SurveyDocumentForm
 

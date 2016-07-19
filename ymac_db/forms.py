@@ -8,6 +8,7 @@ from suit.widgets import SuitDateWidget
 
 
 # ADD Site Document Inline
+# Increase Widget sizes for multiple2Select
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
 
 class SiteForm(baseform.ModelForm):
@@ -19,10 +20,11 @@ class SiteForm(baseform.ModelForm):
 
 
 class SurveyDocumentForm(baseform.ModelForm):
+    surveys = baseform.ModelMultipleChoiceField(HeritageSurvey.objects.all())
     class Meta:
         model = SurveyDocument
         fields = '__all__'
-        widgets = {'surveys': autocomplete.ModelSelect2(url='heritagesurvey-autocomplete')}
+        widgets = {'surveys': autocomplete.ModelSelect2Multiple(url='heritagesurvey-autocomplete')}
 
 
 class HeritageSurveyInlineForm(baseform.ModelForm):
@@ -103,13 +105,6 @@ class HeritageSurveyTripForm(baseform.ModelForm):
         model = HeritageSurveyTrip
         fields = '__all__'
         widgets = {
-            'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
-            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete'),
-            'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
-            'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
-            'date_create': SuitDateWidget(),
-            'date_mod': SuitDateWidget(),
-            'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
         }
 
 
