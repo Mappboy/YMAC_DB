@@ -183,7 +183,11 @@
                 // Otherwise, just minimize the toolbar
                 if ($('#djDebugToolbar').is(':visible')) {
                     djdt.hide_toolbar(true);
+<<<<<<< HEAD
                     return;
+=======
+                    
+>>>>>>> cfe4e8540a32207a608629392f74e83b5c2eea95
                 }
             });
             if (djdt.cookie.get('djdt') == 'hide') {
