@@ -238,6 +238,19 @@ class ProponentAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
+class ProponentCodesAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return SurveyProponentCode.objects.none()
+
+        qs = SurveyProponentCode.objects.all()
+
+        if self.q:
+            qs = qs.filter(proponent_code__istartswith=self.q)
+
+        return qs
+
 class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
@@ -248,5 +261,33 @@ class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
 
         if self.q:
             qs = qs.filter(name__istartswith=self.q)
+
+        return qs
+
+
+class CaptureOrgAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return CaptureOrg.objects.none()
+
+        qs = CaptureOrg.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs
+
+
+class SurveyDocumentAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return SurveyDocument.objects.none()
+
+        qs = SurveyDocument.objects.all()
+
+        if self.q:
+            qs = qs.filter(filename__istartswith=self.q)
 
         return qs

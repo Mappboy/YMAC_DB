@@ -39,23 +39,25 @@ ALLOWED_HOSTS = ['*', '127.0.0.1']
 
 INSTALLED_APPS = [
     'ymac_db.apps.YmacDbConfig',
+    'django.contrib.staticfiles',
     'django.contrib.gis',
     'dal',
     'dal_select2',
     'import_export',
     # 'grappelli',
     'suit',
+    # 'material',
+    # 'material.frontend',
+    # 'material.admin',
     # 'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'bootstrap3',
     'debug_toolbar',
     'leaflet',
-    'bootstrap3',
-    'datetimewidget'
 ]
 
 MIDDLEWARE_CLASSES = [

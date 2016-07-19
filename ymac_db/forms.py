@@ -21,13 +21,13 @@ class SiteForm(baseform.ModelForm):
 class SurveyDocumentForm(baseform.ModelForm):
     class Meta:
         model = SurveyDocument
-        exclude = []
-        widgets = {'surveys': autocomplete.ModelSelect2Multiple(url='heritagesurvey-autocomplete')}
+        fields = '__all__'
+        widgets = {'surveys': autocomplete.ModelSelect2(url='heritagesurvey-autocomplete')}
 
 
 class HeritageSurveyInlineForm(baseform.ModelForm):
     class Meta:
-        model = HeritageSurvey
+        model = HeritageSurvey.documents.through
         fields = []
 
 class HeritageSiteForm(baseform.ModelForm):
@@ -83,9 +83,49 @@ class HeritageSurveyForm(baseform.ModelForm):
         fields = '__all__'
         widgets = {
             'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
+            'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
             'date_create': SuitDateWidget(),
             'date_mod': SuitDateWidget(),
+            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete'),
+            'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
+            'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
         }
-    #survey_trip = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('survey_trip').all())
-    #consultants = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('consultants').all())
-    #proponent = forms.ModelChoiceField(queryset=HeritageSurvey.objects.prefetch_related('proponent').all())
+
+
+class HeritageSurveyTripForm(baseform.ModelForm):
+    """
+    TODO:   - Add SuitDateWidget
+            - LinkedSelect
+            - Use ModelSelect2Multiple
+    """
+
+    class Meta:
+        model = HeritageSurveyTrip
+        fields = '__all__'
+        widgets = {
+            'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
+            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete'),
+            'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
+            'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
+            'date_create': SuitDateWidget(),
+            'date_mod': SuitDateWidget(),
+            'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
+        }
+
+
+class SurveyTripCleaningForm(baseform.ModelForm):
+    class Meta:
+        model = SurveyTripCleaning
+        fields = '__all__'
+        widgets = {
+            'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
+        }
+
+
+class ConsultantForm(baseform.ModelForm):
+    class Meta:
+        model = Consultant
+        fields = '__all__'
+        widgets = {
+            'company': autocomplete.ModelSelect2(url='captureorg-autocomplete'),
+        }

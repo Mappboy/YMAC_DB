@@ -567,6 +567,7 @@ class HeritageSurveyDocumentInline(admin.TabularInline):
 
 class HeritageSurveyInline(admin.TabularInline):
     model = HeritageSurvey
+    form = HeritageSurveyInlineForm
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
@@ -623,6 +624,7 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
             messages.success(request, "Created new document {} and added to surveys {}".format(sd, surveys))
         elif modeladmin.model == SurveyTripCleaning:
             deleted = 0
+            surveys = None
             if linkfiles:
                 surveys = qs.survey_trip.heritagesurvey_set.all()
                 for survey in surveys:
@@ -805,6 +807,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     inlines = [
         HeritageSurveyDocumentInline
     ]
+    form = SurveyDocumentForm
 
 
 
@@ -877,6 +880,7 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     ordering = ('data_path', 'survey_trip',)
     search_fields = ['survey_trip__survey_id',
                      'data_path']
+    form = SurveyTripCleaningForm
 
 
 class SetSurveyActionForm(ActionForm):
@@ -1079,12 +1083,12 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'survey_type',
         'survey_methodologies',
         'survey_group',
-        'proponent',
         'sampling_meth',
         'sampling_conf',
         'survey_region',
         'survey_description',
         'survey_note',
+        'proponent',
         'created_by',
         'date_create',
         'mod_by',
@@ -1093,12 +1097,15 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'data_status',
         'folder_location',
         'geom',
+        'documents',
+        'consultants',
+        'proponent_codes',
     )
     inlines = [
-        HeritageSurveyConsultantInline,
-        HeritageSurveyProponentInline,
+        # HeritageSurveyConsultantInline,
+        # HeritageSurveyProponentInline,
         # HeritageSurveyCleaningInline,
-        HeritageSurveyDocumentInline
+        # HeritageSurveyDocumentInline
     ]
     actions = [
         export_as_json,
