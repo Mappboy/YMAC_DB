@@ -152,6 +152,7 @@ path_type = [
     ("Survey Report", "Survey Report"),
     ("Photo", "Photo"),
     ("Prelim Advice", "Prelim Advice"),
+    ("HISF", "HISF"),
 ]
 
 group_status = [
@@ -314,7 +315,7 @@ class SurveyCleaning(models.Model):
 
     class Meta:
         managed = True
-        ordering = ('heritagesurvey__survey_trip__survey_id', 'data_path')
+        ordering = ('heritagesurvey__survey_id', 'data_path')
 
     def __str__(self):
         if self.data_path:
@@ -328,7 +329,7 @@ class SurveyTripCleaning(models.Model):
     These are cleaning comments and data paths that can be attached
     to a heritage survey trip.
     """
-    survey_trip = models.ForeignKey('HeritageSurveyTrip')
+    survey_trip = models.ForeignKey('HeritageSurvey')
     cleaning_comment = models.TextField(blank=False, null=False)
     data_path = models.TextField(blank=False, null=False, db_index=True)
     path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
@@ -465,6 +466,12 @@ class HeritageSite(models.Model):
 @python_2_unicode_compatible
 class HeritageSurvey(models.Model):
     survey_trip = models.ForeignKey('HeritageSurveyTrip', help_text="Trip and related Trip information")
+    survey_id = models.CharField(max_length=10, validators=[valid_surveyid], db_index=True)
+    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
+    related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
+    trip_number = models.SmallIntegerField(blank=True, null=True, db_index=True)
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
     data_status = models.ForeignKey('SurveyStatus', blank=True, null=True, db_index=True,
                                     help_text="For current spatial data is"
                                             " it proposed or after survey completion (Actual)")
@@ -493,19 +500,20 @@ class HeritageSurvey(models.Model):
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
     consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
-    documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, help_text="Related documents")
+    documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, related_name="surveys",
+                                       help_text="Related documents")
     folder_location = models.TextField(blank=True, db_index=True, help_text="Location on Z drive of folder")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        if self.survey_trip.survey_id:
+        if self.survey_id:
             return smart_text(
-                "{} (Trip {})- {}".format(self.survey_trip.survey_id, self.survey_trip.trip_number, self.project_name))
+                "{} (Trip {})- {}".format(self.survey_id, self.trip_number, self.project_name))
         return smart_text(self.project_name)
 
     class Meta:
         managed = True
-        ordering = ('survey_trip__survey_id', 'date_create',)
+        ordering = ('survey_id', 'date_create',)
 
 
 @python_2_unicode_compatible

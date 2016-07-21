@@ -142,6 +142,14 @@ AUTH_PASSWORD_VALIDATORS = [
 #    'django.contrib.auth.backends.ModelBackend',
 # ]
 
+# EMAIL CONFIG
+# https://docs.djangoproject.com/en/1.9/topics/email/
+EMAIL_HOST = ""
+EMAIL_HOST_PASSWORD = ""
+EMAIL_HOST_USER = ""
+EMAIL_SUBJECT_PREFIX = ""
+EMAIL_USE_SSL = ""
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
