@@ -4,7 +4,7 @@ from dal import autocomplete
 from .models import *
 from leaflet.forms.widgets import LeafletWidget
 from datetimewidget.widgets import DateWidget
-from suit.widgets import SuitDateWidget
+from suit.widgets import SuitDateWidget, AutosizedTextarea
 
 
 # ADD Site Document Inline
@@ -20,17 +20,21 @@ class SiteForm(baseform.ModelForm):
 
 
 class SurveyDocumentForm(baseform.ModelForm):
-    surveys = baseform.ModelMultipleChoiceField(HeritageSurvey.objects.all())
     class Meta:
         model = SurveyDocument
         fields = '__all__'
-        widgets = {'surveys': autocomplete.ModelSelect2Multiple(url='heritagesurvey-autocomplete')}
+        widgets = {'filename': AutosizedTextarea(),
+                    'filepath': AutosizedTextarea(),
+                   'surveys': autocomplete.ModelSelect2Multiple(
+                                                        url='heritagesurvey-autocomplete')}
 
 
 class HeritageSurveyInlineForm(baseform.ModelForm):
     class Meta:
-        model = HeritageSurvey.documents.through
-        fields = []
+        model = SurveyDocument.surveys.through
+        fields = '__all__'
+        widgets = {'heritagesurveys': autocomplete.ModelSelect2Multiple(
+                                                        url='heritagesurvey-autocomplete')}
 
 class HeritageSiteForm(baseform.ModelForm):
     site_description = forms.ModelMultipleChoiceField(queryset=SiteDescriptions.objects.all())
@@ -84,11 +88,13 @@ class HeritageSurveyForm(baseform.ModelForm):
         model = HeritageSurvey
         fields = '__all__'
         widgets = {
-            'survey_trip': autocomplete.ModelSelect2(url='surveytrip-autocomplete'),
             'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
             'date_create': SuitDateWidget(),
             'date_mod': SuitDateWidget(),
-            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete'),
+            'date_from': SuitDateWidget(),
+            'date_to': SuitDateWidget(),
+            'trip_number': baseform.NumberInput(),
+            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete', attrs={'class': 'wide'}),
             'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
             'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
         }

@@ -194,7 +194,7 @@ class RelatedTripClaimFilter(baseadmin.SimpleListFilter):
         # Compare the requested value (either '80s' or '90s')
         # to decide how to filter the queryset.
         if self.value():
-            queryset = queryset.filter(survey_trip__heritagesurvey__survey_group__group_id=self.value())
+            queryset = queryset.filter(survey_trip__survey_group__group_id=self.value())
         return queryset
 
 
@@ -251,6 +251,58 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
             queryset = queryset.filter(heritagesurvey__survey_group__group_id=self.value())
         return queryset
 
+class RelatedDocClaimFilter(baseadmin.SimpleListFilter):
+    title = _('Related Claim')
+
+    parameter_name = 'heritagesurvey__survey_group_group_id'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('AMA', _('Amangu')),
+            ('BAD', _('Badimia')),
+            ('BAN', _('Banjima')),
+            ('BUD', _('Budina')),
+            ('GNU', _('Gnulli')),
+            ('HUT', _('Hutt River')),
+            ('JUR', _('Jurruru')),
+            ('K&M', _('Kuruma Marthadunera')),
+            ('KAR', _('Kariyarra')),
+            ('MAL', _('Malgana')),
+            ('NAA', _('Naaguja')),
+            ('NAN', _('Nanda')),
+            ('NGA', _('Ngarluma')),
+            ('NJA', _('Njamal')),
+            ('NLW', _('Ngarlawangga')),
+            ('NRL', _('Ngarla')),
+            ('NYA', _('Nyangumarta')),
+            ('NYI', _('Nyiyaparli')),
+            ('PAL', _('Palyku')),
+            ('PKK', _('Puutu Kunti Kurrama and Pinikura')),
+            ('THU', _('Thudgari')),
+            ('WJY', _('Wajarri Yamatji')),
+            ('YHW', _('Yinhawangka')),
+            ('YIN', _('Yindjibarndi')),
+            ('YUG', _('Yugunga-Nya')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if self.value():
+            queryset = queryset.filter(surveys__survey_group__group_id=self.value())
+        return queryset
 
 class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
     title = _('Correct Filing')
@@ -512,7 +564,6 @@ class YMACModelAdmin(LeafletGeoAdmin):
 
 basemodels = [SiteUser,
               CaptureOrg,
-              HeritageSurveyTrip,
               SiteDocument,
               SiteDescriptions,
               RestrictionStatus,
@@ -566,8 +617,8 @@ class HeritageSurveyDocumentInline(admin.TabularInline):
 
 
 class HeritageSurveyInline(admin.TabularInline):
-    model = HeritageSurvey
-    #form = HeritageSurveyInlineForm
+    model = SurveyDocument.surveys.through
+    form = HeritageSurveyInlineForm
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
@@ -772,14 +823,14 @@ class YMACSpatialRequestAdmin(ImportExportModelAdmin):
 
 @admin.register(SurveyDocument)
 class SurveyDocumentAdmin(baseadmin.ModelAdmin):
-    def surveys(self, obj):
+    def hsurveys(self, obj):
         print(obj)
         try:
-            return ";\n".join([smart_text(hs.survey_trip) for hs in obj.heritagesurvey_set.all()])
+            return ";\n".join([smart_text(hs) for hs in obj.surveys.all()])
         except AttributeError:
             return ''
 
-    surveys.short_description = "Surveys"
+    hsurveys.short_description = "Surveys"
 
     def show_data_pathurl(self, obj):
         full_path = os.path.join(obj.filepath, obj.filename)
@@ -793,19 +844,19 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
         'filename',
     )
     list_display = [
-        'surveys',
+        'hsurveys',
         'document_type',
         'show_data_pathurl',
     ]
     list_filter = [
         'document_type',
-        RelatedClaimFilter,
+        RelatedDocClaimFilter,
     ]
-    list_display_links = ('surveys',
+    list_display_links = ('hsurveys',
                           'document_type',
                           )
     inlines = [
-        #HeritageSurveyDocumentInline
+        HeritageSurveyInline
     ]
     form = SurveyDocumentForm
 
@@ -1074,10 +1125,12 @@ def export_as_shz(modeladmin, request, queryset):
 
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
-    HeritageSurvey.objects.prefetch_related('survey_group')
-    HeritageSurvey.objects.prefetch_related('proponent')
+    # TODO: Include related surveys
     fields = (
-        'survey_trip',
+        'survey_id',
+        'date_from',
+        'date_to',
+        'trip_number',
         'project_name',
         'project_status',
         'survey_type',
@@ -1111,37 +1164,16 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         export_as_json,
         export_as_shz
     ]
-    search_fields = ['survey_trip__survey_id',
+    search_fields = ['survey_id',
                      'survey_group__group_id',
                      'project_name']
 
-    def survey(self, obj):
-        if obj.survey_trip:
-            return obj.survey_trip.survey_id
-        return ''
-
-    survey.admin_order_field = 'survey_trip'
-    survey.short_description = 'Survey Trip'
 
     def datapath(self, obj):
         if obj.data_source.values():
             return smart_text(";\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path]))
         return ''
 
-    def tripnumber(self, obj):
-        return smart_text(obj.survey_trip.trip_number)
-
-    tripnumber.short_description = "Trip Number"
-
-    def startdate(self, obj):
-        return smart_text(obj.survey_trip.date_from)
-
-    startdate.short_description = "Start Date"
-
-    def enddate(self, obj):
-        return smart_text(obj.survey_trip.date_to)
-
-    enddate.short_description = "End Date"
 
     def datastatus(self, obj):
         if obj.data_status:
@@ -1166,8 +1198,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     groupname.short_description = "Claim"
 
     list_display = [
-        'survey',
-        'tripnumber',
+        'survey_id',
+        'trip_number',
         'project_status',
         'propname',
         'groupname',
@@ -1179,8 +1211,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'datastatus',
         'data_qa',
         'folder_location',
-        'startdate',
-        'enddate',
+        'date_from',
+        'date_to',
         'datapath'
     ]
 

@@ -206,7 +206,7 @@ class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
         qs = HeritageSurvey.objects.all()
 
         if self.q:
-            qs = qs.filter(survey_trip_survey_id__istartswith=self.q)
+            qs = qs.filter(survey_id__istartswith=self.q)
 
         return qs
 
@@ -216,7 +216,7 @@ class HeritageSurveyTripAutocomplete(autocomplete.Select2QuerySetView):
         if not self.request.user.is_authenticated():
             return HeritageSurvey.objects.none()
 
-        qs = HeritageSurveyTrip.objects.all()
+        qs = HeritageSurvey.objects.all()
 
         if self.q:
             qs = qs.filter(survey_id__istartswith=self.q)

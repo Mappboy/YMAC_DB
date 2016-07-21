@@ -43,7 +43,6 @@ filesearch = re.compile("|".join([fnmatch.translate(ext) for ext in GEOFILES.key
 reportsearch = re.compile("|".join([fnmatch.translate(ext) for ext in REPORTFILES.keys()]))
 photosearch = re.compile(fnmatch.translate("*.jpg"))
 survey_match = re.compile("[A-Z&]{3}\d{3}[-_]?(\d{1,5})?")
-PA_RE = re.compile(fnmatch.translate("*\2. PA & Data - FINAL PDF VERSION ISSUED TO PROPONENT\*.pdf"))
 
 
 
