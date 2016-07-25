@@ -153,6 +153,8 @@ def update_dates():
     with open(data_file,'r') as csvfile:
         csvreader = csv.DictReader(csvfile)
         for row in csvreader:
-            print(HeritageSurvey.objects.filter(trip_number=row['trip_number'], survey_id=row['primary_svy_name']))
+            survey = HeritageSurvey.objects.filter(trip_number=row['trip_number'], survey_id=row['primary_svy_name'])
+            print(row['start_date'])
+            print(row['end_date'])
 
 
