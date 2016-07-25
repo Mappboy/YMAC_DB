@@ -18,7 +18,7 @@ get_folder_re = re.compile(r"(?P<folder_path>Z:\\?Claim Groups\\{1,2}(?P<claim_g
                            r"(?P<folder>[A-Za-z0-9_\- &\(\),.]+(\\))")
 
 trip_re = re.compile(r"trip[ _\-]?(?P<trip_num>\d)", re.I)
-multi_trip_re = re.compile(r"trip[ _\-]?(?P<trip_num_start>\d)-(?P<trip_num_end>\d)", re.I)
+multi_trip_re = re.compile(r"trip(s)?[ _\-]?(?P<trip_num_start>\d)[\-_](?P<trip_num_end>\d)", re.I)
 matches = []
 data_paths = set()
 hs_dp = {}
@@ -149,7 +149,19 @@ def search_directory():
             if match:
                 matched.add(full_path)
                 # Now check if we are dealing with multiple surveys. If so try trip matching etc
-                print(find_survey(match.group()))
+                surveys = find_survey(match.group())
+                if len(surveys) == 1:
+                    surveys[0].update(folder_location=full_path)
+                elif len(surveys) > 1:
+                    m = multi_trip_re.search(full_path)
+                    if m:
+                        for tp in range(int(m.groupdict()['trip_num_start']), int(m.groupdict()['trip_num_end'])+1):
+                            for survey in surveys:
+                                if survey.trip_number == tp:
+                                    survey.update(folder_location=full_path)
+                else:
+                    # print out paths that don't we couldn't find surveys for
+                print()
                 print(full_path)
                 # If there is no matching survey found we should write these out to stderr or a file perhaps
         else:

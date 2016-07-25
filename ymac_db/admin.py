@@ -52,8 +52,10 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         # to decide how to filter the queryset.
         if not self.value():
             return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(geom__isnull=False)
         else:
-            return queryset.filter(geom__isnull=bool(self.value()))
+            return queryset.filter(geom__isnull=True)
 
 
 class HasReportFilter(baseadmin.SimpleListFilter):
