@@ -677,7 +677,7 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
             deleted = 0
             surveys = None
             if linkfiles:
-                surveys = qs.survey_trip.heritagesurvey_set.all()
+                surveys = qs.heritagesurvey_set.all()
                 for survey in surveys:
                     survey.documents.add(sd)
             surveytrips = SurveyTripCleaning.objects.filter(data_path=qs.data_path)
