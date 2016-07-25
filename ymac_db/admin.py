@@ -89,6 +89,38 @@ class HasReportFilter(baseadmin.SimpleListFilter):
         else:
             return queryset.filter(documents__isnull=True)
 
+class HasLinkedSurveyFilter(baseadmin.SimpleListFilter):
+    title = _('Linked Survey')
+
+    parameter_name = 'has_survey'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('False', _('Linked')),
+            ('True', _('No Survey')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(surveys__isnull=False)
+        else:
+            return queryset.filter(surveys__isnull=True)
 
 class ClaimDataPathFilter(baseadmin.SimpleListFilter):
     title = _('Potential Claim')
@@ -850,6 +882,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     list_filter = [
         'document_type',
         RelatedDocClaimFilter,
+        HasLinkedSurveyFilter,
     ]
     list_display_links = ('hsurveys',
                           'document_type',
@@ -1212,7 +1245,6 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'folder_location',
         'date_from',
         'date_to',
-        'datapath'
     ]
 
     list_filter = [
