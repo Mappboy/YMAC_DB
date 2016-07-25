@@ -3,6 +3,7 @@ import re
 import sys
 import csv
 import django
+import datetime
 
 sys.path.append(r"C:\Users\cjpoole\PycharmProjects\ymac_sdb\\")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
@@ -22,6 +23,25 @@ matches = []
 data_paths = set()
 hs_dp = {}
 survey_match = re.compile("[A-Z&]{3}\d{3}[-_]?(\d{1,5})?")
+
+def update_dates():
+    """
+    This was a fix for the dates that were bad in the database
+    :return:
+    """
+    data_file = r"W:\Utility\SpatialDatabase\cleaned_codes.csv"
+    with open(data_file,'r') as csvfile:
+        csvreader = csv.DictReader(csvfile)
+        for row in csvreader:
+            survey = HeritageSurvey.objects.filter(trip_number=row['trip_number'], survey_id=row['primary_svy_name'])
+            if row['start_date']:
+                sdate = datetime.datetime.strptime(row['start_date'], "%d/%m/%Y")
+                print(sdate)
+                survey.update(date_from=sdate)
+            if row['end_date']:
+                edate = datetime.datetime.strptime(row['end_date'], "%d/%m/%Y")
+                print(edate)
+                survey.update(date_to=edate)
 
 
 def find_survey(survey_string):
@@ -141,20 +161,7 @@ def search_directory():
 
 search_directory()
 
-not_found = ["YHW018-81",
-             "YHW018-110",
-             "YHW018-109",
-             "YHW018-112",
-             "YHW018-116"]
 
 
-def update_dates():
-    data_file = r"W:\Utility\SpatialDatabase\cleaned_codes.csv"
-    with open(data_file,'r') as csvfile:
-        csvreader = csv.DictReader(csvfile)
-        for row in csvreader:
-            survey = HeritageSurvey.objects.filter(trip_number=row['trip_number'], survey_id=row['primary_svy_name'])
-            print(row['start_date'])
-            print(row['end_date'])
 
 
