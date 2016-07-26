@@ -43,5 +43,7 @@ urlpatterns = [
         name='captureorg-autocomplete'),
     url(r'^surveydocument-autocomplete/$', views.SurveyDocumentAutocomplete.as_view(),
         name='surveydocument-autocomplete'),
+    url(r'^requestuser-autocomplete/$', views.RequestUserAutocomplete.as_view(),
+        name='requestuser-autocomplete'),
     url(r'^', admin.site.urls),
 ]
