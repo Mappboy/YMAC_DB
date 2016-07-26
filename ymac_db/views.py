@@ -172,6 +172,7 @@ class SpatialRequestView(FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
+        form.generate_folders()
         form.send_email()
         form.update_smartsheet()
         # form.instance.user.name = self.request.name
@@ -289,5 +290,18 @@ class SurveyDocumentAutocomplete(autocomplete.Select2QuerySetView):
 
         if self.q:
             qs = qs.filter(filename__istartswith=self.q)
+
+        return qs
+
+class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return RequestUser.objects.none()
+
+        qs = RequestUser.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
 
         return qs

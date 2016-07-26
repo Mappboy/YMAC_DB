@@ -53,7 +53,6 @@ class HeritageSiteForm(baseform.ModelForm):
 
 
 class YMACSpatialRequestForm(baseform.ModelForm):
-    user = baseform.ModelChoiceField(RequestUser.objects.all(), label="Name:")
     required_by = baseform.DateField(label="Required by:", widget=DateWidget(options={
         'format': 'dd-mm-yyyy',
         'autoclose': True,
@@ -64,10 +63,32 @@ class YMACSpatialRequestForm(baseform.ModelForm):
     claim = baseform.ModelMultipleChoiceField(YmacClaim.objects.all(), label="Claims (if known)",
                                               widget=forms.SelectMultiple(attrs={'size': 10}))
 
+    def clean(self):
+        cleaned_data = super(YMACSpatialRequestForm, self).clean()
+        #filepath = cleaned_data.get("filepath")
+        #filename = cleaned_data.get("filename")
+        #if not os.path.isfile(os.path.join(filepath, filename)):
+        #    raise forms.ValidationError("Not a valid file, check path and file name are correct")
+
     def send_email(self):
+        """
+        This function will send the usual email to us spatial jobs guys
+        :return:
+        """
         pass
 
     def update_smartsheet(self):
+        """
+        This will update smartsheet as we continue to use it
+        :return:
+        """
+        pass
+
+    def generate_folders(self):
+        """
+        Initially we want to generate our id and create our folders on W:
+        :return:
+        """
         pass
 
     class Meta:
@@ -79,8 +100,15 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                    'draft',
                    'done',
                    'assigned_to',
-                   'time_spent']
-
+                   'time_spent',
+                   'request_datetime',
+                   'completed_datetime',
+                   'job_control']
+        widgets = {
+            'user': autocomplete.ModelSelect2(url='requestuser-autocomplete'),
+            'cc_recipients': autocomplete.ModelSelect2Multiple(url='requestuser-autocomplete'),
+            'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
+        }
 
 class RegionDistanceForm(baseform.Form):
     """

@@ -168,6 +168,7 @@ departments = [
     ('Communications', 'Communications'),
     ('Finance', 'Finance'),
     ('Knowledge Partnerships', 'Knowledge Partnerships'),
+    ('Other', 'Other'),
 ]
 
 map_sizes = [
@@ -1031,6 +1032,9 @@ class RequestUser(models.Model):
 
     def __str__(self):
         return smart_text(self.name)
+
+    class Meta:
+        ordering = ('name',)
 
 
 @python_2_unicode_compatible
