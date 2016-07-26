@@ -1160,6 +1160,12 @@ def export_as_shz(modeladmin, request, queryset):
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
     # TODO: Include related surveys
+    def show_data_pathurl(self, obj):
+        return format_html('<a href="file:///{}">{}</a>',
+                           obj.folder_location,
+                           obj.folder_location)
+
+    show_data_pathurl.short_description = "Z: Location"
     fields = (
         'survey_id',
         'date_from',
@@ -1244,10 +1250,11 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'created_by',
         'datastatus',
         'data_qa',
-        'folder_location',
+        'show_data_pathurl',
         'date_from',
         'date_to',
     ]
+    #list_editable = ['folder_location', ]
 
     list_filter = [
         'survey_group__group_name',
