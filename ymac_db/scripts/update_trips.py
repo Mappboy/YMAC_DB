@@ -18,7 +18,7 @@ get_folder_re = re.compile(r"(?P<folder_path>Z:\\?Claim Groups\\{1,2}(?P<claim_g
                            r"(?P<folder>[A-Za-z0-9_\- &\(\),.]+(\\))")
 
 trip_re = re.compile(r"trip[ _\-]?(?P<trip_num>\d)", re.I)
-multi_trip_re = re.compile(r"trip(s)?[ _\-]?(?P<trip_num_start>\d)[\-_](?P<trip_num_end>\d)", re.I)
+multi_trip_re = re.compile(r"trip(s)?[ _\-]?(?P<trip_num_start>\d)[\-_& ]+(?P<trip_num_end>\d)", re.I)
 matches = []
 data_paths = set()
 hs_dp = {}
@@ -151,19 +151,35 @@ def search_directory():
                 # Now check if we are dealing with multiple surveys. If so try trip matching etc
                 surveys = find_survey(match.group())
                 if len(surveys) == 1:
+                    if surveys[0][0].folder_location and surveys[0][0].folder_location != full_path:
+                        print("{}, {}, {}".format(surveys[0][0], full_path,
+                                                                                   surveys[0][0].folder_location))
                     surveys[0].update(folder_location=full_path)
                 elif len(surveys) > 1:
                     m = multi_trip_re.search(full_path)
+                    tm = trip_re.search(full_path)
                     if m:
                         for tp in range(int(m.groupdict()['trip_num_start']), int(m.groupdict()['trip_num_end'])+1):
                             for survey in surveys:
                                 if survey.trip_number == tp:
+                                    if survey.folder_location:
+                                        print("{}, {}, {}".format(survey, full_path,
+                                                                        survey.folder_location))
                                     survey.update(folder_location=full_path)
+                    elif tm:
+                        fsurvey = HeritageSurvey.objects.filter(survey_id=match.group,
+                                                                trip_number=tm.groupdict()['trip_num'])
+                        if fsurvey:
+                            if fsurvey.folder_location:
+                                print("{}, {}, {}".format(fsurvey, full_path,
+                                                                                 fsurvey.folder_location))
+                            fsurvey.update(folder_location=full_path)
+                        else:
+                            # couldn't find survey using trip number try and us comments other wise just write it out
+                            print("No survey, {}, {}".format(surveys, full_path))
                 else:
+                    print("No survey, {}, {}".format(surveys, full_path))
                     # print out paths that don't we couldn't find surveys for
-                print()
-                print(full_path)
-                # If there is no matching survey found we should write these out to stderr or a file perhaps
         else:
             continue
 
