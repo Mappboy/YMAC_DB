@@ -871,10 +871,13 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                            full_path,
                            full_path)
 
+    show_data_pathurl.short_description = "File Location"
+
     fields = (
         'document_type',
         'filepath',
         'filename',
+        #'surveys'
     )
     list_display = [
         'hsurveys',
@@ -1156,6 +1159,12 @@ def export_as_shz(modeladmin, request, queryset):
     h['token'] = "782b77ba48c390cf8f74f9184a4398a8423d9efa"
     return h
 
+def set_as_completed(modeladmin, request, queryset):
+    for qs in queryset:
+        qs.update(project_status="Completed")
+    messages.info(request, "Set {} surveys to completed".format(len(queryset)))
+
+set_as_completed.short_description = "Set to Completed"
 
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
@@ -1202,7 +1211,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     ]
     actions = [
         export_as_json,
-        export_as_shz
+        export_as_shz,
+        set_as_completed
     ]
     search_fields = ['survey_id',
                      'survey_group__group_id',
