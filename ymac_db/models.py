@@ -465,7 +465,6 @@ class HeritageSite(models.Model):
 
 @python_2_unicode_compatible
 class HeritageSurvey(models.Model):
-    survey_trip = models.ForeignKey('HeritageSurveyTrip', help_text="Trip and related Trip information")
     survey_id = models.CharField(max_length=10, validators=[valid_surveyid], db_index=True)
     original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
     related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
