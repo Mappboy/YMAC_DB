@@ -224,7 +224,7 @@ class DocumentType(models.Model):
 @python_2_unicode_compatible
 class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
-    filepath = models.TextField(blank=True, null=True, validators=[valid_directory], db_index=True)
+    filepath = models.TextField(blank=True, null=True, db_index=True) #validators=[valid_directory]
     filename = models.CharField(max_length=200, blank=True, null=True, db_index=True)
 
     def check_file_exists(self):
@@ -501,7 +501,8 @@ class HeritageSurvey(models.Model):
     consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
     documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, related_name="surveys",
                                        help_text="Related documents")
-    folder_location = models.TextField(blank=True, db_index=True,validators=[valid_directory], help_text="Location on Z drive of folder")
+    folder_location = models.TextField(blank=True, db_index=True,
+                                       help_text="Location on Z drive of folder") # validators=[valid_directory]
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
@@ -1027,7 +1028,6 @@ class RequestUser(models.Model):
     email = models.EmailField()
     department = models.ForeignKey('Department')
     office = models.CharField(max_length=20, choices=offices, default="Perth")
-    region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
 
     def __str__(self):
         return smart_text(self.name)

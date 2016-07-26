@@ -21,12 +21,12 @@ class SiteForm(baseform.ModelForm):
 
 
 class SurveyDocumentForm(baseform.ModelForm):
-    def clean(self):
-        cleaned_data = super(SurveyDocumentForm, self).clean()
-        filepath = cleaned_data.get("filepath")
-        filename = cleaned_data.get("filename")
-        if not os.path.isfile(os.path.join(filepath, filename)):
-            raise forms.ValidationError("Not a valid file, check path and file name are correct")
+    #def clean(self):
+    #    cleaned_data = super(SurveyDocumentForm, self).clean()
+    #    filepath = cleaned_data.get("filepath")
+    #    filename = cleaned_data.get("filename")
+    #    if not os.path.isfile(os.path.join(filepath, filename)):
+    #        raise forms.ValidationError("Not a valid file, check path and file name are correct")
 
     class Meta:
         model = SurveyDocument
@@ -72,7 +72,14 @@ class YMACSpatialRequestForm(baseform.ModelForm):
 
     class Meta:
         model = YMACSpatialRequest
-        fields = '__all__'
+        exclude = ['map',
+                   'data',
+                   'analysis',
+                   'other',
+                   'draft',
+                   'done',
+                   'assigned_to',
+                   'time_spent']
 
 
 class RegionDistanceForm(baseform.Form):

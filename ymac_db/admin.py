@@ -607,6 +607,10 @@ basemodels = [SiteUser,
               RelatedSurveyCode,
               SurveyProponentCode,
               DocumentType,
+              RequestUser,
+              RequestType,
+              Department,
+              YmacStaff
               ]
 
 for m in basemodels:
