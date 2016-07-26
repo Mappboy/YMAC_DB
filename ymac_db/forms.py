@@ -2,6 +2,7 @@ from django.contrib.gis import forms
 from django import forms as baseform
 from dal import autocomplete
 from .models import *
+import os
 from leaflet.forms.widgets import LeafletWidget
 from datetimewidget.widgets import DateWidget
 from suit.widgets import SuitDateWidget, AutosizedTextarea
@@ -20,6 +21,13 @@ class SiteForm(baseform.ModelForm):
 
 
 class SurveyDocumentForm(baseform.ModelForm):
+    def clean(self):
+        cleaned_data = super(SurveyDocumentForm, self).clean()
+        filepath = cleaned_data.get("filepath")
+        filename = cleaned_data.get("filename")
+        if not os.path.isfile(os.path.join(filepath, filename)):
+            raise forms.ValidationError("Not a valid file, check path and file name are correct")
+
     class Meta:
         model = SurveyDocument
         fields = '__all__'
