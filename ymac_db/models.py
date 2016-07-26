@@ -501,7 +501,7 @@ class HeritageSurvey(models.Model):
     consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
     documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, related_name="surveys",
                                        help_text="Related documents")
-    folder_location = models.TextField(blank=True, db_index=True, help_text="Location on Z drive of folder")
+    folder_location = models.TextField(blank=True, db_index=True,validators=[valid_directory], help_text="Location on Z drive of folder")
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
