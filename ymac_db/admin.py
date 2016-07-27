@@ -899,6 +899,11 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     inlines = [
         HeritageSurveyInline
     ]
+    search_fields = [
+        'surveys__survey_id',
+        'filepath',
+        'filename'
+    ]
     form = SurveyDocumentForm
 
 
@@ -1220,7 +1225,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     ]
     search_fields = ['survey_id',
                      'survey_group__group_id',
-                     'project_name']
+                     'project_name',
+                     'original_ymac_id']
 
 
     def datapath(self, obj):
@@ -1258,6 +1264,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'propname',
         'groupname',
         'project_name',
+        'original_ymac_id',
         'survey_type',
         'sampling_meth',
         'date_create',

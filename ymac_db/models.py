@@ -7,7 +7,7 @@ from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
 from django.contrib.auth.models import User
 
-from .validators import valid_surveyid, valid_directory
+from .validators import valid_surveyid, valid_directory, valid_extension
 
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
@@ -225,8 +225,8 @@ class DocumentType(models.Model):
 @python_2_unicode_compatible
 class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
-    filepath = models.TextField(blank=True, null=True, db_index=True) #validators=[valid_directory]
-    filename = models.CharField(max_length=200, blank=True, null=True, db_index=True)
+    filepath = models.TextField(blank=True, null=True, db_index=True, ) #validators=[valid_directory]
+    filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
 
     def check_file_exists(self):
         """
