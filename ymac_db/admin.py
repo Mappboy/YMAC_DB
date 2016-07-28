@@ -801,9 +801,9 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         start_date = None
         for hs in obj.heritagesurvey_set.all():
             if not start_date:
-                start_date = hs.survey_trip.date_from
-            elif hs.survey_trip.date_from < start_date:
-                start_date = hs.survey_trip.date_from
+                start_date = hs.date_from
+            elif hs.date_from < start_date:
+                start_date = hs.date_from
             else:
                 continue
         return smart_text(start_date)
@@ -814,9 +814,9 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         end_date = None
         for hs in obj.heritagesurvey_set.all():
             if not end_date:
-                end_date = hs.survey_trip.date_from
+                end_date = hs.date_from
             elif hs.survey_trip.date_from > end_date:
-                end_date = hs.survey_trip.date_from
+                end_date = hs.date_from
             else:
                 continue
         return smart_text(end_date)
@@ -850,7 +850,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
                move_to_clean_up]
     search_fields = [
         'data_path',
-        'heritagesurvey__survey_trip__survey_id']
+        'heritagesurvey_survey_id']
 
 
 @admin.register(YMACSpatialRequest)
@@ -898,6 +898,11 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                           )
     inlines = [
         HeritageSurveyInline
+    ]
+    search_fields = [
+        'surveys__survey_id',
+        'filepath',
+        'filename'
     ]
     form = SurveyDocumentForm
 
@@ -1220,14 +1225,26 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     ]
     search_fields = ['survey_id',
                      'survey_group__group_id',
-                     'project_name']
+                     'project_name',
+                     'original_ymac_id']
 
 
-    def datapath(self, obj):
-        if obj.data_source.values():
-            return smart_text(";\n".join([ds.data_path for ds in obj.data_source.all() if ds.data_path]))
+    def documentpath(self, obj):
+        if obj.documents.values():
+            return format_html("<br>".join([format_html('<a href="file:///{}">{}</a>',
+                                                      os.path.join(ds.filepath, ds.filename),
+                                                      os.path.join(ds.filepath, ds.filename)) for ds
+                                          in obj.documents.all() if ds.filepath]))
         return ''
 
+    documentpath.short_description = "Linked Files"
+
+    def show_document_pathurl(self, obj):
+        return format_html('<a href="file:///{}">{}</a>',
+                           obj.folder_location,
+                           obj.folder_location)
+
+    show_document_pathurl.short_description = "Folder Location"
 
     def datastatus(self, obj):
         if obj.data_status:
@@ -1258,13 +1275,13 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'propname',
         'groupname',
         'project_name',
+        'original_ymac_id',
         'survey_type',
-        'sampling_meth',
-        'date_create',
-        'created_by',
-        'datastatus',
-        'data_qa',
-        'show_data_pathurl',
+        #'sampling_meth',
+        #'datastatus',
+        #'data_qa',
+        'show_document_pathurl',
+        'documentpath',
         'date_from',
         'date_to',
     ]

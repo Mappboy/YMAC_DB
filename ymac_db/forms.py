@@ -72,21 +72,22 @@ class YMACSpatialRequestForm(baseform.ModelForm):
 
     def send_email(self):
         """
-        This function will send the usual email to us spatial jobs guys
+        This function will send the usual email to us spatial jobs guys.
         :return:
         """
         pass
 
     def update_smartsheet(self):
         """
-        This will update smartsheet as we continue to use it
+        This will update smartsheet as we continue to use it.
         :return:
         """
         pass
 
     def generate_folders(self):
         """
-        Initially we want to generate our id and create our folders on W:
+        Initially we want to generate our id and create our folders on W: and copy
+        any attached files into the directory. This is flipping sweet.
         :return:
         """
         pass

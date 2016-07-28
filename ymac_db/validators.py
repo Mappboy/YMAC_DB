@@ -19,3 +19,10 @@ def valid_directory(value):
             _('%(value)s is not a valid directory'),
             params={'value': value},
         )
+
+def valid_extension(value):
+    if not os.path.splitext(value)[1]:
+        raise ValidationError(
+            _('%(value)s has no extension. Bad File.'),
+            params={'value': value},
+        )
