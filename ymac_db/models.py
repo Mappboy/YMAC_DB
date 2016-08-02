@@ -927,13 +927,15 @@ class YmacStaff(models.Model):
     full_name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
     last_name = models.CharField(max_length=40, blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
+    current_staff = models.BooleanField(default=True)
 
 
     def __str__(self):
         return smart_text(self.full_name)
 
     class Meta:
-        managed = False
+        managed = True
+        ordering = ('first_name', 'last_name')
         db_table = 'ymac_staff'
         verbose_name_plural = 'YMAC Staff'
 
@@ -1036,6 +1038,7 @@ class RequestUser(models.Model):
     email = models.EmailField()
     department = models.ForeignKey('Department')
     office = models.CharField(max_length=20, choices=offices, default="Perth")
+    current_user = models.BooleanField(default=True)
 
     def __str__(self):
         return smart_text(self.name)
