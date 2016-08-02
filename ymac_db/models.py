@@ -926,12 +926,14 @@ class YmacStaff(models.Model):
     last_name = models.CharField(max_length=40, blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
 
+
     def __str__(self):
         return smart_text(self.full_name)
 
     class Meta:
         managed = False
         db_table = 'ymac_staff'
+        verbose_name_plural = 'YMAC Staff'
 
 
 @python_2_unicode_compatible
