@@ -408,6 +408,8 @@ class DaaSite(models.Model):
         ordering = ('name',)
         managed = False
         db_table = 'daa_sites'
+        verbose_name = 'DAA Site'
+        verbose_name_plural = 'DAA Sites'
 
 
 @python_2_unicode_compatible
