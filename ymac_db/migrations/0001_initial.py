@@ -601,7 +601,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'ymac_staff',
-                'managed': False,
+                'managed': True,
             },
         ),
     ]

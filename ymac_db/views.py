@@ -302,6 +302,6 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
         qs = RequestUser.objects.all()
 
         if self.q:
-            qs = qs.filter(name__istartswith=self.q)
+            qs = qs.filter(name__istartswith=self.q, current_user=True)
 
         return qs
