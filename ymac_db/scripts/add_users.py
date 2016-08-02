@@ -79,7 +79,7 @@ users = [
 
 for username, email, first_name, last_name in users:
     try:
-        print 'Creating user {0}.'.format(username)
+        print('Creating user {0}.'.format(username))
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -92,5 +92,5 @@ for username, email, first_name, last_name in users:
 
         assert authenticate(username=username, password="password123")
     except:
-        print 'There was a problem creating the user: {0}.  Error: {1}.' \
-            .format(username, sys.exc_info()[1])
+        print('There was a problem creating the user: {0}.  Error: {1}.' \
+            .format(username, sys.exc_info()[1]))
