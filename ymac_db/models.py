@@ -1055,6 +1055,12 @@ class RequestType(models.Model):
         return smart_text(self.name)
 
 
+def user_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/<jid>/<filename>
+    if not instance.job_control:
+        instance.generate_job_control()
+    return '{0}/{1}'.format(instance.job_control, filename)
+
 @python_2_unicode_compatible
 class YMACSpatialRequest(models.Model):
     """
@@ -1076,7 +1082,7 @@ class YMACSpatialRequest(models.Model):
                                                       "Alternatively send a separate email to "
                                                       "spatial@ymac.org.au with directions or as attachments.")
     # Need this as a relational field
-    sup_data_file = models.FileField(blank=True, help_text="Upload a data file")
+    sup_data_file = models.ManyToManyField('YMACRequestFiles', upload_to=user_directory_path, help_text="Upload a data file")
     required_by = models.DateField()
     request_datetime = models.DateTimeField()
     completed_datetime = models.DateTimeField(blank=True)
@@ -1095,11 +1101,22 @@ class YMACSpatialRequest(models.Model):
     draft = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(YmacStaff, blank=True)
-    time_spent = models.IntegerField(blank=True)
+    time_spent = models.FloatField(blank=True)
     related_jobs = models.ManyToManyField("self")
 
     def __str__(self):
         return smart_text("Request for {}: {} ".format(self.user, self.job_desc))
+
+    def generate_job_control(self):
+        """
+        Generate a job control number
+        :return:
+        """
+        if not self.job_control:
+            year = datetime.datetime.now().strftime("%Y")
+            control_number = 1
+            self.job_control = "J{0}-{1:>3}".format(year, control_number)
+
 
 
 @python_2_unicode_compatible
@@ -1112,3 +1129,13 @@ class FileCleanUp(models.Model):
 
     def __str__(self):
         return smart_text(self.data_path)
+
+@python_2_unicode_compatible
+class YMACRequestFiles(models.Model):
+    """
+    Will clean up all these files after approval
+    """
+    file = models.FileField(blank=True)
+
+    def __str__(self):
+        return smart_text(self.file)
