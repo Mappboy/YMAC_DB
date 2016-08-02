@@ -171,8 +171,30 @@ LEAFLET_CONFIG = {
     'DEFAULT_ZOOM': 6,
 }
 
+# http://django-suit.readthedocs.io/en/develop/configuration.html#header
+# Suit Config
 SUIT_CONFIG = {
-    'ADMIN_NAME': 'Spatial Database'
+    'ADMIN_NAME': 'Spatial Database',
+    'MENU': (
+        # Custom app, with models
+        {'label': 'Settings', 'icon': 'icon-cog', 'models': ('auth.user',
+                                                             'auth.group',
+                                                             'ymac_db.YmacStaff',
+                                                             'ymac_db.RequestUser')},
+        {'app':'ymac_db' ,
+         'label':'Spatial Database',
+         'icon':'icon-globe',
+         'models': ('HeritageSite',
+                     'DaaSite',
+                     'HeritageSurvey',
+                     'SurveyDocument',
+                     'SurveyCleaning',
+                     'SurveyTripCleaning',
+                     'ResearchSite',
+                     'SiteDocument',
+                     )
+         },
+    )
 }
 
 GRAPPELLI_ADMIN_TITLE = 'YMAC Spatial Database'

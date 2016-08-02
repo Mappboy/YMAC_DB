@@ -13,13 +13,17 @@ django.setup()
 
 from ymac_db.models import *
 
-yinzip = r"Z:\Claim Groups\Yinhawangka\YHW handover\ymac_extract.zip"
+yinfile = r"Z:\Claim Groups\Yinhawangka\YHW handover\ymac_extract.zip"
 
-with open(yinzip, "wb") as returnfile:
-    for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW'):
-        first_survey = sd.surveys.first()
-        print(os.path.join(sd.filepath, sd.filename))
-        print("{}/{}_Trip{}/{}".format(datetime.datetime.strftime(first_survey.date_from, "%Y"),
-                                       first_survey.survey_id,
-                                       first_survey.trip_number,
-                                       sd.filename))
+with open(yinfile, "wb") as returnfile:
+    with ZipFile(returnfile, 'w') as yinzip:
+        for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW'):
+            first_survey = sd.surveys.first()
+            file2write = os.path.join(sd.filepath, sd.filename)
+            if os.path.isfile(file2write):
+                yinzip.write(file2write, "{}/{}_Trip{}/{}".format(datetime.datetime.strftime(first_survey.date_from, "%Y"),
+                                           first_survey.survey_id,
+                                           first_survey.trip_number,
+                                           sd.filename))
+            else:
+                print("Couldn't write %s" % file2write)
