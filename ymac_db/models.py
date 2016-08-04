@@ -1086,7 +1086,7 @@ class YMACSpatialRequest(models.Model):
     proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
     priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
                                                                           "assist spatial team to prioritise their task list")
-    map = models.BooleanField(default=False)
+    map_requested = models.BooleanField(default=False)
     data = models.BooleanField(default=False)
     analysis = models.BooleanField(default=False)
     other = models.BooleanField(default=False)

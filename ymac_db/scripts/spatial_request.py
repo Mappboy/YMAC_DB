@@ -11,8 +11,8 @@ import requests
 import json
 import datetime
 import time
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+# from email.MIMEMultipart import MIMEMultipart
+# from email.MIMEText import MIMEText
 import smtplib
 
 COMMASPACE = ', '
@@ -42,27 +42,6 @@ priority = form.getvalue("element_16")
 
 req_by_formatted = datetime.datetime.strptime(req_by,"%Y-%m-%d").strftime("%d/%m/%Y"),
 
-
-print 'Content-type: text/html'
-print
-print '<HTML><HEAD><TITLE>Thanks</TITLE>'
-print '<link rel="icon" href="http://ymac.org.au/wp-content/themes/ymac/favicon.png">'
-print '<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css"/>'
-print  '<link rel="stylesheet" type="text/css" href="/css/site_global.css"/>'
-print '</HEAD>'
-#Put style sheet in here
-# maybe centralise and add a return link
-print '<BODY>'
-print '<div class="container main"><!-- group -->'
-print '<header>'
-print '<img src="/images/logo.png" data-src="/images/logo.png" class="img-responsive logo" alt="YMAC" >'
-print '</header>'
-print '<div class="container main wrapper">'
-print '<div class="jumbotron">'
-print '<H1>Thank you %s </H1>' % name
-#format req_by
-print 'We will aim to have your request completed by %s' % req_by_formatted
-print '</br>'
 
 
 # DO SOME PROCESSING OF MAP TYPE FIRST
@@ -190,22 +169,7 @@ payload = {
 					]
 			}
 # Post directly to smartsheet This is working I am bloody amazing...
-# Man Clivie REALLY would of enjoyed this. FAWK.
 r = requests.post(url=url, headers=headers, data=json.dumps(payload))
-
-if r.status_code != 200:
-	print "<em>Failed to post to smartsheet %s</em>" % r.text
-
-print '<a href="/">Click Me to return</a>'
-print '</div>'
-print '</div>'
-print  '<footer class="fixed footer">'
-print  '  <div class="container">'
-print  '    <p class="text-muted">&copy; YMAC 2015</p>'
-print  '  </div>'
-print  '</footer>'
-print '</BODY>'
-print '</html>'
 
 # Cool now send email out
 

@@ -88,16 +88,30 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         This function will send the usual email to us spatial jobs guys.
         :return:
         """
-        msg = MIMEMultipart()
-        msg['From'] = email if email else "spatialjobs@ymac.org.au"
-        msg['To'] = COMMASPACE.join(toaddr)
-        msg['Subject'] = "{map_type} {job_id} request".format(map_type=req_type, job_id=new_jobid)
-
-        msg.attach(MIMEText(body, 'plain'))
-        s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        s.sendmail(email, toaddr, msg.as_string())
-        s.quit()
-        pass
+        # msg = MIMEMultipart()
+        # msg['From'] = email if email else "spatialjobs@ymac.org.au"
+        # msg['To'] = COMMASPACE.join(toaddr)
+        # msg['Subject'] = "{map_type} {job_id} request".format(map_type=req_type, job_id=new_jobid)
+        body = """
+        Name: {0}\n
+        Email: {1}\n
+        Department: {2}\n
+        Request Type: {3}\n
+        Office: {4}\n
+        Region: {5}\n
+        Job Description: {6}\n
+        Supplementary Data: {12}\n
+        Map Size: {13}\n
+        Required by: {7} \n
+        Delivery and/or Product Instructions: {8} {9}\n
+        Cost Centre: {10}\n
+        Priority and urgency: {11}\n""".format(
+            self.cleaned_data
+        )
+        # msg.attach(MIMEText(body, 'plain'))
+        # s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
+        # s.sendmail(email, toaddr, msg.as_string())
+        # s.quit()
 
     def update_smartsheet(self):
         """
@@ -126,7 +140,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             "cells": [
                 # Task NAME
                 {"columnId": 6673625647474564,
-                 "value": req_type},
+                 "value": required_type},
                 # Job Description
                 {"columnId": 8870449879771012,
                  "value": job_desc
@@ -151,7 +165,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                  },
                 # Map
                 {"columnId": 3778411379353476,
-                 "value": map
+                 "value": map_requested
                  },
                 # Data
                 {"columnId": 8282011006723972,
@@ -228,7 +242,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
 
     class Meta:
         model = YMACSpatialRequest
-        exclude = ['map',
+        exclude = ['map_requested',
                    'data',
                    'analysis',
                    'other',
