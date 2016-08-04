@@ -64,8 +64,8 @@ def get_staff(username):
 with open('X:\Projects\SpatialDatabase\spatial_requests2load.txt', 'r') as tsv:
     reader = csv.DictReader(tsv, delimiter="\t")
     for row in reader:
-        user = get_user(row['user'])
-        rt = RequestType.objects.filter(name=row['request_type'])
+        user = get_user(row['Requested By'])
+        rt = RequestType.objects.filter(name=row['Task Name'])
         if not rt:
             rt = RequestType.objects.filter(name='Uncertain')
         request_type = rt[0]
@@ -81,8 +81,8 @@ with open('X:\Projects\SpatialDatabase\spatial_requests2load.txt', 'r') as tsv:
         analysis = row['Analysis']
         other = row['Other']
         draft = row['Draft']
-        done = row['Draft']
         done = row['Done']
+        cc_recipients = row['CC']
         required_by = datetime.datetime.strptime(row['Due Date'], "%d/%m/%y") if row['Due Date'] else None
         try:
             request_datetime = datetime.datetime.strptime(row['Request Date'], "%Y-%m-%d %H:%M:%S") if row['Request Date'] else None
@@ -90,17 +90,18 @@ with open('X:\Projects\SpatialDatabase\spatial_requests2load.txt', 'r') as tsv:
             request_datetime = datetime.datetime.strptime(row['Request Date'].split()[0], "%d/%m/%Y")
         completed_datetime = datetime.datetime.strptime(row['Completed Date'], "%Y-%m-%d %H:%M:%S") if row['Completed Date'] else None
         assigned_to = get_staff(row['Assigned To'])
-        print(assigned_to)
-        #print(user, request_type, claim, job_desc, job_control, map_size, sup_data_text, required_by, request_datetime,
-        #      completed_datetime, other_instructions, priority, assigned_to)
+        time_spent = row['Time (Hours) to Complete'] if row['Time (Hours) to Complete'] else 0.0
+        print(user, request_type, claim, job_desc, job_control, map_size, sup_data_text, required_by, request_datetime,
+              completed_datetime, other_instructions, priority, assigned_to)
         #                                  cc_recipients, product_type, other_instructions,
         #                                  cost_centre, proponent, priority, map, data, analysis,
         #                                  other, draft, done, assigned_to, time_spent, related_jobs)
         # Make sure user is not blank
-        # YMACSpatialRequest.objects.create(user, request_type, region, claim, job_desc,
-        #                                  job_control, map_size, sup_data_text, sup_data_file,
-        #                                  required_by, request_datetime, completed_datetime,
-        #                                  cc_recipients, product_type, other_instructions,
-        #                                  cost_centre, proponent, priority, map, data, analysis,
-        #                                  other, draft, done, assigned_to, time_spent, related_jobs)
-        #
+        yr = YMACSpatialRequest.objects.create(user=user, request_type=request_type, region=None,
+                                          job_desc=job_desc,
+                                          job_control=job_control, map_size=map_size, sup_data_text=sup_data_text,
+                                          required_by=required_by, request_datetime=request_datetime,
+                                          completed_datetime=completed_datetime, product_type=None , other_instructions=other_instructions,
+                                          cost_centre=None, proponent=None, priority=priority, map=map, data=data, analysis=analysis,
+                                          other=other, draft=draft, done=done, assigned_to=assigned_to, time_spent=time_spent)
+

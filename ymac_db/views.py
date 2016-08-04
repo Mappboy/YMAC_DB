@@ -24,9 +24,10 @@ from django.core.serializers import serialize
 from dal import autocomplete
 from django.http import *
 from .forms import *
-from .models import HeritageSurvey
+from .models import HeritageSurvey, YMACRequestFiles
 import requests
 import json
+import datetime
 
 try:
     from urllib.parse import quote_plus, urlencode
@@ -63,7 +64,7 @@ def workbenches(request):
 
 
 def spatial_thanks(request):
-    return render(request, 'spatial_thanks.html')
+    return render(request, 'spatial_thanks.html', )
 
 
 def data_download(request):
@@ -169,6 +170,28 @@ class SpatialRequestView(FormView):
     form_class = YMACSpatialRequestForm
     success_url = '/spatial_thanks/'
 
+    #def get_initial(self):
+    #    return {
+    #        'request_datetime': datetime.datetime.now()
+    #    }
+
+    def post(self, request, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        files = request.FILES.getlist('sup_data_file')
+        print("Updating files %s" % files)
+        uploaded_files = []
+        print("Form is ", form)
+        if form.is_valid():
+            print("Saving files %s")
+            data = form.save()
+            for f in files:
+                YMACRequestFiles.objects.create(request=data, file=f)
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
@@ -177,7 +200,11 @@ class SpatialRequestView(FormView):
         form.update_smartsheet()
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
-        return super(SpatialRequestView, self).form_valid(form)
+        return render(self.request, 'spatial_thanks.html',
+                        context={'rq': form.instance.user,
+                                  'required_by': form.instance.required_by,
+                                  'job_control': form.instance.job_control}
+                        )
 
 def filter_map(request):
     """

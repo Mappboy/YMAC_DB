@@ -58,6 +58,39 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
             return queryset.filter(geom__isnull=True)
 
 
+class IsDoneFilter(baseadmin.SimpleListFilter):
+    title = _('Job Completed')
+
+    parameter_name = 'is_done'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('True', _('Completed')),
+            ('False', _('Ongoing')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(done=False)
+        else:
+            return queryset.filter(done=True)
+
 class HasReportFilter(baseadmin.SimpleListFilter):
     title = _('Linked Report')
 
@@ -89,7 +122,7 @@ class HasReportFilter(baseadmin.SimpleListFilter):
         elif self.value() == 'False':
             return queryset.filter(documents__isnull=False)
         else:
-            return queryset.filter(documents__isnull=True)
+            return queryset.exclude(documents__isnull=False)
 
 class HasLinkedSurveyFilter(baseadmin.SimpleListFilter):
     title = _('Linked Survey')
@@ -769,15 +802,14 @@ class FileCleanUpAdmin(baseadmin.ModelAdmin):
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
-    def surveys(self, obj):
-        # Todo use prefetch
+    def survey_list(self, obj):
         print(obj)
         try:
-            return ";\n".join([smart_text(hs.survey_trip) for hs in obj.heritagesurvey_set.all()])
+            return ";\n".join([smart_text(hs) for hs in obj.surveys.all()])
         except AttributeError:
             return ''
 
-    surveys.short_description = "Surveys"
+    survey_list.short_description = "Surveys"
 
     def url_to_edit(self, request, queryset):
         # Use prefetch
@@ -786,7 +818,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
                                                    hs._meta.app_label, hs._meta.model_name),
                                                        args=[hs.id]),
                                                hs.__unicode__()) for qs in queryset for hs in
-                                   qs.heritagesurvey_set.all()])
+                                   qs.surveys.all()])
         messages.info(request, format_html(trip_urls))
 
     url_to_edit.short_description = "Get Heritage Surveys Links"
@@ -799,7 +831,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     def startdate(self, obj):
         start_date = None
-        for hs in obj.heritagesurvey_set.all():
+        for hs in obj.surveys.all():
             if not start_date:
                 start_date = hs.date_from
             elif hs.date_from < start_date:
@@ -812,10 +844,10 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
     def enddate(self, obj):
         end_date = None
-        for hs in obj.heritagesurvey_set.all():
+        for hs in obj.surveys.all():
             if not end_date:
                 end_date = hs.date_from
-            elif hs.survey_trip.date_from > end_date:
+            elif hs.date_from > end_date:
                 end_date = hs.date_from
             else:
                 continue
@@ -828,7 +860,7 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         'path_type',
     )
     list_display = [
-        'surveys',
+        'survey_list',
         'startdate',
         'enddate',
         'show_data_pathurl',
@@ -836,27 +868,37 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
-        DriveFilter,
-        NoDataPathfilterFilter,
-        CorrectlyFiledFilter,
-        RelatedClaimFilter,
-        ClaimDataPathFilter,
+        #DriveFilter,
+        #NoDataPathfilterFilter,
+        #CorrectlyFiledFilter,
+        # TODO: fix this claim shiiiiiiit
+        #RelatedClaimFilter,
+        #ClaimDataPathFilter,
     ]
     inlines = [
     ]
-    actions = [move_to_survey_docs,
-               move_to_docs,
-               url_to_edit,
-               move_to_clean_up]
+    #actions = [move_to_survey_docs,
+    #           move_to_docs,
+    #           url_to_edit,
+    #           move_to_clean_up]
     search_fields = [
         'data_path',
-        'heritagesurvey_survey_id']
+        'surveys']
 
 
 @admin.register(YMACSpatialRequest)
-class YMACSpatialRequestAdmin(ImportExportModelAdmin):
-    pass
-
+class YMACSpatialRequestAdmin(baseadmin.ModelAdmin):
+    list_display = ['user',
+                    'request_type',
+                    'map_size',
+                    'job_control',
+                    'job_desc',
+                    'required_by',
+                    'done']
+    search_fields = [ 'user__name',
+                      'job_control',
+                      'job_desc']
+    list_filter = [ IsDoneFilter ]
 
 @admin.register(SurveyDocument)
 class SurveyDocumentAdmin(baseadmin.ModelAdmin):
