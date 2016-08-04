@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^workbenches/data_download/$', views.data_download, name='datadownload'),
     url(r'^workbenches/region_distance/$', views.RegionDistanceView.as_view()),
     url(r'^spatial_request/$', views.SpatialRequestView.as_view()),
+    url(r'^spatial_thanks/$', views.spatial_thanks),
     url(r'^sites/', views.get_site),
     url(r'^heritage_surveys/', views.SurveyView.as_view()),
     url(r'^heritagesurvey-autocomplete/$', views.HeritageSurveyAutocomplete.as_view(),

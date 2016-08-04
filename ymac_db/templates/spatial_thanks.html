@@ -2,8 +2,7 @@
 {% block content %}
     <div class="container main wrapper">'
         <div class="jumbotron">
-            <H1>Thank you {% name %} </H1>
-            <em>We will aim to have your request completed by {% req_by %}</em>
-        </div>
+            <H1>Thank you {{ rq.name }} </H1>
+        <p> Your job number is {{ job_control }}.</p><em>We will aim to have your request completed by {{ required_by }}</em>
     </div>
 {% endblock %}

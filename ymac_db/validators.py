@@ -26,3 +26,10 @@ def valid_extension(value):
             _('%(value)s has no extension. Bad File.'),
             params={'value': value},
         )
+
+def valid_job_number(value):
+    if value and not 2000 <= int(value[1:5]) <= 3000:
+        raise ValidationError(
+            _('%(value)s has no extension. Bad File.'),
+            params={'value': value},
+        )

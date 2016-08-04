@@ -2,12 +2,12 @@ from __future__ import unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
 
 from os import path
-
+import datetime
 from django.contrib.gis.db import models
 from django.utils.encoding import smart_text
 from django.contrib.auth.models import User
 
-from .validators import valid_surveyid, valid_directory, valid_extension
+from .validators import *
 
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
@@ -316,7 +316,7 @@ class SurveyCleaning(models.Model):
 
     class Meta:
         managed = True
-        ordering = ('heritagesurvey__survey_id', 'data_path')
+        ordering = ('surveys__survey_id', 'data_path')
 
     def __str__(self):
         if self.data_path:
@@ -480,7 +480,7 @@ class HeritageSurvey(models.Model):
     data_status = models.ForeignKey('SurveyStatus', blank=True, null=True, db_index=True,
                                     help_text="For current spatial data is"
                                             " it proposed or after survey completion (Actual)")
-    data_source = models.ManyToManyField('SurveyCleaning', blank=True,
+    data_source = models.ManyToManyField('SurveyCleaning', blank=True, related_name="surveys",
                                          help_text="Any comments or data relating to the data")
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
                                     null=True)
@@ -1060,46 +1060,64 @@ class YMACSpatialRequest(models.Model):
     """
     Still need to add in the choices for each
     """
-    user = models.ForeignKey(RequestUser, blank=True, db_index=True)
+    user = models.ForeignKey(RequestUser, db_index=True)
     request_type = models.ForeignKey('RequestType',
                                      help_text="Please try to determine what sort of request "
                                                "you have before completing this form.")
-    region = models.CharField(max_length=15, choices=ymac_region, default="Yamatji")
+    region = models.CharField(max_length=15, choices=ymac_region, blank=True, default="Yamatji")
     claim = models.ManyToManyField(YmacClaim, blank=True)
-    job_desc = models.TextField(db_index=True)
-    job_control = models.CharField(max_length=9, blank=True)
+    job_desc = models.TextField()
+    job_control = models.CharField(max_length=9, blank=True, validators=[valid_job_number])
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
-                                                                            "you wish then please select.",
+                                                                         "you wish then please select.",
                                 blank=True, null=True)
     sup_data_text = models.TextField(blank=True, help_text="If you have any data with this then please "
                                                       "provide instructions as to where it can be located. "
                                                       "Alternatively send a separate email to "
                                                       "spatial@ymac.org.au with directions or as attachments.")
-    # Need this as a relational field
-    sup_data_file = models.FileField(blank=True, help_text="Upload a data file")
     required_by = models.DateField()
-    request_datetime = models.DateTimeField()
+    request_datetime = models.DateTimeField(blank=True)
     completed_datetime = models.DateTimeField(blank=True)
     cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
-    product_type = models.CharField(max_length=20, choices=product_types, blank=True)
+    product_type = models.CharField(max_length=25, choices=product_types, blank=True)
     other_instructions = models.TextField(blank=True)
     # Set this back to false
     cost_centre = models.CharField(max_length=20, choices=cost_centres, blank=True)
     proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
     priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
                                                                           "assist spatial team to prioritise their task list")
-    map = models.BooleanField(default=False)
+    map_requested = models.BooleanField(default=False)
     data = models.BooleanField(default=False)
     analysis = models.BooleanField(default=False)
     other = models.BooleanField(default=False)
     draft = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(YmacStaff, blank=True)
-    time_spent = models.IntegerField(blank=True)
-    related_jobs = models.ManyToManyField("self")
+    time_spent = models.FloatField(blank=True)
+    related_jobs = models.ManyToManyField("self", blank=True)
+    request_area = models.GeometryField(srid=4283, blank=True, null=True)
 
+    class Meta:
+        ordering = ('-request_datetime',)
     def __str__(self):
-        return smart_text("Request for {}: {} ".format(self.user, self.job_desc))
+        return smart_text("{}".format(self.job_control))
+
+    def generate_job_control(self):
+        """
+        Generate a job control number
+        :return:
+        """
+        if not self.job_control:
+            year = datetime.datetime.now().strftime("%Y")
+            try:
+                control_number = int(max([ qs.job_control for qs in YMACSpatialRequest.objects.filter(
+                    job_control__icontains=year)]
+                                         ).split("-")[1]
+                                     ) + 1
+            except ValueError:
+                control_number = 1
+            return "J{0}-{1:0>3}".format(year, control_number)
+
 
 
 @python_2_unicode_compatible
@@ -1112,3 +1130,21 @@ class FileCleanUp(models.Model):
 
     def __str__(self):
         return smart_text(self.data_path)
+
+def user_directory_path(self, filename):
+    # file will be uploaded to MEDIA_ROOT/<jid>/<filename>
+    jc = self.request.job_control
+    if not jc:
+        jc = self.request.job_control
+    return '{0}/{1}'.format(jc, filename)
+
+@python_2_unicode_compatible
+class YMACRequestFiles(models.Model):
+    """
+    Will clean up all these files after approval
+    """
+    request = models.ForeignKey(YMACSpatialRequest)
+    file = models.FileField(upload_to=user_directory_path)
+
+    def __str__(self):
+        return smart_text(self.file)
