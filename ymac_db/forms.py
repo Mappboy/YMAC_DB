@@ -7,8 +7,7 @@ from leaflet.forms.widgets import LeafletWidget
 from datetimewidget.widgets import DateWidget
 from suit.widgets import SuitDateWidget, AutosizedTextarea
 import requests
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from django.conf import settings
 import smartsheet
 # ADD Site Document Inline
 # Increase Widget sizes for multiple2Select
@@ -62,9 +61,9 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         # 'todayBtn': True,
         'startDate': '-1d'
     }, bootstrap_version=3))
-    claim = baseform.ModelMultipleChoiceField(YmacClaim.objects.all(), label="Claims (if known)",
+    claim = baseform.ModelMultipleChoiceField(YmacClaim.objects.all(), required=False, label="Claims (if known)",
                                               widget=forms.SelectMultiple(attrs={'size': 10}))
-    sup_data_file = baseform.FileField(label="Data files for upload",
+    sup_data_file = baseform.FileField(label="Data files for upload", required=False,
                                        widget=forms.ClearableFileInput(attrs={'multiple': True}))
     #def clean_request_datetime(self):
     #    data = self.cleaned_data.get('request_datetime')
@@ -77,6 +76,35 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         #filename = cleaned_data.get("filename")
         #if not os.path.isfile(os.path.join(filepath, filename)):
         #    raise forms.ValidationError("Not a valid file, check path and file name are correct")
+        # DO SOME PROCESSING OF MAP TYPE FIRST
+        MAP_REQUESTS = ["Claim Map",
+                        "Quarterly Maps",
+                        "Customised Map",
+                        "Boundary Research Map",
+                        "Site Map"]
+        ANALYSIS = ["Spatial Analysis",
+                    "Boundary Technical Description",
+                    "Map and Technical Description",
+                    "Heritage Mapping",
+                    "Negotiation Mapping"]
+        DATA = [
+            "ArcPad Form",
+            "ArcGIS Collector setup",
+            "Data Supply",
+            "Data Update"]
+        OTHER = [
+            "Field Work",
+            "Other",
+            "Uncertain"]
+        req_type = cleaned_data.get('request_type')
+        if req_type in MAP_REQUESTS:
+            self.instance.map_requested = True
+        if req_type in ANALYSIS:
+            self.instance.analysis = True
+        if req_type in DATA:
+            self.instance.data = True
+        if req_type in OTHER:
+            self.instance.other = True
 
     def clean_job_control(self):
         data = self.cleaned_data.get('job_control')
@@ -88,30 +116,39 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         This function will send the usual email to us spatial jobs guys.
         :return:
         """
-        # msg = MIMEMultipart()
-        # msg['From'] = email if email else "spatialjobs@ymac.org.au"
-        # msg['To'] = COMMASPACE.join(toaddr)
-        # msg['Subject'] = "{map_type} {job_id} request".format(map_type=req_type, job_id=new_jobid)
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        msg = MIMEMultipart()
+        email = self.instance.user.email
+        toaddr = "cjpoole@ymac.org.au"
+        msg['From'] = email if email else "spatialjobs@ymac.org.au"
+        msg['To'] = "cjpoole@ymac.org.au"
+        # ', '.join(["spashby@ymac.org.au",
+        #  "cjpoole@ymac.org.au",
+        #  "cforsey@ymac.org.au"])
+        msg['Subject'] = "{map_type} {job_id} request".format(map_type=self.instance.request_type,
+                                                              job_id=self.instance.job_control)
         body = """
-        Name: {0}\n
-        Email: {1}\n
-        Department: {2}\n
-        Request Type: {3}\n
-        Office: {4}\n
-        Region: {5}\n
-        Job Description: {6}\n
-        Supplementary Data: {12}\n
-        Map Size: {13}\n
-        Required by: {7} \n
-        Delivery and/or Product Instructions: {8} {9}\n
-        Cost Centre: {10}\n
-        Priority and urgency: {11}\n""".format(
-            self.cleaned_data
+        Name: {user}\n
+        Email: {user.email}\n
+        Department: {user.department}\n
+        Request Type: {request_type}\n
+        Office: {user.office}\n
+        Region: {region}\n
+        Job Description: {job_desc}\n
+        Supplementary Data: {sup_data_text}\n
+        Map Size: {map_size}\n
+        Required by: {required_by} \n
+        Delivery and/or Product Instructions: {product_type} {other_instructions}\n
+        Cost Centre: {cost_centre}\n
+        Priority and urgency: {priority}\n""".format(
+            **self.cleaned_data
         )
-        # msg.attach(MIMEText(body, 'plain'))
-        # s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        # s.sendmail(email, toaddr, msg.as_string())
-        # s.quit()
+        msg.attach(MIMEText(body, 'plain'))
+        s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
+        s.sendmail(email, toaddr, msg.as_string())
+        s.quit()
 
     def update_smartsheet(self):
         """
@@ -121,59 +158,59 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         surl = "https://api.smartsheet.com/2.0/sheets/3001821196248964"
 
         # Get the top most row and pull out the job control cell and increment and create new id
-        smartsheet = smartsheet.Smartsheet()
+        ss = smartsheet.Smartsheet("4104lxpew3jppnp3xvoeff7yp")
         # Column id comes from calling api columns/ can't use name as id
         today = datetime.date.today().strftime("%Y-%m-%d")
         # Todp this should really be in a dict write
-        row = smartsheet.models.Row()
+        row = ss.models.Row()
         row.to_top = True
-        payload = {
-            "toTop": 'true',
-            "cells": [
+
+        cells_to_add = [
                 # Task NAME
                 {"columnId": 6673625647474564,
-                 "value": required_type},
+                 "value": self.cleaned_data['request_type'].name
+                 },
                 # Job Description
                 {"columnId": 8870449879771012,
-                 "value": job_desc
+                 "value": self.cleaned_data['job_desc']
                  },
                 # Map Size
                 {
                     "columnId": 974271080324,
-                    "value": map_size
+                    "value": self.cleaned_data['map_size']
                 },
                 # Supplementary Data
                 {"columnId": 9006524258379652,
-                 "value": sup_data
+                 "value": self.cleaned_data['sup_data_text']
                  },
                 # Job Control #
                 {"columnId": 3404520484038532,
-                 "value": new_jobid
+                 "value": self.cleaned_data['job_control']
                  },
                 # Requested By
                 {"columnId": 4366850252400516,
-                 "value": email,
-                 "displayValue": name
+                 "value": self.cleaned_data['user'].email,
+                 "displayValue": self.cleaned_data['user'].name
                  },
                 # Map
                 {"columnId": 3778411379353476,
-                 "value": map_requested
+                 "value": self.instance.map_requested
                  },
                 # Data
                 {"columnId": 8282011006723972,
-                 "value": data
+                 "value": self.instance.data
                  },
                 # Analysis
                 {"columnId": 963661612246916,
-                 "value": analysis
+                 "value": self.instance.analysis
                  },
                 # Other
                 {"columnId": 5467261239617412,
-                 "value": data
+                 "value": self.instance.data
                  },
                 # Request Source
                 {"columnId": 4533976019822468,
-                 "value": "New Spatial Form"
+                 "value": "Django DB"
                  },
                 # Email ME#
                 {"columnId": 30376392451972,
@@ -181,27 +218,28 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                  },
                 # CC
                 {"columnId": 74356857563012,
-                 "value": cc_recip
+                 "value": self.cleaned_data['cc_recipients']
                  },
                 # Priority Urgency
                 {"columnId": 8633780001892228,
-                 "value": priority
+                 "value": self.cleaned_data['priority']
                  },
                 # Request Date
                 {"columnId": 6248973640984452,
-                 "value": today
+                 "value": self.instance.request_datetime
                  },
                 # Due Date
                 {"columnId": 4421825833789316,
-                 "value": req_by
+                 "value": self.cleaned_data['required_by']
                  },
                 # Comments
                 {"columnId": 4632932066322308,
-                 "value": other_instructions
+                 "value": self.cleaned_data['other_instructions']
                  },
             ]
-        }
-        action = smartsheet.Sheets.add_rows(3001821196248964, [row])
+        for c in cells_to_add:
+            row.cells.append(c)
+        action = ss.Sheets.add_rows(3001821196248964, [row])
 
     def generate_folders(self):
         """
@@ -211,7 +249,13 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Mkdir in here called request and write the job_description as a txt file
         :return:
         """
-        pass
+        jc = self.instance.job_control
+        job_dir = "W:/Jobs/{year}/{job_control}".format(year=jc[1:5], job_control=jc)
+        if not os.path.isdir(job_dir):
+            os.makedirs(job_dir)
+
+        # check if files need uploading if there is push them to new directory
+        mr = settings.MEDIA_ROOT
 
     def generate_job_control(self):
         """
