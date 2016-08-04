@@ -9,7 +9,7 @@ from suit.widgets import SuitDateWidget, AutosizedTextarea
 import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+import smartsheet
 # ADD Site Document Inline
 # Increase Widget sizes for multiple2Select
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
@@ -121,20 +121,12 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         surl = "https://api.smartsheet.com/2.0/sheets/3001821196248964"
 
         # Get the top most row and pull out the job control cell and increment and create new id
-        r = requests.get(url=surl, headers=headers)
-        if r.status_code == 200:
-            q = json.loads(r.text)
-            jobid = [l for l in q['rows'][0]['cells'] if l.has_key('displayValue') and
-                     'J201' in l['displayValue']][0]['value']
-            jid = int(jobid.split("-")[1]) + 1
-            new_jobid = "J" + time.strftime("%Y") + "-" + str(jid).zfill(3)
-
-        url = surl + "/rows"
-        headers["Content-Type"] = "application/json"
-
+        smartsheet = smartsheet.Smartsheet()
         # Column id comes from calling api columns/ can't use name as id
         today = datetime.date.today().strftime("%Y-%m-%d")
         # Todp this should really be in a dict write
+        row = smartsheet.models.Row()
+        row.to_top = True
         payload = {
             "toTop": 'true',
             "cells": [
@@ -209,10 +201,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                  },
             ]
         }
-        # Post directly to smartsheet This is working I am bloody amazing...
-        r = requests.post(url=url, headers=headers, data=json.dumps(payload))
-
-        pass
+        action = smartsheet.Sheets.add_rows(3001821196248964, [row])
 
     def generate_folders(self):
         """
@@ -244,6 +233,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         model = YMACSpatialRequest
         exclude = ['map_requested',
                    'data',
+                   'data',
                    'analysis',
                    'other',
                    'draft',
@@ -252,7 +242,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                    'time_spent',
                    'completed_datetime',
                    'request_area',
-                    ]
+                   ]
         widgets = {
             'user': autocomplete.ModelSelect2(url='requestuser-autocomplete'),
             'cc_recipients': autocomplete.ModelSelect2Multiple(url='requestuser-autocomplete'),

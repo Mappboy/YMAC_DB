@@ -868,19 +868,19 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
     ]
     list_filter = [
         'path_type',
-        #DriveFilter,
-        #NoDataPathfilterFilter,
-        #CorrectlyFiledFilter,
+        DriveFilter,
+        NoDataPathfilterFilter,
+        CorrectlyFiledFilter,
         # TODO: fix this claim shiiiiiiit
-        #RelatedClaimFilter,
-        #ClaimDataPathFilter,
+        RelatedClaimFilter,
+        ClaimDataPathFilter,
     ]
     inlines = [
     ]
-    #actions = [move_to_survey_docs,
-    #           move_to_docs,
-    #           url_to_edit,
-    #           move_to_clean_up]
+    actions = [move_to_survey_docs,
+               move_to_docs,
+               url_to_edit,
+               move_to_clean_up]
     search_fields = [
         'data_path',
         'surveys']

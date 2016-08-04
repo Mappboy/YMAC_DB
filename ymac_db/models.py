@@ -1076,7 +1076,7 @@ class YMACSpatialRequest(models.Model):
                                                       "Alternatively send a separate email to "
                                                       "spatial@ymac.org.au with directions or as attachments.")
     required_by = models.DateField()
-    request_datetime = models.DateTimeField(auto_now=True, blank=True)
+    request_datetime = models.DateTimeField(blank=True)
     completed_datetime = models.DateTimeField(blank=True)
     cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
     product_type = models.CharField(max_length=25, choices=product_types, blank=True)
