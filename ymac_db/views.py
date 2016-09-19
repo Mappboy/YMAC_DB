@@ -153,16 +153,19 @@ class SurveyView(View):
     """
 
     def get(self, request):
-        template = "ymac_openlayers.html"
+        template = "surveys_map.html"
         modelname = "SurveyView"
         surveys = HeritageSurvey.objects.all()
-        for hs in surveys:
-            hs.geom.transform(4326)
+        #for hs in surveys:
+        #    if hs.geom:
+        #        hs.geom.transform(4326)
         serialized = serialize('geojson', surveys,
                                geometry_field='geom',
-                               fields=('ymac_svy_name',))
-        return render(request, template, Context({'serialized': serialized,
-                                                  'modelname': modelname}))
+                               fields=('survey_id',
+                                       'survey_description',
+                                       )
+                               )
+        return render(request, template, Context({'qs_results': serialized}))
 
 
 class SpatialRequestView(FormView):
@@ -180,13 +183,13 @@ class SpatialRequestView(FormView):
         form = self.get_form(form_class)
         files = request.FILES.getlist('sup_data_file')
         print("Updating files %s" % files)
-        uploaded_files = []
-        print("Form is ", form)
+        form.uploaded_files = []
         if form.is_valid():
             print("Saving files %s")
             data = form.save()
             for f in files:
-                YMACRequestFiles.objects.create(request=data, file=f)
+                yrf = YMACRequestFiles.objects.create(request=data, file=f)
+                form.uploaded_files.append(yrf)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -329,6 +332,6 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
         qs = RequestUser.objects.all()
 
         if self.q:
-            qs = qs.filter(name__istartswith=self.q, current_user=True)
+            qs = qs.filter(name__istartswith=self.q).exclude(current_user=False)
 
         return qs

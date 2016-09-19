@@ -517,6 +517,12 @@ class HeritageSurvey(models.Model):
                 "{} (Trip {})- {}".format(self.survey_id, self.trip_number, self.project_name))
         return smart_text(self.project_name)
 
+    @property
+    def popupContent(self):
+        return format_html('<p><Survey Id:{}<br\>Survey Description: {}</p>',
+            self.survey_id,
+            self.survey_description)
+
     class Meta:
         managed = True
         ordering = ('survey_id', 'date_create',)
@@ -1076,7 +1082,7 @@ class YMACSpatialRequest(models.Model):
                                                       "Alternatively send a separate email to "
                                                       "spatial@ymac.org.au with directions or as attachments.")
     required_by = models.DateField()
-    request_datetime = models.DateTimeField(blank=True)
+    request_datetime = models.DateTimeField(blank=True, auto_now_add=True)
     completed_datetime = models.DateTimeField(blank=True)
     cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
     product_type = models.CharField(max_length=25, choices=product_types, blank=True)
