@@ -153,16 +153,19 @@ class SurveyView(View):
     """
 
     def get(self, request):
-        template = "ymac_openlayers.html"
+        template = "surveys_map.html"
         modelname = "SurveyView"
         surveys = HeritageSurvey.objects.all()
-        for hs in surveys:
-            hs.geom.transform(4326)
+        #for hs in surveys:
+        #    if hs.geom:
+        #        hs.geom.transform(4326)
         serialized = serialize('geojson', surveys,
                                geometry_field='geom',
-                               fields=('ymac_svy_name',))
-        return render(request, template, Context({'serialized': serialized,
-                                                  'modelname': modelname}))
+                               fields=('survey_id',
+                                       'survey_description',
+                                       )
+                               )
+        return render(request, template, Context({'qs_results': serialized}))
 
 
 class SpatialRequestView(FormView):

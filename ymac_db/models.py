@@ -517,6 +517,12 @@ class HeritageSurvey(models.Model):
                 "{} (Trip {})- {}".format(self.survey_id, self.trip_number, self.project_name))
         return smart_text(self.project_name)
 
+    @property
+    def popupContent(self):
+        return format_html('<p><Survey Id:{}<br\>Survey Description: {}</p>',
+            self.survey_id,
+            self.survey_description)
+
     class Meta:
         managed = True
         ordering = ('survey_id', 'date_create',)
