@@ -23,7 +23,8 @@
             <li>Google Distance: {{ item.Google_Distance }}</li>
             <li>Total Inside: {{ item.Totl_Inner }}</li>
             <li>Total Outside: {{ item.Totl_Outer }}</li>
-            <li>Total Time Approx: {{ item.Duration }}</li>{%  if item.Cost_Inner %}<li>Cost Inside: {{ item.Cost_Inner }}</li>
+            <li>Total Time Approx: {{ item.Duration }}</li>{%  if item.Cost_Inner %}
+            <li>Cost Inside: {{ item.Cost_Inner }}</li>{% endif %}
             </ul><div class="btn-toolbar">
             {% for ref, name in buttons %}
                 <a href="{{ ref }}" class="btn btn-primary col-md-3 col-md-offset-9">
