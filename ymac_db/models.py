@@ -1,11 +1,12 @@
 from __future__ import unicode_literals
-from django.utils.encoding import python_2_unicode_compatible
 
-from os import path
 import datetime
-from django.contrib.gis.db import models
-from django.utils.encoding import smart_text
+from os import path
+
 from django.contrib.auth.models import User
+from django.contrib.gis.db import models
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import smart_text
 
 from .validators import *
 
@@ -504,6 +505,7 @@ class HeritageSurvey(models.Model):
     mod_by = models.ForeignKey('SiteUser', db_index=True, related_name='mod_user', blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
+    spatial_data_exists = models.BooleanField(default=False, help_text="Do we know if there is actually spatial data for the survey?")
     consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
     documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, related_name="surveys",
                                        help_text="Related documents")
