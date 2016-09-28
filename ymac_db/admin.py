@@ -68,8 +68,8 @@ class HasSpatialDataFilter(baseadmin.SimpleListFilter):
         in the right sidebar.
         """
         return (
-            ('False', _('Exists')),
-            ('True', _('No Spatial Data')),
+            ('True', _('Exists')),
+            ('False', _('No Spatial Data')),
         )
 
     def queryset(self, request, queryset):
