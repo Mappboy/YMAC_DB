@@ -1357,7 +1357,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'show_document_pathurl',
         'documentpath',
     ]
-    list_editable = ['spatial_data_exists']
+    #list_editable = ['spatial_data_exists']
 
     list_filter = [
         'survey_group__group_name',
