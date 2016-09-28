@@ -1091,7 +1091,7 @@ class YMACSpatialRequest(models.Model):
     product_type = models.CharField(max_length=25, choices=product_types, blank=True)
     other_instructions = models.TextField(blank=True)
     # Set this back to false
-    cost_centre = models.CharField(max_length=20, choices=cost_centres, blank=True)
+    cost_centre = models.CharField(max_length=30, choices=cost_centres, blank=True)
     proponent = models.ForeignKey(Proponent, blank=True, null=True, help_text="Proponent (if known)")
     priority = models.CharField(max_length=25, choices=urgency, help_text="Please estimate urgency and priority to "
                                                                           "assist spatial team to prioritise their task list")
