@@ -83,9 +83,9 @@ class HasSpatialDataFilter(baseadmin.SimpleListFilter):
         if not self.value():
             return queryset.all()
         elif self.value() == 'False':
-            return queryset.filter(spatial_data_exists__equals=False)
+            return queryset.filter(spatial_data_exists=False)
         else:
-            return queryset.filter(spatial_data_exists__equals=True)
+            return queryset.filter(spatial_data_exists=True)
 
 class IsDoneFilter(baseadmin.SimpleListFilter):
     title = _('Job Completed')
