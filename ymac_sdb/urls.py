@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib.gis import admin
+
 from ymac_db import views
 
 urlpatterns = [
@@ -46,5 +47,6 @@ urlpatterns = [
         name='surveydocument-autocomplete'),
     url(r'^requestuser-autocomplete/$', views.RequestUserAutocomplete.as_view(),
         name='requestuser-autocomplete'),
+    url(r'^jet/', include('jet.urls', 'jet')),
     url(r'^', admin.site.urls),
 ]
