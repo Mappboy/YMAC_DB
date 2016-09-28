@@ -19,6 +19,7 @@ MAybe include:
 """
 
 import os
+
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -45,7 +46,8 @@ INSTALLED_APPS = [
     'dal_select2',
     'import_export',
     # 'grappelli',
-    'suit',
+    'jet',
+    #'suit',
     # 'material',
     # 'material.frontend',
     # 'material.admin',
@@ -196,6 +198,44 @@ SUIT_CONFIG = {
          },
     )
 }
+
+#JET_SIDE_MENU_CUSTOM_APPS=  {'Settings':  ('core', ['auth.user',
+#                                                             'auth.group',
+#                                                             'ymac_db.YmacStaff',
+#                                                             'ymac_db.RequestUser']),
+#        'Spatial Database': ('ymac_db', ['HeritageSite',
+#                     'DaaSite',
+#                     'HeritageSurvey',
+#                     'SurveyDocument',
+#                     'SurveyCleaning',
+#                     'SurveyTripCleaning',
+#                     'ResearchSite',
+#                     'SiteDocument',
+#                     ])
+#}
+
+JET_THEMES = [
+    {
+        'theme': 'default', # theme folder name
+        'color': '#47bac1', # color of the theme's button in user menu
+        'title': 'Default' # theme title
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+]
 
 GRAPPELLI_ADMIN_TITLE = 'YMAC Spatial Database'
 

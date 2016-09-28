@@ -5,8 +5,6 @@
 # Create our own map template
 from __future__ import unicode_literals
 
-import os
-
 from django.contrib import admin as baseadmin
 from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
@@ -18,16 +16,48 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
-from import_export.admin import ImportExportModelAdmin
 from leaflet.admin import LeafletGeoAdmin
 
 from .forms import *
 
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
-    title = _('Spatial Data Exists')
+    title = _('Geometry Exists')
 
     parameter_name = 'has_geom'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('False', _('Exists')),
+            ('True', _('No Geometry')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(geom__isnull=False)
+        else:
+            return queryset.filter(geom__isnull=True)
+
+class HasSpatialDataFilter(baseadmin.SimpleListFilter):
+    title = _('Spatial Data Exists')
+
+    parameter_name = 'has_sdexists'
 
     def lookups(self, request, model_admin):
         """
@@ -53,10 +83,9 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         if not self.value():
             return queryset.all()
         elif self.value() == 'False':
-            return queryset.filter(geom__isnull=False)
+            return queryset.filter(spatial_data_exists__equals=False)
         else:
-            return queryset.filter(geom__isnull=True)
-
+            return queryset.filter(spatial_data_exists__equals=True)
 
 class IsDoneFilter(baseadmin.SimpleListFilter):
     title = _('Job Completed')
@@ -939,7 +968,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                           'document_type',
                           )
     inlines = [
-        HeritageSurveyInline
+        #HeritageSurveyInline
     ]
     search_fields = [
         'surveys__survey_id',
@@ -1275,7 +1304,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         if obj.documents.values():
             return format_html("<br>".join([format_html('<a href="file:///{}">{}</a>',
                                                       os.path.join(ds.filepath, ds.filename),
-                                                      os.path.join(ds.filepath, ds.filename)) for ds
+                                                      ds.filename) for ds
                                           in obj.documents.all() if ds.filepath]))
         return ''
 
@@ -1313,19 +1342,20 @@ class HeritageSurveyAdmin(YMACModelAdmin):
     list_display = [
         'survey_id',
         'trip_number',
+        'date_from',
+        'date_to',
         'project_status',
         'propname',
         'groupname',
         'project_name',
         'original_ymac_id',
         'survey_type',
+        'spatial_data_exists',
         #'sampling_meth',
         #'datastatus',
         #'data_qa',
         'show_document_pathurl',
         'documentpath',
-        'date_from',
-        'date_to',
     ]
     #list_editable = ['folder_location', ]
 
@@ -1333,10 +1363,10 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'survey_group__group_name',
         'survey_type',
         'project_status',
-        HasGeomFilter,
+        HasSpatialDataFilter,
         HasReportFilter,
     ]
-    form = HeritageSurveyForm
+    #form = HeritageSurveyForm
 
 
 @admin.register(DaaSite)
