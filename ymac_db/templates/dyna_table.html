@@ -25,11 +25,13 @@
             <li>Total Outside: {{ item.Totl_Outer }}</li>
             <li>Total Time Approx: {{ item.Duration }}</li>{%  if item.Cost_Inner %}
             <li>Cost Inside: ${{ item.Cost_Inner }}</li>{% endif %}
-            </ul><div class="btn-group">
+            </ul>
+            <div class="btn-group">
             {% for ref, name in buttons %}
                 <a href="{{ ref }}" class="btn btn-primary col-md-3 col-md-offset-9">
                     Download {{ name }}</a></br>
-            {% endfor %}</div>
+            {% endfor %}
+            </div>
             </div>
             <div id="results-table" class="row top-buffer"><br><h2>Breakdown</h2>
             <table id="results_table" class="table table-striped hover">
@@ -54,6 +56,7 @@
                 </tr>{% endif %}{% endfor %}
             </tbody></table>
             </div>
+    </div>
 {% endblock %}
 {% block footer %}
     <footer class="footer">

@@ -15,19 +15,17 @@ if form.is_valid():
     return HttpResponseRedirect('/thanks/')
 """
 
-from django.views.generic import View
-from django.views.generic.edit import FormView
-from django.shortcuts import render, redirect
-from django.template import Context
+import requests
 from django.contrib import messages
 from django.core.serializers import serialize
-from dal import autocomplete
 from django.http import *
+from django.shortcuts import render, redirect
+from django.template import Context
+from django.views.generic import View
+from django.views.generic.edit import FormView
+
 from .forms import *
 from .models import HeritageSurvey, YMACRequestFiles
-import requests
-import json
-import datetime
 
 try:
     from urllib.parse import quote_plus, urlencode
@@ -91,7 +89,7 @@ class RegionDistanceView(FormView):
         dl_buttons = []
         data['token'] = TOKEN
         for output, name in outputs:
-            button = ("http://{}/fmedatadownload/{}/{}?{}&Output={}".format(SERVER_URL,
+            button = ("http://{}/fmedatastreaming/{}/{}?{}&Output={}".format(SERVER_URL,
                                                                             quote_plus(REPO),
                                                                             quote_plus(WORKSPACE),
                                                                             urlencode(data),
