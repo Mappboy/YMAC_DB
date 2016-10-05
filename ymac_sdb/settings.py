@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'import_export',
     # 'grappelli',
     'jet',
+    'django_tables2',
     #'suit',
     # 'material',
     # 'material.frontend',

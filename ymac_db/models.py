@@ -1157,3 +1157,17 @@ class YMACRequestFiles(models.Model):
 
     def __str__(self):
         return smart_text(self.file)
+
+
+@python_2_unicode_compatible
+class YACReturn(models.Model):
+    """
+    Will clean up all these files after approval
+    """
+    survey = models.ForeignKey(HeritageSurvey)
+    pa = models.BooleanField(default=False)
+    report = models.BooleanField(default=False)
+    spatial = models.BooleanField(default=False)
+
+    def __str__(self):
+        return smart_text("{}".format(self.survey))
