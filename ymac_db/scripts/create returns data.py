@@ -1,14 +1,15 @@
-import re
 import os
-import django
+import re
 import sys
+
+import django
 
 sys.path.append(r"C:\Users\cjpoole\PycharmProjects\ymac_sdb\\")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
 
 django.setup()
 
-from ymac_db.models import SurveyDocument, HeritageSurvey, DocumentType, YACReturn
+from ymac_db.models import SurveyDocument, HeritageSurvey, YACReturn
 
 YAC_RETURNS_FOLDER = r"Z:\Claim Groups\Yinhawangka\YHW handover\Yinhawnagka Return of Information 1"
 survey_re = re.compile(r"(?P<year>\d{4})\\(?P<survey_id>\w{3}\d{3}-\d{1,3})_Trip(?P<tripnum>\d{1,2})\\(?P<file>(.*))")
@@ -34,7 +35,14 @@ def rscandir(path):
             except FileNotFoundError:
                 continue
 
-def main():
+def newReports():
+    for yr in YACReturn.objects.filter(report=False):
+        if yr.survey.first().documents.all():
+            # Run original download yinhawangka
+            print(yr.survey.first())
+
+
+def createYACReturns():
     fails = 0
     suc = 0
     for entry in rscandir(YAC_RETURNS_FOLDER):
@@ -65,6 +73,9 @@ def main():
                 update_values["report"] = report
             YACReturn.objects.update_or_create(survey=survey, defaults=update_values)
     print("{} failed items {} succeeded items".format(fails, suc))
+
+def main():
+    newReports
 
 
 if __name__ == '__main__':
