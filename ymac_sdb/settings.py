@@ -20,7 +20,7 @@ MAybe include:
 
 import os
 
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
+#from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -89,7 +89,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # Included this for suit
-                'django.core.context_processors.request',
+                # 'django.core.context_processors.request',
             ],
         },
     },
