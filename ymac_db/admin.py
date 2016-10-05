@@ -658,6 +658,8 @@ class YMACModelAdmin(LeafletGeoAdmin):
     # }
 
 
+
+
 basemodels = [SiteUser,
               CaptureOrg,
               SiteDocument,
@@ -672,7 +674,7 @@ basemodels = [SiteUser,
               RequestUser,
               RequestType,
               Department,
-              YmacStaff
+              YmacStaff,
               ]
 
 for m in basemodels:
@@ -828,6 +830,18 @@ class FileCleanUpAdmin(baseadmin.ModelAdmin):
         'submitted_user'
     ]
 
+@admin.register(YACReturn)
+class YACReturnAdmin(baseadmin.ModelAdmin):
+    list_display = [
+        'survey',
+        'pa',
+        'report',
+        'spatial'
+    ]
+    list_filter = [
+    'pa',
+    'report',
+    'spatial']
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
@@ -1396,6 +1410,7 @@ class DAASiteAdmin(admin.GeoModelAdmin):
         'region',
         SiteTypeFilter
     ]
+
 
 
 
