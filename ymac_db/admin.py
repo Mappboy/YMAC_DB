@@ -830,6 +830,32 @@ class FileCleanUpAdmin(baseadmin.ModelAdmin):
         'submitted_user'
     ]
 
+
+def url_to_docedit(self, request, queryset):
+    doc_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                           reverse('admin:%s_%s_change' % (
+                                               hs._meta.app_label, hs._meta.model_name),
+                                                   args=[hs.id]),
+                                           hs.__str__()) for qs in queryset for hs in
+                               qs.survey.documents.all()])
+    messages.info(request, format_html(doc_urls))
+
+
+url_to_docedit.short_description = "Get Document Links"
+
+
+def url_to_edit(self, request, queryset):
+    # Use prefetch
+    trip_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
+                                           reverse('admin:%s_%s_change' % (
+                                               qs.survey._meta.app_label, qs.survey._meta.model_name),
+                                                   args=[qs.survey.id]),
+                                           qs.survey.__str__()) for qs in queryset])
+    messages.info(request, format_html(trip_urls))
+
+
+url_to_edit.short_description = "Get Heritage Surveys Links"
+
 @admin.register(YACReturn)
 class YACReturnAdmin(baseadmin.ModelAdmin):
     list_display = [
@@ -842,6 +868,8 @@ class YACReturnAdmin(baseadmin.ModelAdmin):
     'pa',
     'report',
     'spatial']
+    actions=[url_to_docedit,
+             url_to_edit]
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
