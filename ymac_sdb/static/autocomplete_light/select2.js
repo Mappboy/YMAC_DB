@@ -8,8 +8,13 @@
             var data_forward = {};
 
             for (var key in forward) {
-                var name = prefix + forward[key];
-                data_forward[forward[key]] = $('[name=' + name + ']').val();
+                // First look for this field in the inline
+                var $field = $('[name=' + prefix + forward[key] + ']');
+                if (!$field.length)
+                    // As a fallback, look for it outside the inline
+                    $field = $('[name=' + forward[key] + ']');
+                if ($field.length)
+                    data_forward[forward[key]] = $field.val();
             }
 
             return JSON.stringify(data_forward);
@@ -22,13 +27,20 @@
         // This widget has a clear button
         $(this).find('option[value=""]').remove();
 
-        $(this).select2({
-            tokenSeparators: element.attr('data-tags') ? [','] : null,
-            debug: true,
-            placeholder: '',
-            minimumInputLength: 0,
-            allowClear: ! $(this).is('required'),
-            ajax: {
+        // Templating helper
+        function template(item) {
+            if (element.attr('data-html')) {
+                var $result = $('<span>');
+                $result.html(item.text);
+                return $result;
+            } else {
+                return item.text;
+            }
+        }
+
+        var ajax = null;
+        if ($(this).attr('data-autocomplete-light-url')) {
+            ajax = {
                 url: $(this).attr('data-autocomplete-light-url'),
                 dataType: 'json',
                 delay: 250,
@@ -53,7 +65,18 @@
                     return data;
                 },
                 cache: true
-            },
+            };
+        }
+
+        $(this).select2({
+            tokenSeparators: element.attr('data-tags') ? [','] : null,
+            debug: true,
+            placeholder: '',
+            minimumInputLength: 0,
+            allowClear: ! $(this).is('required'),
+            templateResult: template,
+            templateSelection: template,
+            ajax: ajax,
         });
 
         $(this).on('select2:selecting', function (e) {
