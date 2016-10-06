@@ -75,7 +75,7 @@ def createYACReturns():
     print("{} failed items {} succeeded items".format(fails, suc))
 
 def main():
-    newReports
+    newReports()
 
 
 if __name__ == '__main__':

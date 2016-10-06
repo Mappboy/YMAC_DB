@@ -228,6 +228,7 @@ class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
     filepath = models.TextField(blank=True, null=True, db_index=True, ) #validators=[valid_directory]
     filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
+    title = models.TextField(blank=True)
 
     def check_file_exists(self):
         """
