@@ -28,8 +28,7 @@
             </ul>
             <div class="btn-group">
             {% for ref, name in buttons %}
-                <a href="{{ ref }}" class="btn btn-primary col-md-3 col-md-offset-9">
-                    Download {{ name }}</a></br>
+		{% bootstrap_button content="Download" + {{name}} button_type='link' href={{ref}} button_class="btn-primary" %}
             {% endfor %}
             </div>
             </div>
