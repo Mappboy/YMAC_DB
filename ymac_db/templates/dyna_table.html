@@ -7,7 +7,53 @@
 {% block head_js %}
     <script type='text/javascript' src={% static "js/jquery1.9.js" %}></script>
     <script type='text/javascript' src={% static "js/bootstrap.min.js" %}></script>
+    <link rel="stylesheet" href="http://playground.fmeserver.com/css/FMEServerExamples.css" type="text/css"/>
     <script type="text/javascript">
+        // We need to add inner polyline outer polyline and region
+        var map, innerLine, outterLine, regionPoly;
+        var initMap = function () {
+            map = new google.maps.Map(document.getElementById('mapDiv'), {
+                zoom: 6,
+                center: new google.maps.LatLng({{ centre | safe }}),
+                mapTypeId: 'roadmap'
+            });
+            var mapStyles = [{
+                featureType: "all",
+                elementType: "labels",
+                stylers: [{visibility: "off"}]
+            }];
+                                // Construct the polygon.
+        regionPoly = new google.maps.Polygon({
+            paths: {{ regionPolyLine | safe }},
+            strokeColor: '#0000FF',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#0000FF',
+            fillOpacity: 0.25
+        });
+        regionPoly.setMap(map);
+            innerLine = new google.maps.Polyline({
+                path: {{ innerPolyLine | safe}},
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+
+            innerLine.setMap(map);
+            outterLine = new google.maps.Polyline({
+                path: {{ outterPolyLine | safe}},
+                geodesic: true,
+                strokeColor: '#00FF00',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+
+            outterLine.setMap(map);
+
+        };
+
+
         var mydata ={{ data|safe }};
         // Remove results value
         var results = mydata.pop(mydata.length - 1);
@@ -15,50 +61,33 @@
 {% endblock %}
 {% block fme %}
     <div class="col-sm-9 col-md-10 main">
-    <div id="results" class="row top-buffer"><h1> Results </h1>
-        <ul class="col-md-3">{% with item=data|last %}
-            <li>Start Location: {{ item.start_address }}</li>
-            <li>End Location: {{ item.end_address }}</li>
-            <li>Calculated Distance: {{ item.Calc_Total }}</li>
-            <li>Google Distance: {{ item.Google_Distance }}</li>
-            <li>Total Inside: {{ item.Totl_Inner }}</li>
-            <li>Total Outside: {{ item.Totl_Outer }}</li>
-            <li>Total Time Approx: {{ item.Duration }}</li>{%  if item.Cost_Inner %}
-            <li>Cost Inside: ${{ item.Cost_Inner }}</li>{% endif %}
-            </ul>
-     </div>
-     <div id="buttons">
+        <div id="results" class="row top-buffer"><h1> Results </h1>
+            <ul class="col-md-6">{% with item=data|first %}
+                <li>Start Location: {{ item.start_address }}</li>
+                <li>End Location: {{ item.end_address }}</li>
+                <li>Calculated Distance: {{ item.Calc_Total }}</li>
+                <li>Total Inside: {{ item.Totl_Inner }}</li>
+                <li>Total Outside: {{ item.Totl_Outer }}</li>
+                <li>Total Time Approx: {{ item.Duration }}</li>{% if item.Cost_Inner %}
+                    <li>Cost Inside: ${{ item.Cost_Inner }}</li>{% endif %}
+                </ul>
+                </div>
+
+            {% endwith %}
+        <div id="mapDiv" class="map col-md-8 row">
+        </div>
+
+        <div class="row" id="buttons">
             <h2>Download</h2>
             <div class="btn-group" role="group">
-            {% for ref, name in buttons %}
-                <a href="{{ ref }}" class="btn btn-default" role="button">{{ name }}</a>
-            {% endfor %}
+                {% for ref, name in buttons %}
+                    <a href="{{ ref }}" class="btn btn-default" role="button">{{ name }}</a>
+                {% endfor %}
             </div>
-     </div>
-            <div id="results-table" class="row top-buffer"><br><h2>Breakdown</h2>
-            <table id="results_table" class="table table-striped hover">
-            <thead>
-            <tr id="result_head">
-                <td>Step Num</td>
-                <td>Region</td>
-                <td>Distance metres</td>
-                <td>Google distance</td>
-                <td>Duration</td>{% if item.Calc_Cost != "0" %}
-                <td>Cost per Km</td>{% endif %}
-            </tr>
-            </thead>{% endwith %}
-            <tbody>{% for row in data|dictsort:"step" %}{% if row.region %}
-                <tr>
-                    <td>{{ row.step|add:"1" }}</td>
-                    <td>{{ row.region }}</td>
-                    <td>{{ row.Length }}</td>
-                    <td>{{ row.Google_Distance }}</td>
-                    <td>{{ row.Duration }}</td>{% if row.Cost_pm != "0" %}
-                    <td>{{ row.Cost_pm }}</td>{% endif %}
-                </tr>{% endif %}{% endfor %}
-            </tbody></table>
-            </div>
+        </div>
     </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRff4_9jrHClUdetRfE0niMNLMzUeWjXg&callback=initMap&libraries=drawing"
+            async defer></script>
 {% endblock %}
 {% block footer %}
     <footer class="footer">

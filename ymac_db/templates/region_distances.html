@@ -9,6 +9,7 @@
     <script type='text/javascript' src={% static "js/bootstrap.min.js" %}></script>
     <script type='text/javascript' src="{% static "js/FMEServer.js" %}"></script>
     <script type='text/javascript' src="{% static "js/region_dist_calc.js" %}"></script>
+       <!-- Include AutoComplete for our search boxes https://developers.google.com/maps/documentation/javascript/places-autocomplete -->
 {% endblock %}
 {% block fme %}
     <div class="col-sm-9 col-md-10 main">
@@ -32,6 +33,26 @@
         {% endbuttons %}
     </form>
     <div id="results" class="row top-buffer"></div>
+    <script>
+        var autocomplete, autocomplete2;
+    var origininput,destinput;
+    var initMap = function() {
+    var defaultBounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(lat=-13.74078, lng=129.00193 ),
+    new google.maps.LatLng(lat=-35.13531, lng=113.15628 ));
+
+    origininput = document.getElementById('id_origin');
+    destinput = document.getElementById('id_destination');
+    var options = {
+    bounds: defaultBounds,
+    types: ['geocode'],
+    componentRestrictions: {country: 'au'}
+    };
+    autocomplete = new google.maps.places.Autocomplete(origininput, options);
+    autocomplete2 = new google.maps.places.Autocomplete(destinput, options);
+    };
+    </script>
+    <script async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRff4_9jrHClUdetRfE0niMNLMzUeWjXg&libraries=places&callback=initMap"></script>
 {% endblock %}
 {% block footer %}
     <footer class="footer fixed">    {{ form.media }}

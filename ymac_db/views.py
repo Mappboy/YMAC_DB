@@ -15,7 +15,8 @@ if form.is_valid():
     return HttpResponseRedirect('/thanks/')
 """
 
-import requests
+import json
+
 from django.contrib import messages
 from django.core.serializers import serialize
 from django.http import *
@@ -35,7 +36,7 @@ except:
 TOKEN = "91e61ba3c8b7101ddf7a6ee8a0ddc935acd77089"
 SERVER_URL = "ymac-dc3-app1:8080"
 REPO = 'Data Download'
-WORKSPACE = 'nats_halfwaycalcs.fmw'
+WORKSPACE = 'region_distance_calculator.fmw'
 
 def index(request):
     return render(request, 'base.html')
@@ -89,7 +90,8 @@ class RegionDistanceView(FormView):
         dl_buttons = []
         data['token'] = TOKEN
         for output, name in outputs:
-            button = ("http://{}/fmedatastreaming/{}/{}?{}&Output={}".format(SERVER_URL,
+            dl_type = 'fmedatastreaming' if output == 'ESRISHAPE' else 'fmedatadownload'
+            button = ("http://{}/{}/{}/{}?{}&Output={}".format(SERVER_URL, dl_type,
                                                                             quote_plus(REPO),
                                                                             quote_plus(WORKSPACE),
                                                                             urlencode(data),
@@ -117,11 +119,30 @@ class RegionDistanceView(FormView):
                                                                                                  data['destination']))
                 return redirect('/workbenches/region_distance/', context={'errormsg': True})
             table_json = fme_json.json()
+            print(table_json)
             for ft in table_json:
                 del ft['json_featuretype']
-                del ft['json_geometry']
                 del ft['json_ogc_wkt_crs']
-            return render(self.request, 'dyna_table.html', context={'data': table_json, 'buttons': dl_buttons})
+            return render(self.request, 'dyna_table.html', context={'innerPolyLine':
+                                                                        json.dumps([dict(zip(["lng",
+                                                                                   "lat"], coords)) for
+                                                                                       coords in table_json[2]['json_geometry']["coordinates"]]),
+                                                                    'outterPolyLine':
+                                                                        json.dumps([dict(zip(["lng",
+                                                                                              "lat"], coords)) for
+                                                                                    coords in
+                                                                                    table_json[1]['json_geometry'][
+                                                                                        "coordinates"]]),
+                                                                    'regionPolyLine':
+                                                                        json.dumps([dict(zip(["lng",
+                                                                                              "lat"], coords)) for
+                                                                                    coords in
+                                                                                    table_json[3]['json_geometry'][
+                                                                                        "coordinates"]]),
+                                                                    'centre': json.dumps({"lng": float(table_json[0]['cent_lat']),
+                                                                               "lat": float(table_json[0]['cent_long'])}),
+                                                                    'data': table_json,
+                                                                    'buttons': dl_buttons})
 
 
             # See what happens when we reply wiht JsonResponse
