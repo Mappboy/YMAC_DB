@@ -119,7 +119,6 @@ class RegionDistanceView(FormView):
                                                                                                  data['destination']))
                 return redirect('/workbenches/region_distance/', context={'errormsg': True})
             table_json = fme_json.json()
-            print(table_json)
             for ft in table_json:
                 del ft['json_featuretype']
                 del ft['json_ogc_wkt_crs']
@@ -141,7 +140,7 @@ class RegionDistanceView(FormView):
                                                                                         "coordinates"]]),
                                                                     'centre': json.dumps({"lng": float(table_json[0]['cent_lat']),
                                                                                "lat": float(table_json[0]['cent_long'])}),
-                                                                    'data': table_json,
+                                                                    'results': table_json[0],
                                                                     'buttons': dl_buttons})
 
 
