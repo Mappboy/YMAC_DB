@@ -52,17 +52,12 @@
             outterLine.setMap(map);
 
         };
-
-
-        var mydata ={{ data|safe }};
-        // Remove results value
-        var results = mydata.pop(mydata.length - 1);
     </script>
 {% endblock %}
 {% block fme %}
     <div class="col-sm-9 col-md-10 main">
         <div id="results" class="row top-buffer"><h1> Results </h1>
-            <ul class="col-md-6">{% with item=data|first %}
+            <ul class="col-md-6">{% with item=results %}
                 <li>Start Location: {{ item.start_address }}</li>
                 <li>End Location: {{ item.end_address }}</li>
                 <li>Calculated Distance: {{ item.Calc_Total }}</li>
