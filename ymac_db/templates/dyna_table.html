@@ -63,8 +63,10 @@
                 <li>Calculated Distance: {{ item.Calc_Total }}</li>
                 <li>Total Inside: {{ item.Totl_Inner }}</li>
                 <li>Total Outside: {{ item.Totl_Outer }}</li>
-                <li>Total Time Approx: {{ item.Duration }}</li>{% if item.Cost_Inner %}
-                    <li>Cost Inside: ${{ item.Cost_Inner }}</li>{% endif %}
+                <li>Total Time Approx: {{ item.Duration }}</li>
+                {% if item.Cost_Inner %}
+                    <li>Cost Inside: ${{ item.Cost_Inner }}</li>
+                {% endif %}
                 </ul>
                 </div>
 

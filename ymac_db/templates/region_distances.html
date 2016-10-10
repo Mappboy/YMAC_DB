@@ -8,12 +8,13 @@
     <script type='text/javascript' src={% static "js/jquery1.9.js" %}></script>
     <script type='text/javascript' src={% static "js/bootstrap.min.js" %}></script>
     <script type='text/javascript' src="{% static "js/FMEServer.js" %}"></script>
-    <script type='text/javascript' src="{% static "js/region_dist_calc.js" %}"></script>
        <!-- Include AutoComplete for our search boxes https://developers.google.com/maps/documentation/javascript/places-autocomplete -->
 {% endblock %}
 {% block fme %}
     <div class="col-sm-9 col-md-10 main">
     <h1 id="repository" class="page-header">Find Distances within a Region</h1>
+    <h4 id="description">Note: Please ensure that destination is within the selected region.
+        Petrol cost is calculated on cost per km.</h4>
     <!-- maybe include action and method if in dj-->
     {% if errormsg %}{% endif %}{% if messages %}
         <ul class="messages">
@@ -61,4 +62,3 @@
         </div>
     </footer>
 {% endblock %}
-
