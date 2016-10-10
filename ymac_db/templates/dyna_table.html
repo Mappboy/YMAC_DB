@@ -26,12 +26,15 @@
             <li>Total Time Approx: {{ item.Duration }}</li>{%  if item.Cost_Inner %}
             <li>Cost Inside: ${{ item.Cost_Inner }}</li>{% endif %}
             </ul>
-            <div class="btn-group">
+     </div>
+     <div id="buttons">
+            <h2>Download</h2>
+            <div class="btn-group" role="group">
             {% for ref, name in buttons %}
-		{% bootstrap_button content="Download" + {{name}} button_type='link' href={{ref}} button_class="btn-primary" %}
+                <a href="{{ ref }}" class="btn btn-default" role="button">{{ name }}</a>
             {% endfor %}
             </div>
-            </div>
+     </div>
             <div id="results-table" class="row top-buffer"><br><h2>Breakdown</h2>
             <table id="results_table" class="table table-striped hover">
             <thead>
