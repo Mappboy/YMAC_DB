@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="http://playground.fmeserver.com/css/FMEServerExamples.css" type="text/css"/>
     <script type="text/javascript">
         // We need to add inner polyline outer polyline and region
-        var map, innerLine, outterLine, regionPoly;
+        var map, innerLine, outterLine, regionPolyv, infowindow;
         var initMap = function () {
             map = new google.maps.Map(document.getElementById('mapDiv'), {
                 zoom: 6,
@@ -22,16 +22,16 @@
                 elementType: "labels",
                 stylers: [{visibility: "off"}]
             }];
-                                // Construct the polygon.
-        regionPoly = new google.maps.Polygon({
-            paths: {{ regionPolyLine | safe }},
-            strokeColor: '#0000FF',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: '#0000FF',
-            fillOpacity: 0.25
-        });
-        regionPoly.setMap(map);
+            // Construct the polygon.
+            regionPoly = new google.maps.Polygon({
+                paths: {{ regionPolyLine | safe }},
+                strokeColor: '#0000FF',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#0000FF',
+                fillOpacity: 0.25,
+            });
+            regionPoly.setMap(map);
             innerLine = new google.maps.Polyline({
                 path: {{ innerPolyLine | safe}},
                 geodesic: true,
