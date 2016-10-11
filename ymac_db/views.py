@@ -121,27 +121,35 @@ class RegionDistanceView(FormView):
             table_json = fme_json.json()
             print(table_json)
             for ft in table_json:
-                del ft['json_featuretype']
-                del ft['json_ogc_wkt_crs']
+                if "cent_lat" in ft:
+                    result_json = ft
+                elif "region" in ft:
+                    if ft["region"] == "outer":
+                        outer = ft
+                    else:
+                        inner = ft
+                else:
+                    region = ft
+
             return render(self.request, 'dyna_table.html', context={'innerPolyLine':
                                                                         json.dumps([dict(zip(["lng",
                                                                                    "lat"], coords)) for
-                                                                                       coords in table_json[2]['json_geometry']["coordinates"]]),
+                                                                                       coords in inner['json_geometry']["coordinates"]]),
                                                                     'outterPolyLine':
                                                                         json.dumps([dict(zip(["lng",
                                                                                               "lat"], coords)) for
                                                                                     coords in
-                                                                                    table_json[1]['json_geometry'][
+                                                                                    outer['json_geometry'][
                                                                                         "coordinates"]]),
                                                                     'regionPolyLine':
                                                                         json.dumps([dict(zip(["lng",
                                                                                               "lat"], coords)) for
                                                                                     coords in
-                                                                                    table_json[3]['json_geometry'][
+                                                                                    region['json_geometry'][
                                                                                         "coordinates"]]),
-                                                                    'centre': json.dumps({"lng": float(table_json[0]['cent_lat']),
-                                                                               "lat": float(table_json[0]['cent_long'])}),
-                                                                    'results': table_json[0],
+                                                                    'centre': json.dumps({"lng": float(result_json['cent_lat']),
+                                                                               "lat": float(result_json['cent_long'])}),
+                                                                    'results': result_json,
                                                                     'buttons': dl_buttons})
 
 

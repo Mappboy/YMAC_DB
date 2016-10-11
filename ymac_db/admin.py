@@ -344,7 +344,7 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
         # Compare the requested value (either '80s' or '90s')
         # to decide how to filter the queryset.
         if self.value():
-            queryset = queryset.filter(heritagesurvey__survey_group__group_id=self.value())
+            queryset = queryset.filter(surveys__survey_group__group_id=self.value())
         return queryset
 
 class RelatedDocClaimFilter(baseadmin.SimpleListFilter):

@@ -60,9 +60,9 @@
             <ul class="col-md-6">{% with item=results %}
                 <li>Start Location: {{ item.start_address }}</li>
                 <li>End Location: {{ item.end_address }}</li>
-                <li>Calculated Distance: {{ item.Calc_Total }}</li>
-                <li>Total Inside: {{ item.Totl_Inner }}</li>
-                <li>Total Outside: {{ item.Totl_Outer }}</li>
+                <li>Calculated Distance: {{ item.Calc_Total }} return {{ item.total_return }}</li>
+                <li>Total Inside: {{ item.Totl_Inner }} return {{ item.inner_return }}</li>
+                <li>Total Outside: {{ item.Totl_Outer }} return {{ item.outter_return }}</li>
                 <li>Total Time Approx: {{ item.Duration }}</li>
                 {% if item.Cost_Inner %}
                     <li>Cost Inside: ${{ item.Cost_Inner }}</li>
