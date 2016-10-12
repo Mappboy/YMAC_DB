@@ -1446,7 +1446,6 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HasSpatialDataFilter,
         HasReportFilter,
         HasFolderLocationFilter,
-        'date_from'
     ]
     #form = HeritageSurveyForm
 
