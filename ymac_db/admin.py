@@ -5,7 +5,6 @@
 # Create our own map template
 from __future__ import unicode_literals
 
-from daterange_filter.filter import DateRangeFilter
 from django.contrib import admin as baseadmin
 from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
@@ -1447,7 +1446,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HasSpatialDataFilter,
         HasReportFilter,
         HasFolderLocationFilter,
-        ('date_from', DateRangeFilter)
+        'date_from'
     ]
     #form = HeritageSurveyForm
 
