@@ -183,7 +183,7 @@ class HasFolderLocationFilter(baseadmin.SimpleListFilter):
         if not self.value():
             return queryset.all()
         elif self.value() == 'True':
-            return queryset.exclude(Q(folder_location__isnull=False) | Q(folder_location=''))
+            return queryset.exclude(folder_location='')
         else:
             return queryset.filter(Q(folder_location__isnull=True) | Q(folder_location=''))
 
@@ -1445,7 +1445,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'project_status',
         HasSpatialDataFilter,
         HasReportFilter,
-        HasFolderLocationFilter
+        HasFolderLocationFilter,
     ]
     #form = HeritageSurveyForm
 

@@ -245,7 +245,19 @@ class SurveyDocument(models.Model):
             return smart_text("File does not exist")
 
     def __str__(self):
-        return smart_text("%s : %s" % (self.document_type, self.filename))
+        BAD_FIX = {1 : "Document : Survey Report",
+                 2:"Document : Preliminary Advice",
+                 3:"Spatial : GPX",
+                 4:"Spatial : Shapefile",
+                 5:"Spatial : Mapinfo",
+                 6:"Spatial : Geodatabase",
+                 7:"Spatial : Google KML",
+                 8:"Image",
+                 9:"Audio",
+                 10:"Video",
+                 11:"Map",
+                 12:"Other"}
+        return smart_text("%s : %s" % (BAD_FIX[self.document_type_id], self.filename))
 
 
 @python_2_unicode_compatible
