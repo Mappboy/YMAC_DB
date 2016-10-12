@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # 'grappelli',
     'jet',
     'django_tables2',
+    'daterange_filter',
     #'suit',
     # 'material',
     # 'material.frontend',
