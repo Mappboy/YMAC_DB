@@ -12,6 +12,7 @@ from django.contrib.gis import admin
 from django.contrib.gis import forms as geoforms
 from django.core import serializers
 from django.core.urlresolvers import reverse
+from django.db. models import Q
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
@@ -152,6 +153,40 @@ class HasReportFilter(baseadmin.SimpleListFilter):
             return queryset.filter(documents__isnull=False)
         else:
             return queryset.exclude(documents__isnull=False)
+
+class HasFolderLocationFilter(baseadmin.SimpleListFilter):
+    title = _('Folder Location')
+
+    parameter_name = 'has_folder_loc'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('True', _('Located')),
+            ('False', _('No Location')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'True':
+            return queryset.exclude(Q(folder_location__isnull=False) | Q(folder_location=''))
+        else:
+            return queryset.filter(Q(folder_location__isnull=True) | Q(folder_location=''))
+
 
 class HasLinkedSurveyFilter(baseadmin.SimpleListFilter):
     title = _('Linked Survey')
@@ -868,6 +903,9 @@ class YACReturnAdmin(baseadmin.ModelAdmin):
     'pa',
     'report',
     'spatial']
+    search_fields = [
+        'survey__survey_id'
+    ]
     actions=[url_to_docedit,
              url_to_edit]
 
@@ -1407,6 +1445,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'project_status',
         HasSpatialDataFilter,
         HasReportFilter,
+        HasFolderLocationFilter
     ]
     #form = HeritageSurveyForm
 

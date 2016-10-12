@@ -3,7 +3,7 @@ import sys
 from zipfile import ZipFile
 
 import django
-from django.db.models import Q
+from django.db. modelsimport Q
 
 sys.path.append(r"C:\Users\cjpoole\PycharmProjects\ymac_sdb\\")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
