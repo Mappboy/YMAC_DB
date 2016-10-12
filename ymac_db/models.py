@@ -139,6 +139,7 @@ project_status = [
     ("Draft Report Received", "Draft Report Received"),
     ("Final Report Received", "Final Report Received"),
     ("Field Work Completed", "Field Work Completed"),
+    ("Unknown", "Unknown"),
 ]
 
 ymac_region = [
