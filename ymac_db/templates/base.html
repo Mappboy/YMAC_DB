@@ -62,6 +62,7 @@
                                         class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/workbenches/">Overview</a></li>
+                                    <li><a href="/claims/">Claim Infomation</a></li>
                                     <li><a href="/workbenches/data_download/">Data Kiosk</a></li>
                                     <li><a href="/workbenches/data_upload.html">Survey Loader</a></li>
                                     <li><a href="/workbenches/region_distance/">Region Distances</a></li>
@@ -124,6 +125,8 @@
             <p class="text-muted">&copy; YMAC 2016</p>
         </div>
     </footer>    <!-- JS includes -->
+    {% endblock %}
+    {%  block foot_js %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script type='text/javascript' src="{% static "js/bootstrap.min.js" %}"></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block head_js %}
+    <script>
+    function goToClaim(){
+        var id = $('#claimselect').val();
+        console.log(id);
+        window.location=id;
+    }
+    </script>
+{% endblock %}
+{% block content %}
+
+<h3>Select a Claim group you would  like to overview</h3>
+    <form >
+        <select id="claimselect" class="form-control">
+    {% for claim in claim_groups %}
+        <option value={{ claim.pk }}>{{ claim.name }}</option>
+    {% endfor %}
+         </select>
+    </form>
+    <button onclick="goToClaim()">Go to Claim Overview</button>
+{% endblock %}

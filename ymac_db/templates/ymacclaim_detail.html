@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+{% load static %}
+{% block head_js %}
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise"></script>
+    <script type='text/javascript' src="{% static 'js/leaflet-providers.js' %}"></script>
+    <script type='text/javascript' src="{% static 'js/leaflet-bing-layer.min.js' %}"></script>
+    <script type='text/javascript' src="https://code.jquery.com/jquery-1.12.3.js"></script>
+    <script type='text/javascript' src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <link type='text/css' rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    <script>
+        var global_map, daa_data;
+        function main_map_init(map, options) {
+            function onEachFeature(feature, layer) {
+                // does this feature have a property named popupContent?
+                layer.on({
+                    click: function (feature) {
+                        if (feature.properties ) {
+                            if (typeof feature.properties.selected == 'undefined') {
+                                feature.properties.selected = true;
+                                console.log(feature.properties.selected);
+                            }
+                            else {
+                                feature.properties.selected = !feature.selected;
+                                console.log(feature.properties.selected);
+                            }
+                        }
+                    }
+                });
+                if (feature.properties && feature.properties.name) {
+                    var content = "";
+                    for (var prop in feature.properties) {
+                        content += '<p>' + prop + " : " + feature.properties[prop] + '</p>'
+                    }
+                    layer.bindPopup(content);
+                }
+            }
+            function getColor(d) {
+                return d ? '#FFEDA0' :
+                        "#ff0000";
+            }
+
+            //Create Style
+
+            function daaStyle(feature) {
+                return {
+                    "color": getColor(feature.properties.selected),
+                    "weight": 2,
+                    "opacity": 0.65
+                };
+            }
+
+            //Add GeoJSON layer
+            daa_data = L.geoJson({{ daa_sites|safe }}, {
+                style: daaStyle,
+                onEachFeature: onEachFeature
+            });
+            var claim_data = L.geoJson({{ map_data|safe }}).addTo(map);
+            map.fitBounds(claim_data.getBounds());
+            global_map = map;
+            var defaultLayer = L.tileLayer.provider('OpenStreetMap.Mapnik');
+            var baseLayers = {
+                'OpenStreetMap Default': defaultLayer,
+                'OpenStreetMap Black and White': L.tileLayer.provider('OpenStreetMap.BlackAndWhite'),
+                'OpenStreetMap H.O.T.': L.tileLayer.provider('OpenStreetMap.HOT'),
+                'ESRI World': L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'),
+                'Bing': L.tileLayer.bing("Atjf9biTahekK5UUyKRH6G_2ddSEeaagG4tXjbe87wlj3qI0KJyCSaBgvrmKTlFc")
+            };
+
+            var overlays = {
+                'Claim Boundary': claim_data,
+                'Daa Sites': daa_data
+            };
+            L.control.layers(baseLayers, overlays).addTo(map);
+        }
+    </script>
+    <style>
+
+        .leaflet-container { /* all maps */
+            width: 800px;
+            height: 600px;
+        }
+
+        #specialbigmap {
+            height: 800px;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>{{ object.name }}</h1>
+    <div>
+        {% leaflet_map "overviewmap" callback="main_map_init" %}
+    </div>
+    <table id="resultsTable" class="display" width="100%"></table>
+{% endblock %}

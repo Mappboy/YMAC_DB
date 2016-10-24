@@ -5,18 +5,12 @@ from os import path
 
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 
 from .validators import *
 
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 
 VALID_DRIVES = [
     "X:",
@@ -72,11 +66,13 @@ site_classification = [('Ethnographic', 'Ethnographic'),
                        ('Archeological', 'Archeological'),
                        ('Arch & Ethno', 'Arch & Ethno')
                        ]
+
 site_category = [
     ('GEOGRAPHIC FEATURES', 'GEOGRAPHIC FEATURES'),
     ('RESTRICTED OR CEREMONIAL SITE', 'RESTRICTED OR CEREMONIAL SITE'),
     ('CAMPS/ LIVING AREAS', 'CAMPS/ LIVING AREAS')
 ]
+
 gender = [('Male', 'Male'),
           ('Female', 'Female')]
 
@@ -99,6 +95,7 @@ document_subtype = [
     ('Survey Report', 'Survey Report'),
     ('HISF', 'Heritage Information Submission Form'),
 ]
+
 states = [
     ('WA', 'WA'),
     ('NSW', 'NSW'),
@@ -215,184 +212,49 @@ offices = [
 
 
 @python_2_unicode_compatible
-class DocumentType(models.Model):
-    document_type = models.CharField(max_length=15, db_index=True, choices=document_type)
-    sub_type = models.CharField(max_length=40, db_index=True, choices=document_subtype, blank=True, null=True)
-
-    def __str__(self):
-        doc_string = "%s : %s" % (self.document_type, self.sub_type) if self.sub_type else "%s" % (self.document_type)
-        return smart_text(doc_string)
-
-
-@python_2_unicode_compatible
-class SurveyDocument(models.Model):
-    document_type = models.ForeignKey(DocumentType)
-    filepath = models.TextField(blank=True, null=True, db_index=True, ) #validators=[valid_directory]
-    filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
-    title = models.TextField(blank=True)
-
-    def check_file_exists(self):
-        """
-        Check file is on one of our drives and not local.
-        Also check if file actually exists
-        :return:
-        """
-        fp = path.join(self.filepath, self.filename)
-        drive = path.splitdrive(fp)[0] if not path.splitdrive(fp) else path.splitdrive(fp)[0]
-        if drive not in VALID_DRIVES:
-            return smart_text("Can't find Drive")
-        if not path.isfile(fp):
-            return smart_text("File does not exist")
-
-    def __str__(self):
-        BAD_FIX = {1 : "Document : Survey Report",
-                 2:"Document : Preliminary Advice",
-                 3:"Spatial : GPX",
-                 4:"Spatial : Shapefile",
-                 5:"Spatial : Mapinfo",
-                 6:"Spatial : Geodatabase",
-                 7:"Spatial : Google KML",
-                 8:"Image",
-                 9:"Audio",
-                 10:"Video",
-                 11:"Map",
-                 12:"Other"}
-        return smart_text("%s : %s" % (BAD_FIX[self.document_type_id], self.filename))
-
-
-@python_2_unicode_compatible
-class SampleMethodology(models.Model):
-    sampling_meth = models.CharField(unique=True, db_index=True, max_length=20)
-
-    def __str__(self):
-        return smart_text(self.sampling_meth)
-
-    class Meta:
-        managed = False
-        db_table = 'sample_methodology'
-
-
-@python_2_unicode_compatible
-class SamplingConfidence(models.Model):
-    sampling_conf = models.CharField(max_length=30, db_index=True)
-    id = models.AutoField(primary_key=True)
-
-    def __str__(self):
-        return smart_text(self.sampling_conf)
-
-    class Meta:
-        managed = False
-        db_table = 'sampling_confidence'
-
-
-@python_2_unicode_compatible
-class SurveyProponentCode(models.Model):
+class Consultant(models.Model):
     """
-    For when a survey has a proponent code.
-    This used to be the old rio_codes table but expanded.
-    This is a one to many table.
+    Survey Consultants
     """
-    proponent = models.ForeignKey('Proponent', blank=True, db_index=True)
-    proponent_code = models.CharField(max_length=20, blank=True, null=True, db_index=True)
+    name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
+    employee = models.NullBooleanField()
+    company = models.ForeignKey('CaptureOrg', blank=True, null=True, db_index=True)
+    email = models.EmailField(blank=True, null=True)
 
     def __str__(self):
-        if self.proponent_code:
-            return smart_text("{} Code {}".format(self.proponent, self.proponent_code))
+        if self.name:
+            return smart_text(self.name)
         else:
-            return smart_text("No code")
-
-    class Meta:
-        managed = True
-
-
-@python_2_unicode_compatible
-class HeritageCompanies(models.Model):
-    """
-    Companies who Heritage Surveys have been performed for.
-    """
-    old_code = models.IntegerField(unique=True)
-    company_name = models.CharField(max_length=200, blank=True, null=True, db_index=True)
+            return smart_text("Employee of {}".format(self.company))
 
     class Meta:
         managed = False
-
-    def __str__(self):
-        return smart_text("Company {}".format(self.company_name))
+        ordering = ('name',)
 
 
 @python_2_unicode_compatible
-class SurveyCleaning(models.Model):
-    """
-    These are cleaning comments and data paths that can be attached
-    to a heritage survey.
-    """
-    data_path = models.TextField(blank=False, null=False, db_index=True)
-    path_type = models.CharField(max_length=15, blank=True, null=False, db_index=True, choices=path_type)
-
-    class Meta:
-        managed = True
-        ordering = ('surveys__survey_id', 'data_path')
-
-    def __str__(self):
-        if self.data_path:
-            return smart_text("Cleaning Item {}".format(path.split(self.data_path)[1]))
-        return 'No data_path'
-
-
-@python_2_unicode_compatible
-class SurveyTripCleaning(models.Model):
-    """
-    These are cleaning comments and data paths that can be attached
-    to a heritage survey trip.
-    """
-    survey_trip = models.ForeignKey('HeritageSurvey')
-    cleaning_comment = models.TextField(blank=False, null=False)
-    data_path = models.TextField(blank=False, null=False, db_index=True)
-    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
-
-    class Meta:
-        managed = True
+class CaptureOrg(models.Model):
+    organisation_name = models.TextField(db_index=True)
+    organisation_contact = models.CharField(max_length=100, blank=True, null=True, help_text="Main Contact Name")
+    organisation_email = models.EmailField(blank=True, null=True, help_text="Main Contact Email")
+    organisation_phone = models.CharField(max_length=16, blank=True, null=True)
+    organisation_address = models.TextField(blank=True, null=True)
+    organisation_suburb = models.TextField(blank=True, null=True)
+    organisation_state = models.CharField(max_length=3, blank=True, null=True, choices=states)
+    organisation_postcode = models.IntegerField(blank=True, null=True)
+    organisation_website = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        name = self.data_path if self.data_path else self.cleaning_comment
-        return smart_text("Trip Cleaning Item {}".format(name))
-
-
-@python_2_unicode_compatible
-class PotentialSurvey(models.Model):
-    """
-    These are cleaning comments and data paths that can be attached
-    to a heritage survey.
-    """
-    survey_id = models.CharField(max_length=15)
-    data_path = models.TextField(blank=False, null=False)
-    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
-
-    class Meta:
-        managed = True
-
-    def __str__(self):
-        name = self.data_path if self.data_path else self.cleaning_comment
-        return smart_text("Cleaning Item {}".format(name))
-
-
-@python_2_unicode_compatible
-class SiteDescriptions(models.Model):
-    site_description = models.CharField(max_length=60, choices=site_description, db_index=True)
-
-    def __str__(self):
-        return smart_text(self.site_description)
+        return smart_text(self.organisation_name)
 
     class Meta:
         managed = False
-        db_table = 'ymac_db_sitedescriptions'
-        verbose_name_plural = "Site Descriptions"
+        db_table = 'ymac_db_captureorg'
 
 
 @python_2_unicode_compatible
 class DaaSite(models.Model):
-    objectid = models.AutoField(max_length=200, primary_key=True)
-    place_id = models.CharField(max_length=200, blank=True, null=True)
+    place_id = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200, blank=True, null=True, db_index=True)
     legacy_id = models.CharField(max_length=200, blank=True, null=True)
     status = models.CharField(max_length=200, blank=True, null=True)
@@ -427,6 +289,39 @@ class DaaSite(models.Model):
         verbose_name_plural = 'DAA Sites'
 
 
+class DaaSiteHistory(models.Model):
+    place_id = models.CharField(max_length=20)
+    name = models.CharField(max_length=200, blank=True, null=True)
+    legacy_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=200, blank=True, null=True)
+    status_reason = models.CharField(max_length=200, blank=True, null=True)
+    origin_place_id = models.CharField(max_length=200, blank=True, null=True)
+    type = models.TextField(blank=True, null=True)
+    region = models.CharField(max_length=200, blank=True, null=True)
+    restrictions = models.CharField(max_length=200, blank=True, null=True)
+    file_restricted = models.CharField(max_length=200, blank=True, null=True)
+    location_restricted = models.CharField(max_length=200, blank=True, null=True)
+    boundary_reliable = models.CharField(max_length=200, blank=True, null=True)
+    protected_area = models.CharField(max_length=200, blank=True, null=True)
+    protected_area_gazetted_date = models.DateField(blank=True, null=True)
+    national_estate_area = models.CharField(max_length=200, blank=True, null=True)
+    duplicate_id = models.CharField(max_length=200, blank=True, null=True)
+    boundary_last_update_date = models.DateField(blank=True, null=True)
+    shape_length = models.CharField(max_length=200, blank=True, null=True)
+    shape_area = models.CharField(max_length=200, blank=True, null=True)
+    ymac_update = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    modified_time = models.DateTimeField()
+    operation = models.CharField(max_length=20)
+    area_difference = models.FloatField(blank=True, null=True)
+    geom_change = models.NullBooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'daa_site_history'
+        unique_together = (('place_id', 'operation', 'modified_time'),)
+
+
 @python_2_unicode_compatible
 class DataSuppliers(models.Model):
     supplier = models.CharField(primary_key=True, max_length=50, db_index=True)
@@ -437,6 +332,51 @@ class DataSuppliers(models.Model):
     class Meta:
         managed = False
         db_table = 'data_suppliers'
+
+
+@python_2_unicode_compatible
+class Department(models.Model):
+    name = models.CharField(max_length=25, choices=departments, db_index=True)
+    head = models.ForeignKey('YmacStaff')
+
+    def __str__(self):
+        return smart_text(self.name)
+
+
+@python_2_unicode_compatible
+class DocumentType(models.Model):
+    document_type = models.CharField(max_length=15, db_index=True, choices=document_type)
+    sub_type = models.CharField(max_length=40, db_index=True, choices=document_subtype, blank=True, null=True)
+
+    def __str__(self):
+        doc_string = "%s : %s" % (self.document_type, self.sub_type) if self.sub_type else "%s" % (self.document_type)
+        return smart_text(doc_string)
+
+
+@python_2_unicode_compatible
+class Emit(models.Model):
+    title = models.CharField(primary_key=True, max_length=20)
+    content = models.TextField(blank=True, null=True)
+    id = models.TextField(blank=True, null=True)
+    publisheddate = models.TextField(blank=True, null=True)
+    linkuri = models.TextField(blank=True, null=True)
+    field_minfield = models.CharField(db_column='_minfield', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    possibleclaimgroups = models.CharField(max_length=200, blank=True, null=True)
+    datereceived = models.DateField()
+    markout = models.CharField(max_length=200, blank=True, null=True)
+    area = models.CharField(max_length=200, blank=True, null=True)
+    shire = models.CharField(max_length=200, blank=True, null=True)
+    applicants = models.CharField(max_length=200, blank=True, null=True)
+    objectiondate = models.CharField(max_length=200, blank=True, null=True)
+    miningregistrar = models.CharField(max_length=200, blank=True, null=True)
+    tenement = models.ForeignKey('TenementsAll', blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.title)
+
+    class Meta:
+        managed = True
+        db_table = 'emit'
 
 
 @python_2_unicode_compatible
@@ -452,6 +392,18 @@ class ExternalClientSite(models.Model):
     class Meta:
         managed = False
         db_table = 'external_client_sites'
+
+
+@python_2_unicode_compatible
+class FileCleanUp(models.Model):
+    """
+    Will clean up all these files after approval
+    """
+    data_path = models.TextField(db_index=True)
+    submitted_user = models.ForeignKey(User)
+
+    def __str__(self):
+        return smart_text(self.data_path)
 
 
 # Status like
@@ -494,7 +446,7 @@ class HeritageSurvey(models.Model):
     date_to = models.DateField(blank=True, null=True)
     data_status = models.ForeignKey('SurveyStatus', blank=True, null=True, db_index=True,
                                     help_text="For current spatial data is"
-                                            " it proposed or after survey completion (Actual)")
+                                              " it proposed or after survey completion (Actual)")
     data_source = models.ManyToManyField('SurveyCleaning', blank=True, related_name="surveys",
                                          help_text="Any comments or data relating to the data")
     survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
@@ -507,9 +459,11 @@ class HeritageSurvey(models.Model):
                                                        " i.e RIO Area Codes AR-00-00000")
     sampling_meth = models.ForeignKey('SampleMethodology', db_index=True, db_column='sampling_meth',
                                       on_delete=models.CASCADE, default=6, blank=True, null=True)
-    sampling_conf = models.ForeignKey('SamplingConfidence', db_index=True, on_delete=models.CASCADE, default=5, blank=True, null=True)
+    sampling_conf = models.ForeignKey('SamplingConfidence', db_index=True, on_delete=models.CASCADE, default=5,
+                                      blank=True, null=True)
     project_name = models.TextField(blank=True, db_index=True, null=True, help_text="Internal or Survey Project Name")
-    project_status = models.CharField(max_length=25, db_index=True, default=3, choices=project_status, blank=True, null=True)
+    project_status = models.CharField(max_length=25, db_index=True, default=3, choices=project_status, blank=True,
+                                      null=True)
     survey_region = models.CharField(max_length=15, choices=ymac_region, blank=True, null=True)
     survey_description = models.TextField(blank=True, null=True,
                                           help_text="Description of the proposed or actual survey")
@@ -519,12 +473,13 @@ class HeritageSurvey(models.Model):
     mod_by = models.ForeignKey('SiteUser', db_index=True, related_name='mod_user', blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
-    spatial_data_exists = models.BooleanField(default=False, help_text="Do we know if there is actually spatial data for the survey?")
+    spatial_data_exists = models.BooleanField(default=False,
+                                              help_text="Do we know if there is actually spatial data for the survey?")
     consultants = models.ManyToManyField('Consultant', db_index=True, blank=True, help_text="Consultants for survey")
-    documents = models.ManyToManyField(SurveyDocument, db_index=True, blank=True, related_name="surveys",
+    documents = models.ManyToManyField('SurveyDocument', db_index=True, blank=True, related_name="surveys",
                                        help_text="Related documents")
     folder_location = models.TextField(blank=True, db_index=True,
-                                       help_text="Location on Z drive of folder") # validators=[valid_directory]
+                                       help_text="Location on Z drive of folder")  # validators=[valid_directory]
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
@@ -536,8 +491,8 @@ class HeritageSurvey(models.Model):
     @property
     def popupContent(self):
         return format_html('<p><Survey Id:{}<br\>Survey Description: {}</p>',
-            self.survey_id,
-            self.survey_description)
+                           self.survey_id,
+                           self.survey_description)
 
     class Meta:
         managed = True
@@ -545,14 +500,48 @@ class HeritageSurvey(models.Model):
 
 
 @python_2_unicode_compatible
-class SurveyMethodology(models.Model):
-    survey_meth = models.CharField(max_length=40, db_index=True)
+class HeritageSurveyTrip(models.Model):
+    survey_trip_id = models.AutoField(primary_key=True)
+    survey_id = models.CharField(max_length=10, validators=[valid_surveyid], db_index=True)
+    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
+    related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
+    trip_number = models.SmallIntegerField(blank=True, null=True, db_index=True)
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return smart_text(self.survey_meth)
+        if self.trip_number:
+            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
+        else:
+            retstr = "{}".format(self.survey_id)
+        return smart_text(retstr)
+
+    def related_label(self):
+        if self.trip_number:
+            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
+        else:
+            retstr = "{}".format(self.survey_id)
+        return smart_text(retstr)
 
     class Meta:
         managed = False
+        ordering = ('survey_id',)
+        index_together = ['survey_id', 'trip_number']
+
+
+@python_2_unicode_compatible
+class HeritageCompanies(models.Model):
+    """
+    Companies who Heritage Surveys have been performed for.
+    """
+    old_code = models.IntegerField(unique=True)
+    company_name = models.CharField(max_length=200, blank=True, null=True, db_index=True)
+
+    class Meta:
+        managed = False
+
+    def __str__(self):
+        return smart_text("Company {}".format(self.company_name))
 
 
 @python_2_unicode_compatible
@@ -592,17 +581,33 @@ class NnttDetermination(models.Model):
     anthro = models.CharField(max_length=200, blank=True, null=True)
     claimgroup = models.CharField(max_length=200, blank=True, null=True)
     lawyer = models.CharField(max_length=200, blank=True, null=True)
-    ymacregion = models.CharField(max_length=200, blank=True, null=True)
     hs_officer = models.CharField(max_length=200, blank=True, null=True)
-    date_created = models.DateTimeField(blank=True, null=True)
-    geom = models.GeometryField(blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        return smart_text(self.name)
+        return smart_text(self.name.strip())
 
     class Meta:
         managed = False
         db_table = 'nntt_determinations'
+
+
+@python_2_unicode_compatible
+class PotentialSurvey(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey.
+    """
+    survey_id = models.CharField(max_length=15)
+    data_path = models.TextField(blank=False, null=False)
+    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
+
+    class Meta:
+        managed = True
+
+    def __str__(self):
+        name = self.data_path if self.data_path else self.cleaning_comment
+        return smart_text("Cleaning Item {}".format(name))
 
 
 @python_2_unicode_compatible
@@ -619,6 +624,17 @@ class Proponent(models.Model):
     class Meta:
         managed = False
         ordering = ('name',)
+
+
+@python_2_unicode_compatible
+class RelatedSurveyCode(models.Model):
+    rel_survey_id = models.CharField(max_length=10, db_index=True)
+
+    class Meta:
+        managed = False
+
+    def __str__(self):
+        return smart_text(self.rel_survey_id)
 
 
 @python_2_unicode_compatible
@@ -672,6 +688,29 @@ class RestrictionStatus(models.Model):
         managed = False
         db_table = 'restriction_status'
         verbose_name_plural = "Restriction Status"
+
+
+@python_2_unicode_compatible
+class RequestUser(models.Model):
+    name = models.CharField(max_length=100, db_index=True)
+    email = models.EmailField()
+    department = models.ForeignKey('Department')
+    office = models.CharField(max_length=20, choices=offices, default="Perth")
+    current_user = models.BooleanField(default=True)
+
+    def __str__(self):
+        return smart_text(self.name)
+
+    class Meta:
+        ordering = ('name',)
+
+
+@python_2_unicode_compatible
+class RequestType(models.Model):
+    name = models.CharField(max_length=45, db_index=True)
+
+    def __str__(self):
+        return smart_text(self.name)
 
 
 @python_2_unicode_compatible
@@ -734,6 +773,149 @@ class Site(models.Model):
 
 
 @python_2_unicode_compatible
+class SamplingConfidence(models.Model):
+    sampling_conf = models.CharField(max_length=30, db_index=True)
+    id = models.AutoField(primary_key=True)
+
+    def __str__(self):
+        return smart_text(self.sampling_conf)
+
+    class Meta:
+        managed = False
+        db_table = 'sampling_confidence'
+
+
+@python_2_unicode_compatible
+class SampleMethodology(models.Model):
+    sampling_meth = models.CharField(unique=True, db_index=True, max_length=20)
+
+    def __str__(self):
+        return smart_text(self.sampling_meth)
+
+    class Meta:
+        managed = False
+        db_table = 'sample_methodology'
+
+
+@python_2_unicode_compatible
+class SiteDescriptions(models.Model):
+    site_description = models.CharField(max_length=60, choices=site_description, db_index=True)
+
+    def __str__(self):
+        return smart_text(self.site_description)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_sitedescriptions'
+        verbose_name_plural = "Site Descriptions"
+
+
+@python_2_unicode_compatible
+class SurveyDocument(models.Model):
+    document_type = models.ForeignKey(DocumentType)
+    filepath = models.TextField(blank=True, null=True, db_index=True, )  # validators=[valid_directory]
+    filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
+    title = models.TextField(blank=True)
+
+    def check_file_exists(self):
+        """
+        Check file is on one of our drives and not local.
+        Also check if file actually exists
+        :return:
+        """
+        fp = path.join(self.filepath, self.filename)
+        drive = path.splitdrive(fp)[0] if not path.splitdrive(fp) else path.splitdrive(fp)[0]
+        if drive not in VALID_DRIVES:
+            return smart_text("Can't find Drive")
+        if not path.isfile(fp):
+            return smart_text("File does not exist")
+
+    def __str__(self):
+        BAD_FIX = {1: "Document : Survey Report",
+                   2: "Document : Preliminary Advice",
+                   3: "Spatial : GPX",
+                   4: "Spatial : Shapefile",
+                   5: "Spatial : Mapinfo",
+                   6: "Spatial : Geodatabase",
+                   7: "Spatial : Google KML",
+                   8: "Image",
+                   9: "Audio",
+                   10: "Video",
+                   11: "Map",
+                   12: "Other"}
+        return smart_text("%s : %s" % (BAD_FIX[self.document_type_id], self.filename))
+
+
+@python_2_unicode_compatible
+class SurveyProponentCode(models.Model):
+    """
+    For when a survey has a proponent code.
+    This used to be the old rio_codes table but expanded.
+    This is a one to many table.
+    """
+    proponent = models.ForeignKey('Proponent', blank=True, db_index=True)
+    proponent_code = models.CharField(max_length=20, blank=True, null=True, db_index=True)
+
+    def __str__(self):
+        if self.proponent_code:
+            return smart_text("{} Code {}".format(self.proponent, self.proponent_code))
+        else:
+            return smart_text("No code")
+
+    class Meta:
+        managed = True
+
+
+@python_2_unicode_compatible
+class SurveyCleaning(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey.
+    """
+    data_path = models.TextField(blank=False, null=False, db_index=True)
+    path_type = models.CharField(max_length=15, blank=True, null=False, db_index=True, choices=path_type)
+
+    class Meta:
+        managed = True
+        ordering = ('surveys__survey_id', 'data_path')
+
+    def __str__(self):
+        if self.data_path:
+            return smart_text("Cleaning Item {}".format(path.split(self.data_path)[1]))
+        return 'No data_path'
+
+
+@python_2_unicode_compatible
+class SurveyTripCleaning(models.Model):
+    """
+    These are cleaning comments and data paths that can be attached
+    to a heritage survey trip.
+    """
+    survey_trip = models.ForeignKey('HeritageSurvey')
+    cleaning_comment = models.TextField(blank=False, null=False)
+    data_path = models.TextField(blank=False, null=False, db_index=True)
+    path_type = models.CharField(max_length=15, blank=True, null=False, choices=path_type)
+
+    class Meta:
+        managed = True
+
+    def __str__(self):
+        name = self.data_path if self.data_path else self.cleaning_comment
+        return smart_text("Trip Cleaning Item {}".format(name))
+
+
+@python_2_unicode_compatible
+class SurveyMethodology(models.Model):
+    survey_meth = models.CharField(max_length=40, db_index=True)
+
+    def __str__(self):
+        return smart_text(self.survey_meth)
+
+    class Meta:
+        managed = False
+
+
+@python_2_unicode_compatible
 class SurveyStatus(models.Model):
     survey_status_id = models.AutoField(primary_key=True)
     status = models.CharField(unique=True, max_length=8, blank=True, null=True, db_index=True)
@@ -747,47 +929,6 @@ class SurveyStatus(models.Model):
 
 
 @python_2_unicode_compatible
-class RelatedSurveyCode(models.Model):
-    rel_survey_id = models.CharField(max_length=10, db_index=True)
-
-    class Meta:
-        managed = False
-
-    def __str__(self):
-        return smart_text(self.rel_survey_id)
-
-
-@python_2_unicode_compatible
-class HeritageSurveyTrip(models.Model):
-    survey_trip_id = models.AutoField(primary_key=True)
-    survey_id = models.CharField(max_length=10, validators=[valid_surveyid], db_index=True)
-    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
-    related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
-    trip_number = models.SmallIntegerField(blank=True, null=True, db_index=True)
-    date_from = models.DateField(blank=True, null=True)
-    date_to = models.DateField(blank=True, null=True)
-
-    def __str__(self):
-        if self.trip_number:
-            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
-        else:
-            retstr = "{}".format(self.survey_id)
-        return smart_text(retstr)
-
-    def related_label(self):
-        if self.trip_number:
-            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
-        else:
-            retstr = "{}".format(self.survey_id)
-        return smart_text(retstr)
-
-    class Meta:
-        managed = False
-        ordering = ('survey_id',)
-        index_together = ['survey_id', 'trip_number']
-
-
-@python_2_unicode_compatible
 class SurveyType(models.Model):
     type_id = models.CharField(unique=True, max_length=4)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True, db_index=True)
@@ -798,6 +939,62 @@ class SurveyType(models.Model):
     class Meta:
         managed = False
         db_table = 'survey_types'
+
+
+@python_2_unicode_compatible
+class TenementsAll(models.Model):
+    fmt_tenid = models.CharField(max_length=20, blank=True, null=True)
+    type = models.CharField(max_length=200, blank=True, null=True)
+    survstatus = models.CharField(max_length=200, blank=True, null=True)
+    tenstatus = models.CharField(max_length=200, blank=True, null=True)
+    startdate = models.DateField(blank=True, null=True)
+    starttime = models.TimeField(blank=True, null=True)
+    enddate = models.DateField(blank=True, null=True)
+    endtime = models.TimeField(blank=True, null=True)
+    grantdate = models.DateField(blank=True, null=True)
+    granttime = models.TimeField(blank=True, null=True)
+    legal_area = models.FloatField(blank=True, null=True)
+    unit_of_me = models.CharField(max_length=200, blank=True, null=True)
+    special_in = models.CharField(max_length=200, blank=True, null=True)
+    combined_r = models.CharField(max_length=200, blank=True, null=True)
+    all_holder = models.CharField(max_length=300, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.fmt_tenid)
+
+    class Meta:
+        managed = True
+        db_table = 'tenements_all'
+
+@python_2_unicode_compatible
+class TenementsYmac(models.Model):
+    fmt_tenid = models.CharField(max_length=20, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
+    type = models.CharField(max_length=200, blank=True, null=True)
+    survstatus = models.CharField(max_length=200, blank=True, null=True)
+    tenstatus = models.CharField(max_length=200, blank=True, null=True)
+    startdate = models.DateField(blank=True, null=True)
+    starttime = models.TimeField(blank=True, null=True)
+    enddate = models.DateField(blank=True, null=True)
+    endtime = models.TimeField(blank=True, null=True)
+    grantdate = models.DateField(blank=True, null=True)
+    granttime = models.TimeField(blank=True, null=True)
+    legal_area = models.FloatField(blank=True, null=True)
+    unit_of_me = models.CharField(max_length=200, blank=True, null=True)
+    special_in = models.CharField(max_length=200, blank=True, null=True)
+    extract_da = models.CharField(max_length=200, blank=True, null=True)
+    combined_r = models.CharField(max_length=200, blank=True, null=True)
+    all_holder = models.CharField(max_length=300, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    def __str__(self):
+        return smart_text(self.fmt_tenid)
+
+    class Meta:
+        managed = False
+        db_table = 'tenements_ymac'
 
 
 @python_2_unicode_compatible
@@ -830,6 +1027,60 @@ class Tenement(models.Model):
         db_table = 'tenement'
 
 
+
+class Tenure(models.Model):
+    alt_pityp = models.CharField(max_length=1, blank=True, null=True)
+    area = models.FloatField(blank=True, null=True)
+    centlat = models.FloatField(blank=True, null=True)
+    centlong = models.FloatField(blank=True, null=True)
+    date_execution = models.DateField(blank=True, null=True)
+    date_surveyed = models.TextField(blank=True, null=True)
+    date_time_boundary_modified = models.DateField(blank=True, null=True)
+    date_time_legal = models.DateField(blank=True, null=True)
+    date_time_polygon_created = models.DateField(blank=True, null=True)
+    date_time_polygon_modified = models.DateField(blank=True, null=True)
+    date_updated = models.DateTimeField(blank=True, null=True)
+    dealing_year = models.IntegerField(blank=True, null=True)
+    dlg_id = models.IntegerField(blank=True, null=True)
+    family_name = models.CharField(max_length=255, blank=True, null=True)
+    fol_rec_id = models.IntegerField(blank=True, null=True)
+    given_name = models.CharField(max_length=255, blank=True, null=True)
+    gprpfx = models.CharField(max_length=2, blank=True, null=True)
+    gprsfx = models.CharField(max_length=4, blank=True, null=True)
+    land_id_number = models.IntegerField()
+    legal_area = models.FloatField(blank=True, null=True)
+    locality = models.CharField(max_length=200, blank=True, null=True)
+    lot_name = models.CharField(max_length=60, blank=True, null=True)
+    lot_number = models.IntegerField(blank=True, null=True)
+    lot_type = models.CharField(max_length=6, blank=True, null=True)
+    organisation_code = models.CharField(max_length=4, blank=True, null=True)
+    piparcel = models.CharField(max_length=17, blank=True, null=True)
+    pityp = models.CharField(max_length=1, blank=True, null=True)
+    polygon_number = models.IntegerField()
+    postcode = models.CharField(max_length=4, blank=True, null=True)
+    proprietor = models.CharField(max_length=255, blank=True, null=True)
+    rd_name = models.CharField(max_length=40, blank=True, null=True)
+    rd_type = models.CharField(max_length=4, blank=True, null=True)
+    region = models.CharField(max_length=5, blank=True, null=True)
+    sale_date = models.DateField(blank=True, null=True)
+    the_geom = models.TextField(blank=True, null=True)
+    usage_code = models.IntegerField(blank=True, null=True)
+    zone = models.IntegerField(blank=True, null=True)
+    gml_parent_id = models.TextField(blank=True, null=True)
+    gml_parent_property = models.TextField(blank=True, null=True)
+    gml_id = models.TextField(blank=True, null=True)
+    view_scale = models.CharField(max_length=1, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    dealing_type = models.CharField(max_length=2, blank=True, null=True)
+    register = models.CharField(max_length=13, blank=True, null=True)
+    address_no_type = models.CharField(max_length=1, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tenure'
+        unique_together = (('land_id_number', 'polygon_number'), ('land_id_number', 'polygon_number'),)
+
+
 @python_2_unicode_compatible
 class YmacClaim(models.Model):
     tribid = models.CharField(max_length=30, blank=True, null=True)
@@ -859,7 +1110,7 @@ class YmacClaim(models.Model):
     zone12nm = models.CharField(max_length=1, blank=True, null=True)
     zone24nm = models.CharField(max_length=1, blank=True, null=True)
     zoneeez = models.CharField(max_length=1, blank=True, null=True)
-    nnttseqno = models.CharField(primary_key=True, max_length=14)
+    nnttseqno = models.CharField(max_length=14)
     objectind = models.CharField(max_length=1, blank=True, null=True)
     sptialnote = models.CharField(max_length=120, blank=True, null=True)
     juris = models.CharField(max_length=10, blank=True, null=True)
@@ -871,16 +1122,37 @@ class YmacClaim(models.Model):
     lawyer = models.CharField(max_length=200, blank=True, null=True)
     hs_officer = models.CharField(max_length=200, blank=True, null=True)
     date_created = models.DateTimeField(blank=True, null=True)
-    geom = models.GeometryField(blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
+    current = models.BooleanField(default=False)
 
     def __str__(self):
-        return smart_text(self.name)
+        return smart_text(self.name.strip())
+
+    class Meta:
+        managed = True
+        db_table = 'ymac_claims'
+        ordering = ('name',)
+
+@python_2_unicode_compatible
+class YmacEmitTenements(models.Model):
+    title = models.CharField(primary_key=True, max_length=20)
+    objectiondate = models.TextField(blank=True, null=True)
+    datereceived = models.DateField(blank=True, null=True)
+    applicants = models.CharField(max_length=200, blank=True, null=True)
+    row_to_check = models.NullBooleanField(blank=True, null=True)
+    claimgroup = ArrayField(models.TextField(blank=True, null=True))
+    ymac_region = models.NullBooleanField(blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True)
+
+    def __str__(self):
+        return smart_text(self.title.strip())
 
     class Meta:
         managed = False
-        db_table = 'ymac_claims'
-        ordering = ('name',)
+        db_table = 'ymac_db_emits_tenement'
+        ordering = ('datereceived','title')
+
 
 
 @python_2_unicode_compatible
@@ -952,7 +1224,6 @@ class YmacStaff(models.Model):
     first_name = models.CharField(max_length=30, blank=True, null=True)
     current_staff = models.BooleanField(default=True)
 
-
     def __str__(self):
         return smart_text(self.full_name)
 
@@ -963,45 +1234,24 @@ class YmacStaff(models.Model):
         verbose_name_plural = 'YMAC Staff'
 
 
-@python_2_unicode_compatible
-class Consultant(models.Model):
-    """
-    Survey Consultants
-    """
-    name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
-    employee = models.NullBooleanField()
-    company = models.ForeignKey('CaptureOrg', blank=True, null=True, db_index=True)
-    email = models.EmailField(blank=True, null=True)
-
-    def __str__(self):
-        if self.name:
-            return smart_text(self.name)
-        else:
-            return smart_text("Employee of {}".format(self.company))
-
-    class Meta:
-        managed = False
-        ordering = ('name',)
+def user_directory_path(self, filename):
+    # file will be uploaded to MEDIA_ROOT/<jid>/<filename>
+    jc = self.request.job_control
+    if not jc:
+        jc = self.request.job_control
+    return '{0}/{1}'.format(jc, filename)
 
 
 @python_2_unicode_compatible
-class CaptureOrg(models.Model):
-    organisation_name = models.TextField(db_index=True)
-    organisation_contact = models.CharField(max_length=100, blank=True, null=True, help_text="Main Contact Name")
-    organisation_email = models.EmailField(blank=True, null=True, help_text="Main Contact Email")
-    organisation_phone = models.CharField(max_length=16, blank=True, null=True)
-    organisation_address = models.TextField(blank=True, null=True)
-    organisation_suburb = models.TextField(blank=True, null=True)
-    organisation_state = models.CharField(max_length=3, blank=True, null=True, choices=states)
-    organisation_postcode = models.IntegerField(blank=True, null=True)
-    organisation_website = models.URLField(blank=True, null=True)
+class YMACRequestFiles(models.Model):
+    """
+    Will clean up all these files after approval
+    """
+    request = models.ForeignKey('YMACSpatialRequest')
+    file = models.FileField(upload_to=user_directory_path)
 
     def __str__(self):
-        return smart_text(self.organisation_name)
-
-    class Meta:
-        managed = False
-        db_table = 'ymac_db_captureorg'
+        return smart_text(self.file)
 
 
 @python_2_unicode_compatible
@@ -1047,38 +1297,6 @@ class SurveyGroup(models.Model):
 
 
 @python_2_unicode_compatible
-class Department(models.Model):
-    name = models.CharField(max_length=25, choices=departments, db_index=True)
-    head = models.ForeignKey(YmacStaff)
-
-    def __str__(self):
-        return smart_text(self.name)
-
-
-@python_2_unicode_compatible
-class RequestUser(models.Model):
-    name = models.CharField(max_length=100, db_index=True)
-    email = models.EmailField()
-    department = models.ForeignKey('Department')
-    office = models.CharField(max_length=20, choices=offices, default="Perth")
-    current_user = models.BooleanField(default=True)
-
-    def __str__(self):
-        return smart_text(self.name)
-
-    class Meta:
-        ordering = ('name',)
-
-
-@python_2_unicode_compatible
-class RequestType(models.Model):
-    name = models.CharField(max_length=45, db_index=True)
-
-    def __str__(self):
-        return smart_text(self.name)
-
-
-@python_2_unicode_compatible
 class YMACSpatialRequest(models.Model):
     """
     Still need to add in the choices for each
@@ -1092,12 +1310,12 @@ class YMACSpatialRequest(models.Model):
     job_desc = models.TextField()
     job_control = models.CharField(max_length=9, blank=True, validators=[valid_job_number])
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
-                                                                         "you wish then please select.",
+                                                                            "you wish then please select.",
                                 blank=True, null=True)
     sup_data_text = models.TextField(blank=True, help_text="If you have any data with this then please "
-                                                      "provide instructions as to where it can be located. "
-                                                      "Alternatively send a separate email to "
-                                                      "spatial@ymac.org.au with directions or as attachments.")
+                                                           "provide instructions as to where it can be located. "
+                                                           "Alternatively send a separate email to "
+                                                           "spatial@ymac.org.au with directions or as attachments.")
     required_by = models.DateField()
     request_datetime = models.DateTimeField(blank=True, auto_now_add=True)
     completed_datetime = models.DateTimeField(blank=True)
@@ -1122,6 +1340,7 @@ class YMACSpatialRequest(models.Model):
 
     class Meta:
         ordering = ('-request_datetime',)
+
     def __str__(self):
         return smart_text("{}".format(self.job_control))
 
@@ -1133,44 +1352,13 @@ class YMACSpatialRequest(models.Model):
         if not self.job_control:
             year = datetime.datetime.now().strftime("%Y")
             try:
-                control_number = int(max([ qs.job_control for qs in YMACSpatialRequest.objects.filter(
+                control_number = int(max([qs.job_control for qs in YMACSpatialRequest.objects.filter(
                     job_control__icontains=year)]
                                          ).split("-")[1]
                                      ) + 1
             except ValueError:
                 control_number = 1
             return "J{0}-{1:0>3}".format(year, control_number)
-
-
-
-@python_2_unicode_compatible
-class FileCleanUp(models.Model):
-    """
-    Will clean up all these files after approval
-    """
-    data_path = models.TextField(db_index=True)
-    submitted_user = models.ForeignKey(User)
-
-    def __str__(self):
-        return smart_text(self.data_path)
-
-def user_directory_path(self, filename):
-    # file will be uploaded to MEDIA_ROOT/<jid>/<filename>
-    jc = self.request.job_control
-    if not jc:
-        jc = self.request.job_control
-    return '{0}/{1}'.format(jc, filename)
-
-@python_2_unicode_compatible
-class YMACRequestFiles(models.Model):
-    """
-    Will clean up all these files after approval
-    """
-    request = models.ForeignKey(YMACSpatialRequest)
-    file = models.FileField(upload_to=user_directory_path)
-
-    def __str__(self):
-        return smart_text(self.file)
 
 
 @python_2_unicode_compatible

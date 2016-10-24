@@ -488,7 +488,7 @@ class Migration(migrations.Migration):
             name='YmacClaim',
             fields=[
                 ('tribid', models.CharField(blank=True, max_length=30, null=True)),
-                ('name', models.CharField(blank=True, max_length=102, null=True)),
+                ('name', models.CharField(blank=True, max_length=102, null=True, db_index=True)),
                 ('fcno', models.CharField(blank=True, max_length=20, null=True)),
                 ('datelodged', models.DateField(blank=True, null=True)),
                 ('status', models.CharField(blank=True, max_length=30, null=True)),
@@ -526,8 +526,9 @@ class Migration(migrations.Migration):
                 ('lawyer', models.CharField(blank=True, max_length=200, null=True)),
                 ('hs_officer', models.CharField(blank=True, max_length=200, null=True)),
                 ('date_created', models.DateTimeField(blank=True, null=True)),
-                ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4326)),
+                ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4283)),
                 ('claim_group_id', models.CharField(blank=True, max_length=5, null=True)),
+                ('id',models.AutoField(primary_key=True, serialize=True, verbose_name='ID'),)
             ],
             options={
                 'db_table': 'ymac_claims',
