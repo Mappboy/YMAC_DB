@@ -12,7 +12,7 @@ def emit_week(day):
     """
     day_of_week = day.weekday()
 
-    to_beginning_of_week = timedelta(days=day_of_week)
+    to_beginning_of_week = timedelta(days=day_of_week - 1)
     beginning_of_week = day - to_beginning_of_week
 
     to_end_of_week = timedelta(days=-7)
