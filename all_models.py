@@ -10,44 +10,19 @@ from __future__ import unicode_literals
 from django.contrib.gis.db import models
 
 
-class AssociationDocsTable(models.Model):
-    ymac_site = models.ForeignKey('Sites', models.DO_NOTHING)
-    site_doc = models.ForeignKey('SiteDocuments', models.DO_NOTHING)
+class YmacRegion(models.Model):
+    org = models.CharField(max_length=200, blank=True, null=True)
+    name = models.CharField(max_length=200, blank=True, null=True)
+    gazetted = models.CharField(max_length=200, blank=True, null=True)
+    effective = models.CharField(max_length=200, blank=True, null=True)
+    comments = models.CharField(max_length=200, blank=True, null=True)
+    juris = models.CharField(max_length=200, blank=True, null=True)
+    createdate = models.CharField(max_length=10, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'association_docs_table'
-        unique_together = (('ymac_site', 'site_doc'),)
-
-
-class AssociationExtSitesTable(models.Model):
-    ymac_site = models.ForeignKey('Sites', models.DO_NOTHING)
-    external = models.ForeignKey('ExternalClientSites', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'association_ext_sites_table'
-        unique_together = (('ymac_site', 'external'),)
-
-
-class AssociationSitesSurveyTable(models.Model):
-    ymac_site = models.ForeignKey('Sites', models.DO_NOTHING)
-    ymac_survey = models.ForeignKey('SurveyTrips', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'association_sites_survey_table'
-        unique_together = (('ymac_site', 'ymac_survey'),)
-
-
-class AssociationSitesTable(models.Model):
-    ymac_site = models.ForeignKey('Sites', models.DO_NOTHING)
-    daa_site = models.ForeignKey('DaaSites', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'association_sites_table'
-        unique_together = (('ymac_site', 'daa_site'),)
+        db_table = 'YMAC_region'
 
 
 class AuthGroup(models.Model):
@@ -145,7 +120,7 @@ class Cadastre(models.Model):
     the_geom = models.TextField(blank=True, null=True)
     usage_code = models.IntegerField(blank=True, null=True)
     view_scale = models.CharField(max_length=1, blank=True, null=True)
-    geom = models.MultiPolygonField(srid=0, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -153,49 +128,61 @@ class Cadastre(models.Model):
         unique_together = (('land_id_number', 'polygon_number'), ('land_id_number', 'polygon_number'),)
 
 
+class DaaSiteHistory(models.Model):
+    place_id = models.CharField(max_length=20)
+    name = models.CharField(max_length=200, blank=True, null=True)
+    legacy_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=200, blank=True, null=True)
+    status_reason = models.CharField(max_length=200, blank=True, null=True)
+    origin_place_id = models.CharField(max_length=200, blank=True, null=True)
+    type = models.TextField(blank=True, null=True)
+    region = models.CharField(max_length=200, blank=True, null=True)
+    restrictions = models.CharField(max_length=200, blank=True, null=True)
+    file_restricted = models.CharField(max_length=200, blank=True, null=True)
+    location_restricted = models.CharField(max_length=200, blank=True, null=True)
+    boundary_reliable = models.CharField(max_length=200, blank=True, null=True)
+    protected_area = models.CharField(max_length=200, blank=True, null=True)
+    protected_area_gazetted_date = models.DateField(blank=True, null=True)
+    national_estate_area = models.CharField(max_length=200, blank=True, null=True)
+    duplicate_id = models.CharField(max_length=200, blank=True, null=True)
+    boundary_last_update_date = models.DateField(blank=True, null=True)
+    shape_length = models.CharField(max_length=200, blank=True, null=True)
+    shape_area = models.CharField(max_length=200, blank=True, null=True)
+    ymac_update = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    modified_time = models.DateTimeField()
+    operation = models.CharField(max_length=20)
+    area_difference = models.FloatField(blank=True, null=True)
+    geom_change = models.NullBooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'daa_site_history'
+        unique_together = (('place_id', 'operation', 'modified_time'),)
+
+
 class DaaSites(models.Model):
-    id = models.FloatField(primary_key=True)
-    siteid = models.CharField(max_length=30, blank=True, null=True)
-    siteuniqid = models.FloatField(blank=True, null=True)
-    sitetoid = models.CharField(max_length=50, blank=True, null=True)
-    recordorg = models.CharField(max_length=50, blank=True, null=True)
-    svysqnceid = models.FloatField(blank=True, null=True)
-    sitename = models.CharField(max_length=60, blank=True, null=True)
-    atlsitenam = models.CharField(max_length=60, blank=True, null=True)
-    steident = models.CharField(max_length=20, blank=True, null=True)
-    sitecatid = models.CharField(max_length=20, blank=True, null=True)
-    recordby = models.CharField(max_length=40, blank=True, null=True)
-    daterecord = models.DateTimeField(blank=True, null=True)
-    complexnme = models.CharField(max_length=50, blank=True, null=True)
-    accssstat = models.CharField(max_length=20, blank=True, null=True)
-    siteclass = models.CharField(max_length=25, blank=True, null=True)
-    bndrytype = models.CharField(max_length=25, blank=True, null=True)
-    captaccy = models.CharField(max_length=20, blank=True, null=True)
-    dstblevel = models.CharField(max_length=25, blank=True, null=True)
-    sitedocs = models.CharField(max_length=100, blank=True, null=True)
-    comments = models.CharField(max_length=254, blank=True, null=True)
-    fldnotref = models.CharField(max_length=50, blank=True, null=True)
-    lbl_x_ll = models.FloatField(blank=True, null=True)
-    lbl_y_ll = models.FloatField(blank=True, null=True)
-    captdvc = models.CharField(max_length=75, blank=True, null=True)
-    capcordsys = models.CharField(max_length=25, blank=True, null=True)
-    datecreate = models.DateTimeField(blank=True, null=True)
-    createby = models.CharField(max_length=50, blank=True, null=True)
-    crrptid = models.CharField(max_length=12, blank=True, null=True)
-    section_5 = models.CharField(max_length=10, blank=True, null=True)
-    spatialnte = models.CharField(max_length=70, blank=True, null=True)
-    bufdist_mr = models.FloatField(blank=True, null=True)
-    daasite_no = models.CharField(max_length=15, blank=True, null=True)
-    datemod = models.DateTimeField(blank=True, null=True)
-    modby = models.CharField(max_length=50, blank=True, null=True)
-    restsentve = models.CharField(max_length=10, blank=True, null=True)
-    locnrest = models.CharField(max_length=15, blank=True, null=True)
-    filerest = models.CharField(max_length=15, blank=True, null=True)
-    negbndy = models.CharField(max_length=25, blank=True, null=True)
-    rschmthlgy = models.CharField(max_length=30, blank=True, null=True)
-    agreareaid = models.CharField(max_length=10, blank=True, null=True)
-    agreetype = models.CharField(max_length=50, blank=True, null=True)
-    geom = models.GeometryField(geography=True, blank=True, null=True)
+    place_id = models.CharField(primary_key=True, max_length=200)
+    name = models.CharField(max_length=200, blank=True, null=True)
+    legacy_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=200, blank=True, null=True)
+    status_reason = models.CharField(max_length=200, blank=True, null=True)
+    origin_place_id = models.CharField(max_length=200, blank=True, null=True)
+    type = models.TextField(blank=True, null=True)
+    region = models.CharField(max_length=200, blank=True, null=True)
+    restrictions = models.CharField(max_length=200, blank=True, null=True)
+    file_restricted = models.CharField(max_length=200, blank=True, null=True)
+    location_restricted = models.CharField(max_length=200, blank=True, null=True)
+    boundary_reliable = models.CharField(max_length=200, blank=True, null=True)
+    protected_area = models.CharField(max_length=200, blank=True, null=True)
+    protected_area_gazetted_date = models.DateField(blank=True, null=True)
+    national_estate_area = models.CharField(max_length=200, blank=True, null=True)
+    duplicate_id = models.CharField(max_length=200, blank=True, null=True)
+    boundary_last_update_date = models.DateField(blank=True, null=True)
+    shape_length = models.CharField(max_length=200, blank=True, null=True)
+    shape_area = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    ymac_asat = models.DateField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -254,6 +241,28 @@ class DjangoSession(models.Model):
         db_table = 'django_session'
 
 
+class Emit(models.Model):
+    title = models.CharField(primary_key=True, max_length=20)
+    content = models.TextField(blank=True, null=True)
+    id = models.TextField(blank=True, null=True)
+    publisheddate = models.TextField(blank=True, null=True)
+    linkuri = models.TextField(blank=True, null=True)
+    field_minfield = models.CharField(db_column='_minfield', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    possibleclaimgroups = models.CharField(max_length=200, blank=True, null=True)
+    datereceived = models.DateField(blank=True, null=True)
+    markout = models.CharField(max_length=200, blank=True, null=True)
+    area = models.CharField(max_length=200, blank=True, null=True)
+    shire = models.CharField(max_length=200, blank=True, null=True)
+    applicants = models.CharField(max_length=200, blank=True, null=True)
+    objectiondate = models.CharField(max_length=200, blank=True, null=True)
+    miningregistrar = models.CharField(max_length=200, blank=True, null=True)
+    tenement = models.ForeignKey('TenementsAll', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'emit'
+
+
 class ExternalClientSites(models.Model):
     external_id = models.AutoField(primary_key=True)
     external_site_id = models.CharField(max_length=-1, blank=True, null=True)
@@ -265,40 +274,6 @@ class ExternalClientSites(models.Model):
         db_table = 'external_client_sites'
 
 
-class HeritageSites(models.Model):
-    heritage_site_id = models.AutoField(primary_key=True)
-    site_description = models.ForeignKey('YmacDbSitedescriptions', models.DO_NOTHING, blank=True, null=True)
-    boundary_description = models.CharField(max_length=30, blank=True, null=True)
-    disturbance_level = models.CharField(max_length=30, blank=True, null=True)
-    site_comments = models.CharField(max_length=-1, blank=True, null=True)
-    site = models.ForeignKey('Sites', models.DO_NOTHING, blank=True, null=True)
-    status = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'heritage_sites'
-
-
-class HeritageSitesDocuments(models.Model):
-    heritagesite = models.ForeignKey(HeritageSites, models.DO_NOTHING)
-    sitedocument = models.ForeignKey('SiteDocuments', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'heritage_sites_documents'
-        unique_together = (('heritagesite', 'sitedocument'),)
-
-
-class HeritageSitesHeritageSurveys(models.Model):
-    heritagesite = models.ForeignKey(HeritageSites, models.DO_NOTHING)
-    heritagesurvey = models.ForeignKey('HeritageSurveys', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'heritage_sites_heritage_surveys'
-        unique_together = (('heritagesite', 'heritagesurvey'),)
-
-
 class HeritageSurveys(models.Model):
     survey_trip_id = models.AutoField(primary_key=True)
     status = models.IntegerField(blank=True, null=True)
@@ -306,23 +281,20 @@ class HeritageSurveys(models.Model):
     comments = models.TextField(blank=True, null=True)
     proponent_id = models.CharField(max_length=5, blank=True, null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
-    survey_type = models.ForeignKey('SurveyTypes', models.DO_NOTHING, db_column='survey_type', blank=True, null=True)
-    sampling_meth = models.ForeignKey('SampleMethodology', models.DO_NOTHING, db_column='sampling_meth', blank=True,
-                                      null=True)
+    survey_type = models.CharField(max_length=4, blank=True, null=True)
+    sampling_meth = models.CharField(max_length=20, blank=True, null=True)
     ymac_svy_name = models.CharField(max_length=200, blank=True, null=True)
     survey_name = models.CharField(max_length=200, blank=True, null=True)
     date_create = models.DateField(blank=True, null=True)
-    sampling_conf = models.ForeignKey('SamplingConfidence', models.DO_NOTHING, db_column='sampling_conf', blank=True,
-                                      null=True)
-    created_by = models.CharField(max_length=50, blank=True, null=True)
+    sampling_conf = models.CharField(max_length=200, blank=True, null=True)
+    created_by_id = models.IntegerField(blank=True, null=True)
     date_mod = models.DateField(blank=True, null=True)
-    mod_by = models.CharField(max_length=200, blank=True, null=True)
+    mod_by_id = models.IntegerField(blank=True, null=True)
     propref = models.CharField(max_length=200, blank=True, null=True)
-    geom = models.GeometryField(srid=28350, blank=True, null=True)
-    data_supplier = models.ForeignKey(DataSuppliers, models.DO_NOTHING, db_column='data_supplier', blank=True,
-                                      null=True)
-    data_qa = models.BooleanField()
+    data_supplier = models.CharField(max_length=50, blank=True, null=True)
+    data_qa = models.NullBooleanField()
     collected_by = models.CharField(max_length=60, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -330,9 +302,8 @@ class HeritageSurveys(models.Model):
 
 
 class HsRioCodes(models.Model):
-    survey_trip = models.ForeignKey(HeritageSurveys, models.DO_NOTHING)
-    field_rac_table = models.CharField(db_column='_rac_table', max_length=50, blank=True,
-                                       null=True)  # Field renamed because it started with '_'.
+    survey_trip_id = models.AutoField()
+    field_rac_table = models.CharField(db_column='_rac_table', max_length=50, blank=True, null=True)  # Field renamed because it started with '_'.
 
     class Meta:
         managed = False
@@ -340,7 +311,7 @@ class HsRioCodes(models.Model):
 
 
 class HsSvmythlgy(models.Model):
-    survey_trip = models.ForeignKey(HeritageSurveys, models.DO_NOTHING)
+    survey_trip_id = models.AutoField()
     svy_meth = models.CharField(max_length=40, blank=True, null=True)
 
     class Meta:
@@ -403,6 +374,27 @@ class IluaGeog(models.Model):
     class Meta:
         managed = False
         db_table = 'ilua_geog'
+
+
+class JetBookmark(models.Model):
+    url = models.CharField(max_length=200)
+    title = models.CharField(max_length=255)
+    user = models.IntegerField()
+    date_add = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'jet_bookmark'
+
+
+class JetPinnedapplication(models.Model):
+    app_label = models.CharField(max_length=255)
+    user = models.IntegerField()
+    date_add = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'jet_pinnedapplication'
 
 
 class LandgateHistory(models.Model):
@@ -488,10 +480,8 @@ class NnttDeterminations(models.Model):
     anthro = models.CharField(max_length=200, blank=True, null=True)
     claimgroup = models.CharField(max_length=200, blank=True, null=True)
     lawyer = models.CharField(max_length=200, blank=True, null=True)
-    ymacregion = models.CharField(max_length=200, blank=True, null=True)
     hs_officer = models.CharField(max_length=200, blank=True, null=True)
-    date_created = models.DateTimeField(blank=True, null=True)
-    geom = models.GeometryField(srid=3577, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -617,32 +607,54 @@ class OutcomesGeog(models.Model):
         db_table = 'outcomes_geog'
 
 
-class Proponents(models.Model):
-    prop_id = models.CharField(primary_key=True, max_length=10)
-    name = models.TextField()
-    contact = models.TextField(blank=True, null=True)
-    email = models.TextField(blank=True, null=True)
+class RegionDistances(models.Model):
+    pid = models.IntegerField(primary_key=True)
+    distance = models.BigIntegerField(blank=True, null=True)
+    distance_text = models.TextField(blank=True, null=True)
+    duration_text = models.TextField(blank=True, null=True)
+    start_address = models.TextField(blank=True, null=True)
+    end_address = models.TextField(blank=True, null=True)
+    totl_outer = models.CharField(max_length=20, blank=True, null=True)
+    totl_inner = models.CharField(max_length=20, blank=True, null=True)
+    region = models.CharField(max_length=200, blank=True, null=True)
+    origin = models.CharField(max_length=200, blank=True, null=True)
+    destination = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=3857, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'proponents'
+        db_table = 'region_distances'
+
+
+class RegionSubdistances(models.Model):
+    section = models.CharField(max_length=200, blank=True, null=True)
+    step = models.CharField(max_length=200, blank=True, null=True)
+    distance = models.CharField(max_length=200, blank=True, null=True)
+    length = models.CharField(max_length=200, blank=True, null=True)
+    calc = models.CharField(max_length=200, blank=True, null=True)
+    pid = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'region_subdistances'
 
 
 class ResearchSites(models.Model):
     research_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Sites', models.DO_NOTHING, blank=True, null=True)
     site_classification = models.CharField(max_length=30, blank=True, null=True)
-    site_location = models.CharField(max_length=30, blank=True, null=True)
-    site_comments = models.CharField(max_length=-1, blank=True, null=True)
-    ethno_detail = models.CharField(max_length=-1, blank=True, null=True)
-    reference = models.CharField(max_length=-1, blank=True, null=True)
-    site_name = models.CharField(max_length=-1, blank=True, null=True)
-    site_label = models.CharField(max_length=-1, blank=True, null=True)
-    alt_site_name = models.CharField(max_length=-1, blank=True, null=True)
-    site_number = models.IntegerField(blank=True, null=True)
     site_category = models.CharField(max_length=30, blank=True, null=True)
+    site_location = models.CharField(max_length=30, blank=True, null=True)
+    site_comments = models.TextField(blank=True, null=True)
+    ethno_detail = models.TextField(blank=True, null=True)
+    reference = models.TextField(blank=True, null=True)
+    site_name = models.TextField(blank=True, null=True)
+    site_label = models.TextField(blank=True, null=True)
+    alt_site_name = models.TextField(blank=True, null=True)
+    site_number = models.IntegerField(blank=True, null=True)
     family_affiliation = models.TextField(blank=True, null=True)
     mapsheet = models.TextField(blank=True, null=True)
+    site = models.ForeignKey('YmacDbSite', models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -709,8 +721,7 @@ class Reserves(models.Model):
     responsible_agency = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=5, blank=True, null=True)
     the_geom = models.TextField(blank=True, null=True)
-    type_field = models.CharField(db_column='type_', max_length=22, blank=True,
-                                  null=True)  # Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='type_', max_length=22, blank=True, null=True)  # Field renamed because it ended with '_'.
     usage_code = models.IntegerField(blank=True, null=True)
     vesting = models.CharField(max_length=255, blank=True, null=True)
     view_scale = models.CharField(max_length=1, blank=True, null=True)
@@ -733,7 +744,7 @@ class RestrictionStatus(models.Model):
 
 
 class SampleMethodology(models.Model):
-    sampling_meth = models.CharField(unique=True, max_length=20, blank=True, null=True)
+    sampling_meth = models.CharField(unique=True, max_length=20)
 
     class Meta:
         managed = False
@@ -741,7 +752,7 @@ class SampleMethodology(models.Model):
 
 
 class SamplingConfidence(models.Model):
-    sampling_conf = models.CharField(primary_key=True, max_length=30)
+    sampling_conf = models.CharField(unique=True, max_length=30)
 
     class Meta:
         managed = False
@@ -750,33 +761,13 @@ class SamplingConfidence(models.Model):
 
 class SiteDocuments(models.Model):
     doc_id = models.AutoField(primary_key=True)
-    document_type = models.CharField(max_length=15, blank=True, null=True)
-    filepath = models.CharField(max_length=-1, blank=True, null=True)
-    filename = models.CharField(max_length=-1, blank=True, null=True)
+    document_type = models.CharField(max_length=15)
+    filepath = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'site_documents'
-
-
-class Sites(models.Model):
-    site_id = models.AutoField(primary_key=True)
-    recorded_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='recorded_by', blank=True, null=True)
-    date_recorded = models.DateField(blank=True, null=True)
-    group_name = models.CharField(max_length=-1, blank=True, null=True)
-    restricted_status = models.ForeignKey(RestrictionStatus, models.DO_NOTHING, db_column='restricted_status',
-                                          blank=True, null=True)
-    label_x_ll = models.FloatField(blank=True, null=True)
-    label_y_ll = models.FloatField(blank=True, null=True)
-    date_created = models.DateField(blank=True, null=True)
-    created_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='created_by', blank=True, null=True)
-    active = models.NullBooleanField()
-    capture_coord_sys = models.CharField(max_length=-1, blank=True, null=True)
-    geom = models.GeometryField(srid=4283, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'sites'
 
 
 class SurveyStatus(models.Model):
@@ -801,12 +792,83 @@ class SurveyTrips(models.Model):
 
 
 class SurveyTypes(models.Model):
-    type_id = models.CharField(primary_key=True, max_length=4)
+    type_id = models.CharField(unique=True, max_length=4)
     description = models.CharField(unique=True, max_length=25, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'survey_types'
+
+
+class TempRes(models.Model):
+    view_scale = models.CharField(max_length=1, blank=True, null=True)
+    land_type = models.CharField(max_length=6, blank=True, null=True)
+    pi_type = models.CharField(max_length=1, blank=True, null=True)
+    area_derivation_indicator = models.CharField(max_length=1, blank=True, null=True)
+    centroid_coordinate_method = models.CharField(max_length=1, blank=True, null=True)
+    reserve_class = models.CharField(max_length=1, blank=True, null=True)
+    status = models.CharField(max_length=5, blank=True, null=True)
+    date_time_created = models.DateField(blank=True, null=True)
+    date_time_modified = models.DateField(blank=True, null=True)
+    date_time_retired = models.DateField(blank=True, null=True)
+    date_time_boundary_modified = models.DateField(blank=True, null=True)
+    area = models.FloatField(blank=True, null=True)
+    centroid_latitude = models.FloatField(blank=True, null=True)
+    centroid_longitude = models.FloatField(blank=True, null=True)
+    calculated_area = models.FloatField(blank=True, null=True)
+    legal_area = models.FloatField(blank=True, null=True)
+    ogc_fid = models.IntegerField(blank=True, null=True)
+    polygon_number = models.IntegerField(blank=True, null=True)
+    land_id_number = models.IntegerField(blank=True, null=True)
+    usage_code = models.IntegerField(blank=True, null=True)
+    lot_number = models.IntegerField(blank=True, null=True)
+    reserve_number = models.IntegerField(blank=True, null=True)
+    org_gaz_page = models.IntegerField(blank=True, null=True)
+    gml_parent_id = models.TextField(blank=True, null=True)
+    gml_parent_property = models.TextField(blank=True, null=True)
+    gml_id = models.TextField(blank=True, null=True)
+    the_geom = models.TextField(blank=True, null=True)
+    org_gazl_date = models.TextField(blank=True, null=True)
+    reserve_date_time_created = models.TextField(blank=True, null=True)
+    reserve_date_time_updated = models.TextField(blank=True, null=True)
+    box_id = models.CharField(max_length=200, blank=True, null=True)
+    count = models.CharField(max_length=200, blank=True, null=True)
+    field_xmax = models.CharField(db_column='_xmax', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_xmin = models.CharField(db_column='_xmin', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_ymax = models.CharField(db_column='_ymax', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_ymin = models.CharField(db_column='_ymin', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_zmax = models.CharField(db_column='_zmax', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_zmin = models.CharField(db_column='_zmin', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_bbox = models.CharField(db_column='_bbox', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_url = models.CharField(db_column='_url', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    render_normal = models.CharField(max_length=12, blank=True, null=True)
+    pi_parcel = models.CharField(max_length=17, blank=True, null=True)
+    area_derivation_method = models.CharField(max_length=2, blank=True, null=True)
+    lga = models.CharField(max_length=60, blank=True, null=True)
+    reserveno = models.CharField(max_length=17, blank=True, null=True)
+    detail_type = models.CharField(max_length=2000, blank=True, null=True)
+    detail_text = models.CharField(max_length=2000, blank=True, null=True)
+    current_purpose = models.CharField(max_length=2000, blank=True, null=True)
+    lu1 = models.CharField(max_length=255, blank=True, null=True)
+    lu2 = models.CharField(max_length=255, blank=True, null=True)
+    lu3 = models.CharField(max_length=255, blank=True, null=True)
+    lu4 = models.CharField(max_length=255, blank=True, null=True)
+    lu5 = models.CharField(max_length=255, blank=True, null=True)
+    vesting = models.CharField(max_length=255, blank=True, null=True)
+    mo1 = models.CharField(max_length=255, blank=True, null=True)
+    mo2 = models.CharField(max_length=255, blank=True, null=True)
+    mo3 = models.CharField(max_length=255, blank=True, null=True)
+    mo4 = models.CharField(max_length=255, blank=True, null=True)
+    responsible_agency = models.CharField(max_length=255, blank=True, null=True)
+    type_field = models.CharField(db_column='type_', max_length=22, blank=True, null=True)  # Field renamed because it ended with '_'.
+    notes = models.CharField(max_length=255, blank=True, null=True)
+    reserve_nfn_additional_text = models.CharField(max_length=400, blank=True, null=True)
+    reserve_name = models.CharField(max_length=2000, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'temp_res'
 
 
 class TenGprpfx(models.Model):
@@ -865,8 +927,7 @@ class TenementHistory(models.Model):
     extract_date = models.DateField(blank=True, null=True)
     combined_r = models.CharField(max_length=10, blank=True, null=True)
     all_holder = models.CharField(max_length=254, blank=True, null=True)
-    field_timestamp = models.DateTimeField(db_column='_timestamp', blank=True,
-                                           null=True)  # Field renamed because it started with '_'.
+    field_timestamp = models.DateTimeField(db_column='_timestamp', blank=True, null=True)  # Field renamed because it started with '_'.
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
@@ -875,22 +936,22 @@ class TenementHistory(models.Model):
 
 
 class TenementsAll(models.Model):
-    type = models.CharField(max_length=50, blank=True, null=True)
-    survstatus = models.CharField(max_length=15, blank=True, null=True)
-    tenstatus = models.CharField(max_length=10, blank=True, null=True)
+    fmt_tenid = models.CharField(max_length=20, blank=True, null=True)
+    type = models.CharField(max_length=200, blank=True, null=True)
+    survstatus = models.CharField(max_length=200, blank=True, null=True)
+    tenstatus = models.CharField(max_length=200, blank=True, null=True)
     startdate = models.DateField(blank=True, null=True)
     starttime = models.TimeField(blank=True, null=True)
     enddate = models.DateField(blank=True, null=True)
     endtime = models.TimeField(blank=True, null=True)
     grantdate = models.DateField(blank=True, null=True)
     granttime = models.TimeField(blank=True, null=True)
-    fmt_tenid = models.CharField(primary_key=True, max_length=16)
     legal_area = models.FloatField(blank=True, null=True)
-    unit_of_me = models.CharField(max_length=4, blank=True, null=True)
-    special_in = models.CharField(max_length=1, blank=True, null=True)
-    extract_da = models.DateField(blank=True, null=True)
-    combined_r = models.CharField(max_length=10, blank=True, null=True)
-    all_holder = models.CharField(max_length=254, blank=True, null=True)
+    unit_of_me = models.CharField(max_length=200, blank=True, null=True)
+    special_in = models.CharField(max_length=200, blank=True, null=True)
+    combined_r = models.CharField(max_length=200, blank=True, null=True)
+    all_holder = models.CharField(max_length=300, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
@@ -899,24 +960,23 @@ class TenementsAll(models.Model):
 
 
 class TenementsYmac(models.Model):
-    type = models.CharField(max_length=50, blank=True, null=True)
-    survstatus = models.CharField(max_length=15, blank=True, null=True)
-    tenstatus = models.CharField(max_length=10, blank=True, null=True)
+    fmt_tenid = models.CharField(max_length=20, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
+    type = models.CharField(max_length=200, blank=True, null=True)
+    survstatus = models.CharField(max_length=200, blank=True, null=True)
+    tenstatus = models.CharField(max_length=200, blank=True, null=True)
     startdate = models.DateField(blank=True, null=True)
     starttime = models.TimeField(blank=True, null=True)
     enddate = models.DateField(blank=True, null=True)
     endtime = models.TimeField(blank=True, null=True)
     grantdate = models.DateField(blank=True, null=True)
     granttime = models.TimeField(blank=True, null=True)
-    fmt_tenid = models.CharField(max_length=16, blank=True, null=True)
     legal_area = models.FloatField(blank=True, null=True)
-    unit_of_me = models.CharField(max_length=4, blank=True, null=True)
-    special_in = models.CharField(max_length=1, blank=True, null=True)
-    extract_da = models.DateField(blank=True, null=True)
-    combined_r = models.CharField(max_length=10, blank=True, null=True)
-    all_holder = models.CharField(max_length=254, blank=True, null=True)
-    field_timestamp = models.DateTimeField(db_column='_timestamp', blank=True,
-                                           null=True)  # Field renamed because it started with '_'.
+    unit_of_me = models.CharField(max_length=200, blank=True, null=True)
+    special_in = models.CharField(max_length=200, blank=True, null=True)
+    extract_da = models.CharField(max_length=200, blank=True, null=True)
+    combined_r = models.CharField(max_length=200, blank=True, null=True)
+    all_holder = models.CharField(max_length=300, blank=True, null=True)
     geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
@@ -966,7 +1026,7 @@ class Tenure(models.Model):
     gml_parent_property = models.TextField(blank=True, null=True)
     gml_id = models.TextField(blank=True, null=True)
     view_scale = models.CharField(max_length=1, blank=True, null=True)
-    geom = models.MultiPolygonField(srid=0, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
     dealing_type = models.CharField(max_length=2, blank=True, null=True)
     register = models.CharField(max_length=13, blank=True, null=True)
     address_no_type = models.CharField(max_length=1, blank=True, null=True)
@@ -986,13 +1046,95 @@ class TenureOrgCode(models.Model):
         db_table = 'tenure_org_code'
 
 
-class TestDelete(models.Model):
-    val1 = models.CharField(max_length=2, blank=True, null=True)
-    val2 = models.TextField(blank=True, null=True)  # This field type is a guess.
+class Test(models.Model):
+    createdate = models.CharField(max_length=200, blank=True, null=True)
+    id = models.IntegerField(blank=True, null=True)
+    fmt_tenid = models.CharField(max_length=200, blank=True, null=True)
+    claim_groups = models.CharField(max_length=200, blank=True, null=True)
+    type = models.CharField(max_length=200, blank=True, null=True)
+    survstatus = models.CharField(max_length=200, blank=True, null=True)
+    tenstatus = models.CharField(max_length=200, blank=True, null=True)
+    startdate = models.CharField(max_length=200, blank=True, null=True)
+    starttime = models.CharField(max_length=200, blank=True, null=True)
+    enddate = models.CharField(max_length=200, blank=True, null=True)
+    endtime = models.CharField(max_length=200, blank=True, null=True)
+    grantdate = models.CharField(max_length=200, blank=True, null=True)
+    granttime = models.CharField(max_length=200, blank=True, null=True)
+    legal_area = models.CharField(max_length=200, blank=True, null=True)
+    unit_of_me = models.CharField(max_length=200, blank=True, null=True)
+    special_in = models.CharField(max_length=200, blank=True, null=True)
+    extract_da = models.CharField(max_length=200, blank=True, null=True)
+    combined_r = models.CharField(max_length=200, blank=True, null=True)
+    all_holder = models.CharField(max_length=300, blank=True, null=True)
+    tribid = models.CharField(max_length=200, blank=True, null=True)
+    field_timestamp = models.CharField(db_column='_timestamp', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'test_delete'
+        db_table = 'test'
+
+
+class TmpTen(models.Model):
+    land_id_number = models.IntegerField(blank=True, null=True)
+    polygon_number = models.IntegerField(blank=True, null=True)
+    alt_pityp = models.CharField(max_length=1, blank=True, null=True)
+    area = models.FloatField(blank=True, null=True)
+    centlat = models.FloatField(blank=True, null=True)
+    centlong = models.FloatField(blank=True, null=True)
+    date_execution = models.DateField(blank=True, null=True)
+    date_surveyed = models.TextField(blank=True, null=True)
+    date_time_boundary_modified = models.DateField(blank=True, null=True)
+    date_time_legal = models.DateField(blank=True, null=True)
+    date_time_polygon_created = models.DateField(blank=True, null=True)
+    date_time_polygon_modified = models.DateField(blank=True, null=True)
+    dealing_year = models.IntegerField(blank=True, null=True)
+    dlg_id = models.IntegerField(blank=True, null=True)
+    family_name = models.CharField(max_length=255, blank=True, null=True)
+    fol_rec_id = models.IntegerField(blank=True, null=True)
+    given_name = models.CharField(max_length=255, blank=True, null=True)
+    gprpfx = models.CharField(max_length=2, blank=True, null=True)
+    gprsfx = models.CharField(max_length=4, blank=True, null=True)
+    legal_area = models.FloatField(blank=True, null=True)
+    locality = models.CharField(max_length=200, blank=True, null=True)
+    lot_name = models.CharField(max_length=60, blank=True, null=True)
+    lot_number = models.IntegerField(blank=True, null=True)
+    lot_type = models.CharField(max_length=6, blank=True, null=True)
+    organisation_code = models.CharField(max_length=4, blank=True, null=True)
+    piparcel = models.CharField(max_length=17, blank=True, null=True)
+    pityp = models.CharField(max_length=1, blank=True, null=True)
+    postcode = models.CharField(max_length=4, blank=True, null=True)
+    proprietor = models.CharField(max_length=255, blank=True, null=True)
+    rd_name = models.CharField(max_length=40, blank=True, null=True)
+    rd_type = models.CharField(max_length=4, blank=True, null=True)
+    region = models.CharField(max_length=5, blank=True, null=True)
+    sale_date = models.DateField(blank=True, null=True)
+    the_geom = models.TextField(blank=True, null=True)
+    usage_code = models.IntegerField(blank=True, null=True)
+    zone = models.IntegerField(blank=True, null=True)
+    gml_parent_id = models.TextField(blank=True, null=True)
+    gml_parent_property = models.TextField(blank=True, null=True)
+    gml_id = models.TextField(blank=True, null=True)
+    view_scale = models.CharField(max_length=1, blank=True, null=True)
+    dealing_type = models.CharField(max_length=2, blank=True, null=True)
+    register = models.CharField(max_length=13, blank=True, null=True)
+    address_no_type = models.CharField(max_length=1, blank=True, null=True)
+    ogc_fid = models.CharField(max_length=200, blank=True, null=True)
+    address_no_from = models.CharField(max_length=200, blank=True, null=True)
+    address_no_from_suffix = models.CharField(max_length=200, blank=True, null=True)
+    address_no_to = models.CharField(max_length=200, blank=True, null=True)
+    state = models.CharField(max_length=200, blank=True, null=True)
+    dealing_prefix = models.CharField(max_length=200, blank=True, null=True)
+    dealing_number = models.CharField(max_length=200, blank=True, null=True)
+    dealing_suffix = models.CharField(max_length=200, blank=True, null=True)
+    field_url = models.CharField(db_column='_url', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    box_id = models.CharField(max_length=200, blank=True, null=True)
+    count = models.CharField(max_length=200, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tmp_ten'
 
 
 class TrainingResponses(models.Model):
@@ -1078,6 +1220,22 @@ class Waptitle(models.Model):
         db_table = 'waptitle'
 
 
+class YmacClaimOverlaps(models.Model):
+    tribid = models.CharField(max_length=30, blank=True, null=True)
+    name = models.CharField(max_length=102, blank=True, null=True)
+    fcno = models.CharField(max_length=20, blank=True, null=True)
+    combined = models.CharField(max_length=1, blank=True, null=True)
+    rep = models.CharField(max_length=102, blank=True, null=True)
+    areasqkm = models.DecimalField(max_digits=31, decimal_places=15, blank=True, null=True)
+    ymacregion = models.CharField(max_length=16, blank=True, null=True)
+    claimgroup = models.CharField(max_length=64, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_claim_overlaps'
+
+
 class YmacClaims(models.Model):
     tribid = models.CharField(max_length=30, blank=True, null=True)
     name = models.CharField(max_length=102, blank=True, null=True)
@@ -1106,7 +1264,7 @@ class YmacClaims(models.Model):
     zone12nm = models.CharField(max_length=1, blank=True, null=True)
     zone24nm = models.CharField(max_length=1, blank=True, null=True)
     zoneeez = models.CharField(max_length=1, blank=True, null=True)
-    nnttseqno = models.CharField(primary_key=True, max_length=14)
+    nnttseqno = models.CharField(max_length=14)
     objectind = models.CharField(max_length=1, blank=True, null=True)
     sptialnote = models.CharField(max_length=120, blank=True, null=True)
     juris = models.CharField(max_length=10, blank=True, null=True)
@@ -1118,8 +1276,9 @@ class YmacClaims(models.Model):
     lawyer = models.CharField(max_length=200, blank=True, null=True)
     hs_officer = models.CharField(max_length=200, blank=True, null=True)
     date_created = models.DateTimeField(blank=True, null=True)
-    geom = models.GeometryField(srid=3577, blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
     claim_group_id = models.CharField(max_length=5, blank=True, null=True)
+    current = models.BooleanField()
 
     class Meta:
         managed = False
@@ -1138,13 +1297,310 @@ class YmacClaimsGeog(models.Model):
 
 class YmacDbCaptureorg(models.Model):
     organisation_name = models.TextField()
-    organisation_website = models.TextField(blank=True, null=True)
+    organisation_website = models.CharField(max_length=200, blank=True, null=True)
     organisation_phone = models.CharField(max_length=16, blank=True, null=True)
-    organisation_contact = models.TextField(blank=True, null=True)
+    organisation_contact = models.CharField(max_length=100, blank=True, null=True)
+    organisation_address = models.TextField(blank=True, null=True)
+    organisation_email = models.CharField(max_length=254, blank=True, null=True)
+    organisation_postcode = models.IntegerField(blank=True, null=True)
+    organisation_suburb = models.TextField(blank=True, null=True)
+    organisation_state = models.CharField(max_length=3, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'ymac_db_captureorg'
+
+
+class YmacDbConsultant(models.Model):
+    name = models.CharField(max_length=70, blank=True, null=True)
+    employee = models.NullBooleanField()
+    company = models.ForeignKey(YmacDbCaptureorg, models.DO_NOTHING, blank=True, null=True)
+    email = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_consultant'
+
+
+class YmacDbDepartment(models.Model):
+    name = models.CharField(max_length=25)
+    head = models.ForeignKey('YmacStaff', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_department'
+
+
+class YmacDbDocumenttype(models.Model):
+    document_type = models.CharField(max_length=15)
+    sub_type = models.CharField(max_length=40, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_documenttype'
+
+
+class YmacDbFilecleanup(models.Model):
+    data_path = models.TextField()
+    submitted_user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_filecleanup'
+
+
+class YmacDbHeritagecompanies(models.Model):
+    old_code = models.IntegerField(unique=True)
+    company_name = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagecompanies'
+
+
+class YmacDbHeritagesite(models.Model):
+    boundary_description = models.CharField(max_length=30, blank=True, null=True)
+    disturbance_level = models.CharField(max_length=30, blank=True, null=True)
+    status = models.CharField(max_length=15, blank=True, null=True)
+    site_comments = models.TextField(blank=True, null=True)
+    site = models.ForeignKey('YmacDbSite', models.DO_NOTHING, blank=True, null=True)
+    site_description = models.ForeignKey('YmacDbSitedescriptions', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesite'
+
+
+class YmacDbHeritagesiteDocuments(models.Model):
+    heritagesite = models.ForeignKey(YmacDbHeritagesite, models.DO_NOTHING)
+    sitedocument = models.ForeignKey(SiteDocuments, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesite_documents'
+        unique_together = (('heritagesite', 'sitedocument'),)
+
+
+class YmacDbHeritagesiteHeritageSurveys(models.Model):
+    heritagesite = models.ForeignKey(YmacDbHeritagesite, models.DO_NOTHING)
+    heritagesurvey = models.ForeignKey('YmacDbHeritagesurvey', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesite_heritage_surveys'
+        unique_together = (('heritagesite', 'heritagesurvey'),)
+
+
+class YmacDbHeritagesurvey(models.Model):
+    project_name = models.TextField(blank=True, null=True)
+    project_status = models.CharField(max_length=25, blank=True, null=True)
+    survey_region = models.CharField(max_length=15, blank=True, null=True)
+    survey_description = models.TextField(blank=True, null=True)
+    survey_note = models.TextField(blank=True, null=True)
+    date_create = models.DateField(blank=True, null=True)
+    date_mod = models.DateField(blank=True, null=True)
+    data_qa = models.NullBooleanField()
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    created_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, blank=True, null=True)
+    data_status = models.ForeignKey(SurveyStatus, models.DO_NOTHING, blank=True, null=True)
+    mod_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, blank=True, null=True)
+    proponent = models.ForeignKey('YmacDbProponent', models.DO_NOTHING, blank=True, null=True)
+    sampling_meth = models.ForeignKey(SampleMethodology, models.DO_NOTHING, db_column='sampling_meth', blank=True, null=True)
+    survey_group = models.ForeignKey('YmacDbSurveygroup', models.DO_NOTHING, blank=True, null=True)
+    survey_type = models.ForeignKey(SurveyTypes, models.DO_NOTHING, db_column='survey_type', blank=True, null=True)
+    sampling_conf = models.ForeignKey(SamplingConfidence, models.DO_NOTHING, blank=True, null=True)
+    folder_location = models.TextField(blank=True, null=True)
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
+    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
+    survey_id = models.CharField(max_length=10)
+    trip_number = models.SmallIntegerField(blank=True, null=True)
+    spatial_data_exists = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey'
+
+
+class YmacDbHeritagesurveyConsultants(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    consultant = models.ForeignKey(YmacDbConsultant, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_consultants'
+        unique_together = (('heritagesurvey', 'consultant'),)
+
+
+class YmacDbHeritagesurveyDataSource(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    surveycleaning = models.ForeignKey('YmacDbSurveycleaning', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_data_source'
+        unique_together = (('heritagesurvey', 'surveycleaning'),)
+
+
+class YmacDbHeritagesurveyDocuments(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    surveydocument = models.ForeignKey('YmacDbSurveydocument', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_documents'
+        unique_together = (('heritagesurvey', 'surveydocument'),)
+
+
+class YmacDbHeritagesurveyProponentCodes(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    surveyproponentcode = models.ForeignKey('YmacDbSurveyproponentcode', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_proponent_codes'
+        unique_together = (('heritagesurvey', 'surveyproponentcode'),)
+
+
+class YmacDbHeritagesurveyRelatedSurveys(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    relatedsurveycode = models.ForeignKey('YmacDbRelatedsurveycode', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_related_surveys'
+        unique_together = (('heritagesurvey', 'relatedsurveycode'),)
+
+
+class YmacDbHeritagesurveySurveyMethodologies(models.Model):
+    heritagesurvey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+    surveymethodology = models.ForeignKey('YmacDbSurveymethodology', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurvey_survey_methodologies'
+        unique_together = (('heritagesurvey', 'surveymethodology'),)
+
+
+class YmacDbHeritagesurveytrip(models.Model):
+    survey_trip_id = models.AutoField(primary_key=True)
+    survey_id = models.CharField(max_length=10)
+    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
+    trip_number = models.SmallIntegerField(blank=True, null=True)
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurveytrip'
+
+
+class YmacDbHeritagesurveytripRelatedSurveys(models.Model):
+    heritagesurveytrip = models.ForeignKey(YmacDbHeritagesurveytrip, models.DO_NOTHING)
+    relatedsurveycode = models.ForeignKey('YmacDbRelatedsurveycode', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_heritagesurveytrip_related_surveys'
+        unique_together = (('heritagesurveytrip', 'relatedsurveycode'),)
+
+
+class YmacDbPotentialsurvey(models.Model):
+    survey_id = models.CharField(max_length=15)
+    data_path = models.TextField()
+    path_type = models.CharField(max_length=15)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_potentialsurvey'
+
+
+class YmacDbProponent(models.Model):
+    prop_id = models.CharField(max_length=10)
+    name = models.TextField()
+    contact = models.TextField(blank=True, null=True)
+    email = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_proponent'
+
+
+class YmacDbRelatedsurveycode(models.Model):
+    rel_survey_id = models.CharField(unique=True, max_length=10)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_relatedsurveycode'
+
+
+class YmacDbRequesttype(models.Model):
+    name = models.CharField(max_length=45)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_requesttype'
+
+
+class YmacDbRequestuser(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.CharField(max_length=254)
+    department = models.ForeignKey(YmacDbDepartment, models.DO_NOTHING)
+    office = models.CharField(max_length=20)
+    current_user = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_requestuser'
+
+
+class YmacDbSite(models.Model):
+    date_recorded = models.DateField(blank=True, null=True)
+    group_name = models.TextField(blank=True, null=True)
+    label_x_ll = models.FloatField(blank=True, null=True)
+    label_y_ll = models.FloatField(blank=True, null=True)
+    date_created = models.DateField(blank=True, null=True)
+    active = models.NullBooleanField()
+    capture_coord_sys = models.TextField(blank=True, null=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    created_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='created_by')
+    recorded_by = models.ForeignKey('YmacDbSiteuser', models.DO_NOTHING, db_column='recorded_by', blank=True, null=True)
+    restricted_status = models.ForeignKey(RestrictionStatus, models.DO_NOTHING, db_column='restricted_status', blank=True, null=True)
+    site_identifier = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_site'
+
+
+class YmacDbSiteDaaSites(models.Model):
+    site = models.ForeignKey(YmacDbSite, models.DO_NOTHING)
+    daasite_id = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_site_daa_sites'
+        unique_together = (('site', 'daasite_id'),)
+
+
+class YmacDbSiteDocs(models.Model):
+    site = models.ForeignKey(YmacDbSite, models.DO_NOTHING)
+    sitedocument = models.ForeignKey(SiteDocuments, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_site_docs'
+        unique_together = (('site', 'sitedocument'),)
+
+
+class YmacDbSiteSurveys(models.Model):
+    site = models.ForeignKey(YmacDbSite, models.DO_NOTHING)
+    heritagesurvey_id = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_site_surveys'
+        unique_together = (('site', 'heritagesurvey_id'),)
 
 
 class YmacDbSitedescriptions(models.Model):
@@ -1164,6 +1620,149 @@ class YmacDbSiteuser(models.Model):
     class Meta:
         managed = False
         db_table = 'ymac_db_siteuser'
+
+
+class YmacDbSurveycleaning(models.Model):
+    data_path = models.TextField(blank=True, null=True)
+    path_type = models.CharField(max_length=15)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveycleaning'
+
+
+class YmacDbSurveydocument(models.Model):
+    filepath = models.TextField(blank=True, null=True)
+    filename = models.CharField(max_length=200, blank=True, null=True)
+    document_type = models.ForeignKey(YmacDbDocumenttype, models.DO_NOTHING)
+    title = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveydocument'
+
+
+class YmacDbSurveygroup(models.Model):
+    group_name = models.CharField(max_length=35)
+    group_id = models.CharField(max_length=3)
+    determined = models.BooleanField()
+    geom = models.GeometryField(srid=4283)
+    future_act_officer = models.ForeignKey(YmacDbSiteuser, models.DO_NOTHING)
+    heritage_officer = models.ForeignKey(YmacDbSiteuser, models.DO_NOTHING)
+    status = models.CharField(max_length=15)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveygroup'
+
+
+class YmacDbSurveymethodology(models.Model):
+    survey_meth = models.CharField(max_length=40)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveymethodology'
+
+
+class YmacDbSurveyproponentcode(models.Model):
+    proponent_code = models.CharField(max_length=20, blank=True, null=True)
+    proponent = models.ForeignKey(YmacDbProponent, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveyproponentcode'
+
+
+class YmacDbSurveytripcleaning(models.Model):
+    cleaning_comment = models.TextField()
+    data_path = models.TextField()
+    path_type = models.CharField(max_length=15)
+    survey_trip = models.ForeignKey(YmacDbHeritagesurveytrip, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_surveytripcleaning'
+
+
+class YmacDbYacreturn(models.Model):
+    pa = models.BooleanField()
+    report = models.BooleanField()
+    spatial = models.BooleanField()
+    survey = models.ForeignKey(YmacDbHeritagesurvey, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_yacreturn'
+
+
+class YmacDbYmacrequestfiles(models.Model):
+    file = models.CharField(max_length=100)
+    request = models.ForeignKey('YmacDbYmacspatialrequest', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_ymacrequestfiles'
+
+
+class YmacDbYmacspatialrequest(models.Model):
+    request_type = models.ForeignKey(YmacDbRequesttype, models.DO_NOTHING)
+    region = models.CharField(max_length=15, blank=True, null=True)
+    job_desc = models.TextField()
+    map_size = models.CharField(max_length=20, blank=True, null=True)
+    sup_data_text = models.TextField()
+    product_type = models.CharField(max_length=25, blank=True, null=True)
+    other_instructions = models.TextField()
+    cost_centre = models.CharField(max_length=30, blank=True, null=True)
+    priority = models.CharField(max_length=25)
+    proponent = models.ForeignKey(YmacDbProponent, models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(YmacDbRequestuser, models.DO_NOTHING)
+    required_by = models.DateField(blank=True, null=True)
+    analysis = models.BooleanField()
+    assigned_to = models.ForeignKey('YmacStaff', models.DO_NOTHING, blank=True, null=True)
+    completed_datetime = models.DateTimeField(blank=True, null=True)
+    data = models.BooleanField()
+    done = models.BooleanField()
+    draft = models.BooleanField()
+    map_requested = models.BooleanField()
+    other = models.BooleanField()
+    request_datetime = models.DateTimeField(blank=True, null=True)
+    sup_data_file = models.CharField(max_length=100, blank=True, null=True)
+    time_spent = models.FloatField(blank=True, null=True)
+    job_control = models.CharField(max_length=9)
+    request_area = models.GeometryField(srid=4283, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_ymacspatialrequest'
+
+
+class YmacDbYmacspatialrequestCcRecipients(models.Model):
+    ymacspatialrequest = models.ForeignKey(YmacDbYmacspatialrequest, models.DO_NOTHING)
+    requestuser = models.ForeignKey(YmacDbRequestuser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_ymacspatialrequest_cc_recipients'
+        unique_together = (('ymacspatialrequest', 'requestuser'),)
+
+
+class YmacDbYmacspatialrequestClaim(models.Model):
+    ymacspatialrequest = models.ForeignKey(YmacDbYmacspatialrequest, models.DO_NOTHING)
+    ymacclaim = models.ForeignKey(YmacClaims, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_ymacspatialrequest_claim'
+
+
+class YmacDbYmacspatialrequestRelatedJobs(models.Model):
+    from_ymacspatialrequest = models.ForeignKey(YmacDbYmacspatialrequest, models.DO_NOTHING)
+    to_ymacspatialrequest = models.ForeignKey(YmacDbYmacspatialrequest, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'ymac_db_ymacspatialrequest_related_jobs'
+        unique_together = (('from_ymacspatialrequest', 'to_ymacspatialrequest'),)
 
 
 class YmacHeritageStaging(models.Model):
@@ -1209,7 +1808,7 @@ class YmacRegion(models.Model):
     effective = models.DateField(blank=True, null=True)
     comments = models.CharField(max_length=120, blank=True, null=True)
     juris = models.CharField(max_length=20, blank=True, null=True)
-    id = models.FloatField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     date_created = models.DateTimeField(blank=True, null=True)
     geom = models.PolygonField(srid=4283, blank=True, null=True)
 
@@ -1234,6 +1833,7 @@ class YmacStaff(models.Model):
     full_name = models.TextField(blank=True, null=True)
     last_name = models.TextField(blank=True, null=True)
     first_name = models.TextField(blank=True, null=True)
+    current_staff = models.BooleanField()
 
     class Meta:
         managed = False

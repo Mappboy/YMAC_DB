@@ -16,15 +16,20 @@ if form.is_valid():
 """
 
 import json
+from datetime import date
 
 from django.contrib import messages
+from django.contrib.gis.db.models import Union
 from django.core.serializers import serialize
+from django.db.models import Q
 from django.http import *
 from django.shortcuts import render, redirect
 from django.template import Context
+from django.views.generic import DetailView, TemplateView
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
+from ymac_db.utils import emit_week
 from .forms import *
 from .models import HeritageSurvey, YMACRequestFiles
 
@@ -37,6 +42,7 @@ TOKEN = "91e61ba3c8b7101ddf7a6ee8a0ddc935acd77089"
 SERVER_URL = "ymac-dc3-app1:8080"
 REPO = 'Data Download'
 WORKSPACE = 'region_distance_calculator.fmw'
+
 
 def index(request):
     return render(request, 'base.html')
@@ -70,6 +76,67 @@ def data_download(request):
     return render(request, 'data_download.html')
 
 
+def claims(request):
+    return render(request, 'claim_overview.html', context={'claim_groups': YmacClaim.objects.filter(current=True)})
+
+
+class YMACClaimView(DetailView):
+    model = YmacClaim
+    # Create template
+    # We will need a filter for current
+    queryset = YmacClaim.objects.filter(current=True)
+    template_name = 'ymacclaim_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(YMACClaimView, self).get_context_data(**kwargs)
+        context['daa_sites'] = serialize('geojson',
+                                         DaaSite.objects.filter(geom__intersects=self.object.geom),
+                                         geometry_field='geom', fields=('place_id',
+                                                                        'name'))
+        context['map_data'] = serialize('geojson', YmacClaim.objects.filter(pk=self.object.id), geometry_field='geom')
+        # Site History
+        # Surveys
+        # Old Boundaries
+        return context
+
+
+class EmitsWeekView(TemplateView):
+    template_name = 'emits_report.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(EmitsWeekView, self).get_context_data(**kwargs)
+        start_date, end_date = emit_week(date.today())
+        tenements = YmacEmitTenements.objects.filter(Q(ymac_region=True, datereceived__range=(start_date, end_date)) |
+                                                     Q(row_to_check=True, datereceived__range=(start_date, end_date)))
+        context['emits'] = json.dumps([{'title': t.title,
+                                        'datereceived' : t.datereceived.strftime("%d/%m/%Y"),
+                                        'objectiondate': t.objectiondate,
+                                        'applicants': t.applicants,
+                                        'row_to_check': t.row_to_check,
+                                        'claimgroup': ",".join(t.claimgroup)} for t in tenements])
+        context['tenements'] = serialize('geojson', tenements,
+                                         geometry_field='geom',
+                                         fields=('title',
+                                                 'datereceived',
+                                                 'objectiondate',
+                                                 'applicants',
+                                                 'row_to_check',
+                                                 'claimgroup'))
+        context['claims'] = serialize('geojson',
+                                      YmacClaim.objects.filter(current=True),
+                                      geometry_field='geom',
+                                      fields=('name',))
+        context['determinations'] = serialize('geojson',
+                                              NnttDetermination.objects.filter(
+                                                  Q(name__contains="Martu") |
+                                                  Q(name__contains="Badimia")).filter(
+                                                  geom__intersects=tenements.aggregate(Union('geom'))['geom__union']),
+                                              geometry_field='geom',
+                                              fields=('name',)
+                                              )
+        return context
+
+
 class RegionDistanceView(FormView):
     """
     This should possibly be using Ajax to send Json back to table.
@@ -92,10 +159,10 @@ class RegionDistanceView(FormView):
         for output, name in outputs:
             dl_type = 'fmedatastreaming' if output == 'ESRISHAPE' else 'fmedatadownload'
             button = ("http://{}/{}/{}/{}?{}&Output={}".format(SERVER_URL, dl_type,
-                                                                            quote_plus(REPO),
-                                                                            quote_plus(WORKSPACE),
-                                                                            urlencode(data),
-                                                                            output), name)
+                                                               quote_plus(REPO),
+                                                               quote_plus(WORKSPACE),
+                                                               urlencode(data),
+                                                               output), name)
             dl_buttons.append(button)
         data['Output'] = 'JSON'
         if data:
@@ -133,8 +200,9 @@ class RegionDistanceView(FormView):
 
             return render(self.request, 'dyna_table.html', context={'innerPolyLine':
                                                                         json.dumps([dict(zip(["lng",
-                                                                                   "lat"], coords)) for
-                                                                                       coords in inner['json_geometry']["coordinates"]]),
+                                                                                              "lat"], coords)) for
+                                                                                    coords in inner['json_geometry'][
+                                                                                        "coordinates"]]),
                                                                     'outterPolyLine':
                                                                         json.dumps([dict(zip(["lng",
                                                                                               "lat"], coords)) for
@@ -147,14 +215,16 @@ class RegionDistanceView(FormView):
                                                                                     coords in
                                                                                     region['json_geometry'][
                                                                                         "coordinates"]]),
-                                                                    'centre': json.dumps({"lng": float(result_json['cent_lat']),
-                                                                               "lat": float(result_json['cent_long'])}),
+                                                                    'centre': json.dumps(
+                                                                        {"lng": float(result_json['cent_lat']),
+                                                                         "lat": float(result_json['cent_long'])}),
                                                                     'results': result_json,
                                                                     'buttons': dl_buttons})
 
 
             # See what happens when we reply wiht JsonResponse
         return super(RegionDistanceView, self).form_valid(form)
+
 
 def get_site(request):
     # if this is a POST request we need to process the form data
@@ -174,6 +244,7 @@ def get_site(request):
 
     return render(request, 'site_form.html', {'form': form})
 
+
 class SurveyView(View):
     """
     Pass Survey id to filter request
@@ -183,7 +254,7 @@ class SurveyView(View):
         template = "surveys_map.html"
         modelname = "SurveyView"
         surveys = HeritageSurvey.objects.all()
-        #for hs in surveys:
+        # for hs in surveys:
         #    if hs.geom:
         #        hs.geom.transform(4326)
         serialized = serialize('geojson', surveys,
@@ -200,7 +271,7 @@ class SpatialRequestView(FormView):
     form_class = YMACSpatialRequestForm
     success_url = '/spatial_thanks/'
 
-    #def get_initial(self):
+    # def get_initial(self):
     #    return {
     #        'request_datetime': datetime.datetime.now()
     #    }
@@ -221,7 +292,6 @@ class SpatialRequestView(FormView):
         else:
             return self.form_invalid(form)
 
-
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
@@ -231,10 +301,11 @@ class SpatialRequestView(FormView):
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
         return render(self.request, 'spatial_thanks.html',
-                        context={'rq': form.instance.user,
-                                  'required_by': form.instance.required_by,
-                                  'job_control': form.instance.job_control}
-                        )
+                      context={'rq': form.instance.user,
+                               'required_by': form.instance.required_by,
+                               'job_control': form.instance.job_control}
+                      )
+
 
 def filter_map(request):
     """
@@ -267,6 +338,7 @@ class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(survey_id__istartswith=self.q)
 
         return qs
+
 
 class HeritageSurveyTripAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -309,6 +381,7 @@ class ProponentCodesAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs
 
+
 class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
@@ -349,6 +422,7 @@ class SurveyDocumentAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(filename__istartswith=self.q)
 
         return qs
+
 
 class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
