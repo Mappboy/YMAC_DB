@@ -106,6 +106,7 @@ class EmitsWeekView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(EmitsWeekView, self).get_context_data(**kwargs)
         start_date, end_date = emit_week(date.today())
+        context["heading"] = "From {} to the {}".format(start_date, end_date)
         tenements = YmacEmitTenements.objects.filter(Q(ymac_region=True, datereceived__range=(start_date, end_date)) |
                                                      Q(row_to_check=True, datereceived__range=(start_date, end_date)))
         context['emits'] = json.dumps([{'title': t.title,

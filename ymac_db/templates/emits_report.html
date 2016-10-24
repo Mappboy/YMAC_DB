@@ -122,6 +122,7 @@
     </style>
 {% endblock %}
 {% block content %}
+    <h1>{{ heading  }}</h1>
     <div>
         {% leaflet_map "overviewmap" callback="main_map_init" %}
     </div>
