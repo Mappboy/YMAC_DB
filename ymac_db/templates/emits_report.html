@@ -61,10 +61,10 @@
                         }
                     }
                 });
-                if (feature.properties && feature.properties.applicants) {
+                if (feature.properties) {
                     var content = "";
                     for (var prop in feature.properties) {
-                        content += '<p>' + prop + " : " + feature.properties[prop] + '</p>'
+                        content += '<p>' + prop[0].toUpperCase() + prop.substring(1, prop.length) + " : " + feature.properties[prop] + '</p>'
                     }
                     layer.bindPopup(content);
                 }
@@ -80,18 +80,31 @@
             function tenStyle(feature) {
                 return {
                     "color": getColor(feature.properties.selected),
-                    "weight": 2,
+                    "weight": 1,
                     "opacity": 0.65
                 };
             }
 
             //Add GeoJSON layer
-            claim_data = L.geoJson({{ claims|safe }}).addTo(map);
+            claim_data = L.geoJson({{ claims|safe }},
+                    {
+                        style: function (feature) {
+                            return { "color": "#0000ff",
+                                "weight": 1,
+                             "opacity": 0.65};
+                            }
+                        ,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
             deter_data = L.geoJson({{ determinations|safe }},
                     {
                         style: function (feature) {
-                            return "#00ff00";
+                            return { "color": "#00ff00",
+                                "weight": 1,
+                             "opacity": 0.65};
                         }
+                        ,
+                        onEachFeature: onEachFeature
                     }).addTo(map);
             tenements = L.geoJson({{ tenements|safe }}, {
                 style: tenStyle,
