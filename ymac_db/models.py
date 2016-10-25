@@ -1136,7 +1136,7 @@ class YmacClaim(models.Model):
 
 @python_2_unicode_compatible
 class YmacEmitTenements(models.Model):
-    title = models.CharField(primary_key=True, max_length=20)
+    title = models.CharField(max_length=20)
     objectiondate = models.TextField(blank=True, null=True)
     datereceived = models.DateField(blank=True, null=True)
     applicants = models.CharField(max_length=200, blank=True, null=True)

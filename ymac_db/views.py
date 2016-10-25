@@ -118,11 +118,12 @@ class EmitsWeekView(TemplateView):
         context['tenements'] = serialize('geojson', tenements,
                                          geometry_field='geom',
                                          fields=('title',
+                                                 'pk',
                                                  'datereceived',
                                                  'objectiondate',
                                                  'applicants',
                                                  'row_to_check',
-                                                 'claimgroup'))
+                                                 'claimgroup',))
         context['claims'] = serialize('geojson',
                                       YmacClaim.objects.filter(current=True),
                                       geometry_field='geom',

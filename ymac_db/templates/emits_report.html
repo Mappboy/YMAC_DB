@@ -5,38 +5,42 @@
     {% leaflet_css %}
     <link type='text/css' rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
     <script type='text/javascript' src="https://code.jquery.com/jquery-1.12.3.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-html5-1.2.2/b-print-1.2.2/r-2.1.0/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/bs/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-html5-1.2.2/b-print-1.2.2/r-2.1.0/datatables.min.css"/>
 
-    <script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-html5-1.2.2/b-print-1.2.2/r-2.1.0/datatables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/v/bs/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-html5-1.2.2/b-print-1.2.2/r-2.1.0/datatables.min.js"></script>
     <script>
-    // Work to be done
-    // - Download Selected rows
-    // - Filtering
-    // - sort by date
-    // - Zoom to Selected
-        $(document).ready(function() {
+        // Work to be done
+        // - Download Selected rows
+        // - Filtering
+        // - sort by date
+        // - Zoom to Selected
+        $(document).ready(function () {
             emits = {{ emits|safe }};
-            var table = $('#resultsTable').DataTable({'data':emits,
+            var table = $('#resultsTable').DataTable({
+                'data': emits,
                 dom: 'Bfrtip',
                 buttons: [
                     'copy', 'excel', 'pdf'
                 ],
-            columns: [
-            { "data" : "title" , title: "Title"},
-            { "data" : "objectiondate", title : "Objection Date" },
-            { "data": "datereceived", title : "Date Received"  },
-            { "data" : "applicants", title : "Applicant" },
-            { "data" : "claimgroup", title : "Claim Group" },
-            { "data" : "row_to_check", title : "Needs Checking" },
-            ]});
-            $('#resultsTable tbody').on( 'click', 'tr', function () {
-            $(this).toggleClass('selected');
-                console.log($(this).first().text() );
+                columns: [
+                    {"data": "title", title: "Title"},
+                    {"data": "objectiondate", title: "Objection Date"},
+                    {"data": "datereceived", title: "Date Received"},
+                    {"data": "applicants", title: "Applicant"},
+                    {"data": "claimgroup", title: "Claim Group"},
+                    {"data": "row_to_check", title: "Needs Checking"},
+                ]
+            });
+            $('#resultsTable tbody').on('click', 'tr', function () {
+                $(this).toggleClass('selected');
+                console.log($(this).first().text());
             });
 
-        $('#button').click( function () {
-            alert( table.rows('.selected').data().length +' row(s) selected' );
-        })
+            $('#button').click(function () {
+                alert(table.rows('.selected').data().length + ' row(s) selected');
+            })
         });
 
 
@@ -45,27 +49,27 @@
             function onEachFeature(feature, layer) {
                 // does this feature have a property named popupContent?
                 layer.on({
-                    click: function (feature) {
-                        if (feature.properties ) {
-                            if (typeof feature.properties.selected == 'undefined') {
-                                feature.properties.selected = true;
-                                console.log(feature.properties.selected);
+                    click: function (clicked) {
+                        if (clicked.target.feature.properties) {
+                            if (typeof clicked.target.feature.properties.selected == 'undefined') {
+                                clicked.target.feature.properties.selected = true;
                             }
                             else {
-                                feature.properties.selected = !feature.selected;
-                                console.log(feature.properties.selected);
+                                clicked.target.feature.properties.selected = !clicked.target.feature.selected;
+                                console.log(clicked.target.feature.properties.selected);
                             }
                         }
                     }
                 });
-                if (feature.properties && feature.properties.title) {
+                if (feature.properties) {
                     var content = "";
                     for (var prop in feature.properties) {
-                        content += '<p>' + prop + " : " + feature.properties[prop] + '</p>'
+                        content += '<p>' + prop[0].toUpperCase() + prop.substring(1, prop.length) + " : " + feature.properties[prop] + '</p>'
                     }
                     layer.bindPopup(content);
                 }
             }
+
             function getColor(d) {
                 return d ? '#FFEDA0' :
                         "#ff0000";
@@ -76,18 +80,37 @@
             function tenStyle(feature) {
                 return {
                     "color": getColor(feature.properties.selected),
-                    "weight": 2,
+                    "weight": 1,
                     "opacity": 0.65
                 };
             }
 
             //Add GeoJSON layer
+            claim_data = L.geoJson({{ claims|safe }},
+                    {
+                        style: function (feature) {
+                            return { "color": "#0000ff",
+                                "weight": 1,
+                             "opacity": 0.65};
+                            }
+                        ,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
+            deter_data = L.geoJson({{ determinations|safe }},
+                    {
+                        style: function (feature) {
+                            return { "color": "#00ff00",
+                                "weight": 1,
+                             "opacity": 0.65};
+                        }
+                        ,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
             tenements = L.geoJson({{ tenements|safe }}, {
                 style: tenStyle,
                 onEachFeature: onEachFeature
-            });
-            claim_data = L.geoJson({{ claims|safe }}).addTo(map);
-            deter_data = L.geoJson({{ determinations|safe }}).addTo(map);
+            }).addTo(map);
+
 
             map.fitBounds(claim_data.getBounds());
             global_map = map;
@@ -122,20 +145,20 @@
     </style>
 {% endblock %}
 {% block content %}
-    <h1>{{ heading  }}</h1>
+    <h1>{{ heading }}</h1>
     <div>
         {% leaflet_map "overviewmap" callback="main_map_init" %}
     </div>
     <table id="resultsTable" class="display" width="100%">
     </table>
 {% endblock %}
-    {% block footer %}
+{% block footer %}
     <footer class="footer">
         <div class="container">
             <p class="text-muted">&copy; YMAC 2016</p>
         </div>
     </footer>    <!-- JS includes -->
-    {% endblock %}
+{% endblock %}
 {% block foot_js %}
     {% leaflet_js %}
 
