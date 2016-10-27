@@ -50,6 +50,8 @@ urlpatterns = [
         name='surveydocument-autocomplete'),
     url(r'^requestuser-autocomplete/$', views.RequestUserAutocomplete.as_view(),
         name='requestuser-autocomplete'),
+    url(r'^requestjobcontrol-autocomplete/$', views.RequestJobAutocomplete.as_view(),
+        name='requestjobcontrol-autocomplete'),
     url(r'^jet/', include('jet.urls', 'jet')),
     url(r'^', admin.site.urls),
 ]

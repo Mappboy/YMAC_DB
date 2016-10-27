@@ -1,5 +1,3 @@
-import os
-
 import smartsheet
 from dal import autocomplete
 from datetimewidget.widgets import DateWidget
@@ -294,6 +292,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             'user': autocomplete.ModelSelect2(url='requestuser-autocomplete'),
             'cc_recipients': autocomplete.ModelSelect2Multiple(url='requestuser-autocomplete'),
             'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
+            'related_jobs': autocomplete.ModelSelect2Multiple(url='requestjobcontrol-autocomplete'),
             'job_control': forms.HiddenInput(),
             'request_datetime': forms.HiddenInput(),
 

@@ -439,3 +439,17 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(name__istartswith=self.q).exclude(current_user=False)
 
         return qs
+
+class RequestJobAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        # Don't worry about this
+        # if not self.request.user.is_authenticated():
+        #    return RequestUser.objects.none()
+
+        qs = YMACSpatialRequest.objects.all()
+
+        if self.q:
+            qs = qs.filter(job_control__istartswith=self.q).exclude(job_control__isnull=True)
+
+        return qs
