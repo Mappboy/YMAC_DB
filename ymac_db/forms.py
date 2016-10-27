@@ -1,14 +1,17 @@
-from django.contrib.gis import forms
-from django import forms as baseform
-from dal import autocomplete
-from .models import *
 import os
-from leaflet.forms.widgets import LeafletWidget
-from datetimewidget.widgets import DateWidget
-from suit.widgets import SuitDateWidget, AutosizedTextarea
-import requests
-from django.conf import settings
+
 import smartsheet
+from dal import autocomplete
+from datetimewidget.widgets import DateWidget
+from django import forms as baseform
+from django.conf import settings
+from django.contrib.gis import forms
+from leaflet.forms.widgets import LeafletWidget
+from suit.widgets import SuitDateWidget, AutosizedTextarea
+
+from .models import *
+
+
 # ADD Site Document Inline
 # Increase Widget sizes for multiple2Select
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
@@ -292,7 +295,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             'cc_recipients': autocomplete.ModelSelect2Multiple(url='requestuser-autocomplete'),
             'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
             'job_control': forms.HiddenInput(),
-            'request_datetime':forms.HiddenInput(),
+            'request_datetime': forms.HiddenInput(),
 
         }
 

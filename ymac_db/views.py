@@ -331,8 +331,8 @@ def convert_shz(request):
 class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return HeritageSurvey.objects.none()
+        # if not self.request.user.is_authenticated():
+        #    return HeritageSurvey.objects.none()
 
         qs = HeritageSurvey.objects.all()
 
@@ -345,8 +345,8 @@ class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
 class HeritageSurveyTripAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return HeritageSurvey.objects.none()
+        # if not self.request.user.is_authenticated():
+        #    return HeritageSurvey.objects.none()
 
         qs = HeritageSurvey.objects.all()
 
@@ -359,8 +359,8 @@ class HeritageSurveyTripAutocomplete(autocomplete.Select2QuerySetView):
 class ProponentAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return Proponent.objects.none()
+        # if not self.request.user.is_authenticated():
+        #    return Proponent.objects.none()
 
         qs = Proponent.objects.all()
 
@@ -373,8 +373,8 @@ class ProponentAutocomplete(autocomplete.Select2QuerySetView):
 class ProponentCodesAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return SurveyProponentCode.objects.none()
+        # if not self.request.user.is_authenticated():
+        #    return SurveyProponentCode.objects.none()
 
         qs = SurveyProponentCode.objects.all()
 
@@ -387,8 +387,8 @@ class ProponentCodesAutocomplete(autocomplete.Select2QuerySetView):
 class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return Consultant.objects.none()
+        # if not self.request.user.is_authenticated():
+        #    return Consultant.objects.none()
 
         qs = Consultant.objects.all()
 
@@ -401,8 +401,8 @@ class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
 class CaptureOrgAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return CaptureOrg.objects.none()
+        #if not self.request.user.is_authenticated():
+        #   return CaptureOrg.objects.none()
 
         qs = CaptureOrg.objects.all()
 
@@ -415,8 +415,8 @@ class CaptureOrgAutocomplete(autocomplete.Select2QuerySetView):
 class SurveyDocumentAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return SurveyDocument.objects.none()
+        # if not self.request.user.is_authenticated():
+        #     return SurveyDocument.objects.none()
 
         qs = SurveyDocument.objects.all()
 
@@ -429,8 +429,9 @@ class SurveyDocumentAutocomplete(autocomplete.Select2QuerySetView):
 class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
-            return RequestUser.objects.none()
+        # Don't worry about this
+        # if not self.request.user.is_authenticated():
+        #    return RequestUser.objects.none()
 
         qs = RequestUser.objects.all()
 
