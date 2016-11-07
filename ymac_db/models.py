@@ -273,6 +273,7 @@ class DaaSite(models.Model):
     boundary_last_update_date = models.CharField(max_length=200, blank=True, null=True)
     shape_length = models.CharField(max_length=200, blank=True, null=True)
     shape_area = models.CharField(max_length=200, blank=True, null=True)
+    objectid = models.BigIntegerField(blank=True,null=True)
     # source
     # file location
     # daa report
@@ -284,7 +285,7 @@ class DaaSite(models.Model):
     class Meta:
         ordering = ('name',)
         managed = False
-        db_table = 'daa_sites'
+        db_table = 'daa_sites_new'
         verbose_name = 'DAA Site'
         verbose_name_plural = 'DAA Sites'
 
@@ -497,36 +498,16 @@ class HeritageSurvey(models.Model):
     class Meta:
         managed = True
         ordering = ('survey_id', 'date_create',)
+        index_together = ['survey_id', 'trip_number']
 
 
 @python_2_unicode_compatible
-class HeritageSurveyTrip(models.Model):
-    survey_trip_id = models.AutoField(primary_key=True)
-    survey_id = models.CharField(max_length=10, validators=[valid_surveyid], db_index=True)
-    original_ymac_id = models.CharField(max_length=50, blank=True, null=True)
-    related_surveys = models.ManyToManyField('RelatedSurveyCode', blank=True)
-    trip_number = models.SmallIntegerField(blank=True, null=True, db_index=True)
-    date_from = models.DateField(blank=True, null=True)
-    date_to = models.DateField(blank=True, null=True)
-
-    def __str__(self):
-        if self.trip_number:
-            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
-        else:
-            retstr = "{}".format(self.survey_id)
-        return smart_text(retstr)
-
-    def related_label(self):
-        if self.trip_number:
-            retstr = "{}_(Trip {})".format(self.survey_id, self.trip_number)
-        else:
-            retstr = "{}".format(self.survey_id)
-        return smart_text(retstr)
-
-    class Meta:
-        managed = False
-        ordering = ('survey_id',)
-        index_together = ['survey_id', 'trip_number']
+class HeritageSurveyData(models.Model):
+    survey = models.ForeignKey('HeritageSurvey', help_text="The survey to which the data relates to")
+    survey_document = models.ForeignKey('SurveyDocument', help_text="The Document where the data comes from")
+    label = models.TextField(blank=True, null=True, help_text="If the data should be labelled")
+    notes = models.TextField(blank=True, null=True, help_text="Any notes attached to the data")
+    geom = models.PolygonField(srid=4283)
 
 
 @python_2_unicode_compatible
@@ -641,7 +622,7 @@ class RelatedSurveyCode(models.Model):
 class ResearchSite(models.Model):
     # Add in x, y coordinates and buffer, spatial coord, zone
     research_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, null=True,
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, blank=True, null=True,
                              help_text="The Spatial Site Data (optional)")
     site_classification = models.CharField(max_length=30, choices=site_classification, blank=True, null=True)
     site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
@@ -1342,7 +1323,10 @@ class YMACSpatialRequest(models.Model):
         ordering = ('-request_datetime',)
 
     def __str__(self):
-        return smart_text("{}".format(self.job_control))
+        return smart_text("{}:{} {} - {} ".format(self.job_control,
+                                               self.request_datetime.strftime("%d/%m/%Y"),
+                                               self.user.name,
+                                               self.job_desc[:125]))
 
     def generate_job_control(self):
         """

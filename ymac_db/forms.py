@@ -1,3 +1,5 @@
+import shutil
+
 import smartsheet
 from dal import autocomplete
 from datetimewidget.widgets import DateWidget
@@ -15,7 +17,6 @@ from .models import *
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
 
 class SiteForm(baseform.ModelForm):
-
     class Meta:
         model = Site
         exclude = []
@@ -27,16 +28,16 @@ class SurveyDocumentForm(baseform.ModelForm):
         cleaned_data = super(SurveyDocumentForm, self).clean()
         filepath = cleaned_data.get("filepath")
         filename = cleaned_data.get("filename")
-        #if not os.path.isfile(os.path.join(filepath, filename)):
+        # if not os.path.isfile(os.path.join(filepath, filename)):
         #    raise forms.ValidationError("Not a valid file, check path and file name are correct")
 
     class Meta:
         model = SurveyDocument
         fields = '__all__'
         widgets = {'filename': AutosizedTextarea(),
-                    'filepath': AutosizedTextarea(),
+                   'filepath': AutosizedTextarea(),
                    'surveys': autocomplete.ModelSelect2Multiple(
-                                                        url='heritagesurvey-autocomplete')}
+                       url='heritagesurvey-autocomplete')}
 
 
 class HeritageSurveyInlineForm(baseform.ModelForm):
@@ -44,7 +45,8 @@ class HeritageSurveyInlineForm(baseform.ModelForm):
         model = SurveyDocument.surveys.through
         fields = '__all__'
         widgets = {'heritagesurveys': autocomplete.ModelSelect2Multiple(
-                                                        url='heritagesurvey-autocomplete')}
+            url='heritagesurvey-autocomplete')}
+
 
 class HeritageSiteForm(baseform.ModelForm):
     site_description = forms.ModelMultipleChoiceField(queryset=SiteDescriptions.objects.all())
@@ -66,39 +68,42 @@ class YMACSpatialRequestForm(baseform.ModelForm):
                                               widget=forms.SelectMultiple(attrs={'size': 10}))
     sup_data_file = baseform.FileField(label="Data files for upload", required=False,
                                        widget=forms.ClearableFileInput(attrs={'multiple': True}))
-    #def clean_request_datetime(self):
+
+    # def clean_request_datetime(self):
     #    data = self.cleaned_data.get('request_datetime')
     #    data = datetime.datetime.now()
     #    return data
 
     def clean(self):
         cleaned_data = super(YMACSpatialRequestForm, self).clean()
-        #filepath = cleaned_data.get("filepath")
-        #filename = cleaned_data.get("filename")
-        #if not os.path.isfile(os.path.join(filepath, filename)):
+        # filepath = cleaned_data.get("filepath")
+        # filename = cleaned_data.get("filename")
+        # if not os.path.isfile(os.path.join(filepath, filename)):
         #    raise forms.ValidationError("Not a valid file, check path and file name are correct")
         # DO SOME PROCESSING OF MAP TYPE FIRST
-        MAP_REQUESTS = ["Claim Map",
-                        "Quarterly Maps",
-                        "Customised Map",
-                        "Boundary Research Map",
-                        "Site Map"]
-        ANALYSIS = ["Spatial Analysis",
-                    "Boundary Technical Description",
-                    "Map and Technical Description",
-                    "Heritage Mapping",
-                    "Negotiation Mapping"]
+        MAP_REQUESTS = [u"Claim Map",
+                        u"Quarterly Maps",
+                        u"Customised Map",
+                        u"Boundary Research Map",
+                        u"Site Map"]
+        ANALYSIS = [u"Spatial Analysis",
+                    u"Boundary Technical Description",
+                    u"Map and Technical Description",
+                    u"Heritage Mapping",
+                    u"Negotiation Mapping"]
         DATA = [
-            "ArcPad Form",
-            "ArcGIS Collector setup",
-            "Data Supply",
-            "Data Update"]
+            u"ArcPad Form",
+            u"ArcGIS Collector setup",
+            u"Data Supply",
+            u"Data Update"]
         OTHER = [
-            "Field Work",
-            "Other",
-            "Uncertain"]
-        req_type = cleaned_data.get('request_type')
+            u"Field Work",
+            u"Other",
+            u"Uncertain"]
+        req_type = cleaned_data.get('request_type').name.rstrip()
+        print(req_type)
         if req_type in MAP_REQUESTS:
+            print("Map requested")
             self.instance.map_requested = True
         if req_type in ANALYSIS:
             self.instance.analysis = True
@@ -106,6 +111,12 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             self.instance.data = True
         if req_type in OTHER:
             self.instance.other = True
+        # By default assign the job to Steve so he can delegate
+        self.instance.assigned_to = YmacStaff.objects.get(pk="spashby")
+
+        # Set geom according to if either region or claim groups are set
+        if self.instance.claim:
+            pass
 
     def clean_job_control(self):
         data = self.cleaned_data.get('job_control')
@@ -123,7 +134,8 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         msg = MIMEMultipart()
         email = self.instance.user.email
         toaddr = "cjpoole@ymac.org.au"
-        msg['From'] = email if email else "spatialjobs@ymac.org.au"
+        msg_from = email if email else "spatialjobs@ymac.org.au"
+        msg['From'] = msg_from
         msg['To'] = "cjpoole@ymac.org.au"
         # ', '.join(["spashby@ymac.org.au",
         #  "cjpoole@ymac.org.au",
@@ -146,9 +158,10 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
+        print(body)
         msg.attach(MIMEText(body, 'plain'))
         s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        s.sendmail(email, toaddr, msg.as_string())
+        s.sendmail(msg_from, toaddr, msg.as_string())
         s.quit()
 
     def update_smartsheet(self):
@@ -167,77 +180,82 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         row.to_top = True
 
         cells_to_add = [
-                # Task NAME
-                {"columnId": 6673625647474564,
-                 "value": self.cleaned_data['request_type'].name
-                 },
-                # Job Description
-                {"columnId": 8870449879771012,
-                 "value": self.cleaned_data['job_desc']
-                 },
-                # Map Size
-                {
-                    "columnId": 974271080324,
-                    "value": self.cleaned_data['map_size']
-                },
-                # Supplementary Data
-                {"columnId": 9006524258379652,
-                 "value": self.cleaned_data['sup_data_text']
-                 },
-                # Job Control #
-                {"columnId": 3404520484038532,
-                 "value": self.cleaned_data['job_control']
-                 },
-                # Requested By
-                {"columnId": 4366850252400516,
-                 "value": self.cleaned_data['user'].email,
-                 "displayValue": self.cleaned_data['user'].name
-                 },
-                # Map
-                {"columnId": 3778411379353476,
-                 "value": self.instance.map_requested
-                 },
-                # Data
-                {"columnId": 8282011006723972,
-                 "value": self.instance.data
-                 },
-                # Analysis
-                {"columnId": 963661612246916,
-                 "value": self.instance.analysis
-                 },
-                # Other
-                {"columnId": 5467261239617412,
-                 "value": self.instance.data
-                 },
-                # Request Source
-                {"columnId": 4533976019822468,
-                 "value": "Django DB"
-                 },
-                # Email ME#
-                {"columnId": 30376392451972,
-                 "value": "N/A"
-                 },
-                # CC
-                {"columnId": 74356857563012,
-                 "value": self.cleaned_data['cc_recipients']
-                 },
-                # Priority Urgency
-                {"columnId": 8633780001892228,
-                 "value": self.cleaned_data['priority']
-                 },
-                # Request Date
-                {"columnId": 6248973640984452,
-                 "value": self.instance.request_datetime
-                 },
-                # Due Date
-                {"columnId": 4421825833789316,
-                 "value": self.cleaned_data['required_by']
-                 },
-                # Comments
-                {"columnId": 4632932066322308,
-                 "value": self.cleaned_data['other_instructions']
-                 },
-            ]
+            # Task NAME
+            {"columnId": 6673625647474564,
+             "value": self.cleaned_data['request_type'].name
+             },
+            # Job Description
+            {"columnId": 8870449879771012,
+             "value": self.cleaned_data['job_desc']
+             },
+            # Map Size
+            {
+                "columnId": 974271080324,
+                "value": self.cleaned_data['map_size']
+            },
+            # Supplementary Data
+            {"columnId": 9006524258379652,
+             "value": self.cleaned_data['sup_data_text']
+             },
+            # Job Control #
+            {"columnId": 3404520484038532,
+             "value": self.cleaned_data['job_control']
+             },
+            # Requested By
+            {"columnId": 4366850252400516,
+             "value": self.cleaned_data['user'].email,
+             "displayValue": self.cleaned_data['user'].name
+             },
+            # Map
+            {"columnId": 3778411379353476,
+             "value": self.instance.map_requested
+             },
+            # Data
+            {"columnId": 8282011006723972,
+             "value": self.instance.data
+             },
+            # Analysis
+            {"columnId": 963661612246916,
+             "value": self.instance.analysis
+             },
+            # Other
+            {"columnId": 5467261239617412,
+             "value": self.instance.data
+             },
+            # Request Source
+            {"columnId": 4533976019822468,
+             "value": "Django DB"
+             },
+            # Email ME#
+            {"columnId": 30376392451972,
+             "value": "N/A"
+             },
+            # CC
+            {"columnId": 74356857563012,
+             "value": self.cleaned_data['cc_recipients']
+             },
+            # Priority Urgency
+            {"columnId": 8633780001892228,
+             "value": self.cleaned_data['priority']
+             },
+            # Request Date
+            {"columnId": 6248973640984452,
+             "value": self.instance.request_datetime.strftime("%Y-%m-%d")
+             },
+            # Due Date
+            {"columnId": 4421825833789316,
+             "value": self.cleaned_data['required_by'].strftime("%Y-%m-%d")
+             },
+            # Comments
+            {"columnId": 4632932066322308,
+             "value": self.cleaned_data['other_instructions']
+             },
+            # Assigned to
+            {"columnId": 129332438951812,
+             "value": self.instance.assigned_to.email,
+             "displayValue": self.instance.assigned_to.full_name.rstrip()
+             },
+        ]
         for c in cells_to_add:
             row.cells.append(c)
         action = ss.Sheets.add_rows(3001821196248964, [row])
@@ -257,6 +275,9 @@ class YMACSpatialRequestForm(baseform.ModelForm):
 
         # check if files need uploading if there is push them to new directory
         mr = settings.MEDIA_ROOT
+        up_dir = os.path.join(mr, jc)
+        if os.path.isdir(up_dir):
+            shutil.move(up_dir, job_dir)
 
     def generate_job_control(self):
         """
@@ -298,6 +319,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
 
         }
 
+
 class RegionDistanceForm(baseform.Form):
     """
     Model for our region distances
@@ -305,7 +327,7 @@ class RegionDistanceForm(baseform.Form):
     origin = baseform.CharField(label="Start Point")
     destination = baseform.CharField(label="Destination")
     region = baseform.ChoiceField(label="Region", choices=[('Pilbara', 'Pilbara'),
-                                                      ('Geraldton', 'Geraldton')])
+                                                           ('Geraldton', 'Geraldton')])
     petrol_cost = baseform.FloatField(required=False)
 
 
@@ -315,6 +337,7 @@ class HeritageSurveyForm(baseform.ModelForm):
             - LinkedSelect
             - Use ModelSelect2Multiple
     """
+
     class Meta:
         model = HeritageSurvey
         fields = '__all__'
@@ -328,20 +351,6 @@ class HeritageSurveyForm(baseform.ModelForm):
             'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete', attrs={'class': 'wide'}),
             'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
             'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
-        }
-
-
-class HeritageSurveyTripForm(baseform.ModelForm):
-    """
-    TODO:   - Add SuitDateWidget
-            - LinkedSelect
-            - Use ModelSelect2Multiple
-    """
-
-    class Meta:
-        model = HeritageSurveyTrip
-        fields = '__all__'
-        widgets = {
         }
 
 
