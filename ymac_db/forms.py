@@ -101,10 +101,10 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             u"Other",
             u"Uncertain"]
         req_type = cleaned_data.get('request_type').name.rstrip()
-        self.instance.map_requested = "true" if req_type in MAP_REQUESTS else "false"
-        self.instance.analysis = "true" if req_type in ANALYSIS else "false"
-        self.instance.data = "true" if req_type in DATA else "false"
-        self.instance.other = "true" if req_type in OTHER else "false"
+        self.instance.map_requested = req_type in MAP_REQUESTS
+        self.instance.analysis = req_type in ANALYSIS
+        self.instance.data = req_type in DATA
+        self.instance.other = req_type in OTHER
         # By default assign the job to Steve so he can delegate
         self.instance.assigned_to = YmacStaff.objects.get(pk="spashby")
 
@@ -202,19 +202,19 @@ class YMACSpatialRequestForm(baseform.ModelForm):
              },
             # Map
             {"columnId": 3778411379353476,
-             "value": self.instance.map_requested
+             "value":  "true" if self.instance.map_requested else "false"
              },
             # Data
             {"columnId": 8282011006723972,
-             "value": self.instance.data
+             "value": "true" if  self.instance.data else "false"
              },
             # Analysis
             {"columnId": 963661612246916,
-             "value": self.instance.analysis
+             "value": "true" if  self.instance.analysis else "false"
              },
             # Other
             {"columnId": 5467261239617412,
-             "value": self.instance.data
+             "value": "true" if  self.instance.data else "false"
              },
             # Request Source
             {"columnId": 4533976019822468,
