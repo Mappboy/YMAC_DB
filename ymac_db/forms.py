@@ -101,22 +101,16 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             u"Other",
             u"Uncertain"]
         req_type = cleaned_data.get('request_type').name.rstrip()
-        print(req_type)
-        if req_type in MAP_REQUESTS:
-            print("Map requested")
-            self.instance.map_requested = True
-        if req_type in ANALYSIS:
-            self.instance.analysis = True
-        if req_type in DATA:
-            self.instance.data = True
-        if req_type in OTHER:
-            self.instance.other = True
+        self.instance.map_requested = "true" if req_type in MAP_REQUESTS else "false"
+        self.instance.analysis = "true" if req_type in ANALYSIS else "false"
+        self.instance.data = "true" if req_type in DATA else "false"
+        self.instance.other = "true" if req_type in OTHER else "false"
         # By default assign the job to Steve so he can delegate
         self.instance.assigned_to = YmacStaff.objects.get(pk="spashby")
 
         # Set geom according to if either region or claim groups are set
-        if self.instance.claim:
-            pass
+        #if self.instance.claim:
+
 
     def clean_job_control(self):
         data = self.cleaned_data.get('job_control')

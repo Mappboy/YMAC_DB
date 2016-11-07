@@ -509,6 +509,9 @@ class HeritageSurveyData(models.Model):
     notes = models.TextField(blank=True, null=True, help_text="Any notes attached to the data")
     geom = models.PolygonField(srid=4283)
 
+    def __str__(self):
+        return "Survey Data for {}".format(self.survey)
+
 
 @python_2_unicode_compatible
 class HeritageCompanies(models.Model):

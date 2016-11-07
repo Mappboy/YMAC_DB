@@ -16,7 +16,7 @@ import tornado.wsgi
 from django.core.wsgi import get_wsgi_application
 from tornado.options import options, define, parse_command_line
 
-define('port', type=int, default=8000)
+define('port', type=int, default=8888)
 
 
 class HelloHandler(tornado.web.RequestHandler):
