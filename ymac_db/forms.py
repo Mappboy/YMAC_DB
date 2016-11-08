@@ -263,7 +263,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         :return:
         """
         jc = self.instance.job_control
-        job_dir = "W:/Jobs/{year}/{job_control}".format(year=jc[1:5], job_control=jc)
+        job_dir = "//ymac-dc3-fs1/spatial_pub/Jobs/{year}/{job_control}".format(year=jc[1:5], job_control=jc)
         if not os.path.isdir(job_dir):
             os.makedirs(job_dir)
             os.makedirs(os.path.join("request"))
