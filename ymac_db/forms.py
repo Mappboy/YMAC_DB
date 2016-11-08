@@ -62,7 +62,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         'autoclose': True,
         'showMeridian': True,
         # 'todayBtn': True,
-        'startDate': 'd'
+        'startDate': '-1d'
     }, bootstrap_version=3))
     claim = baseform.ModelMultipleChoiceField(YmacClaim.objects.all(), required=False, label="Claims (if known)",
                                               widget=forms.SelectMultiple(attrs={'size': 10}))

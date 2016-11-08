@@ -25,7 +25,6 @@ class PyWebService(win32serviceutil.ServiceFramework):
     def SvcDoRun(self):
         import os
         import sys
-
         import tornado.wsgi
         from django.core.wsgi import get_wsgi_application
         from tornado.options import options, define, parse_command_line
@@ -47,12 +46,11 @@ class PyWebService(win32serviceutil.ServiceFramework):
 
         server = tornado.httpserver.HTTPServer(tornado_app)
         server.listen(options.port)
-        tornado.ioloop.IOLoop.instance().start()
-
+        self.server_loop = tornado.ioloop.IOLoop.instance()
+        self.server_loop.start()
 
     def SvcStop(self):
-        import tornado.ioloop
-        tornado.ioloop.IOLoop.instance().stop()
+        self.server_loop.stop()
 
 
 if __name__ == '__main__':
