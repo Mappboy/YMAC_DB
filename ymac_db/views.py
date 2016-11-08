@@ -436,7 +436,7 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
         qs = RequestUser.objects.all()
 
         if self.q:
-            qs = qs.filter(name__istartswith=self.q).exclude(current_user=False)
+            qs = qs.filter(Q(name__istartswith=self.q) & Q(current_user=True))
 
         return qs
 
@@ -450,6 +450,8 @@ class RequestJobAutocomplete(autocomplete.Select2QuerySetView):
         qs = YMACSpatialRequest.objects.all()
 
         if self.q:
-            qs = qs.filter(job_control__istartswith=self.q).exclude(job_control__isnull=True)
+            qs = qs.filter(Q(job_control__icontains=self.q)|
+                           Q(job_desc__icontains=self.q) |
+                           Q(user__name__icontains=self.q)).exclude(job_control="").order_by('-job_control')
 
         return qs
