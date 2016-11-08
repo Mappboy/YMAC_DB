@@ -3,16 +3,7 @@
 #   python -m win32traceutil
 # to see the output
 #import win32traceutil
-import os
-import sys
-
-import tornado.httpserver
-import tornado.ioloop
-import tornado.web
-import tornado.wsgi
 import win32serviceutil
-from django.core.wsgi import get_wsgi_application
-from tornado.options import options, define, parse_command_line
 
 PORT_TO_BIND = 8888
 
@@ -30,7 +21,12 @@ class PyWebService(win32serviceutil.ServiceFramework):
     _svc_description_ = SERVICE_DESCRIPTION
 
     def SvcDoRun(self):
+        import os
+        import sys
 
+        import tornado.wsgi
+        from django.core.wsgi import get_wsgi_application
+        from tornado.options import options, define, parse_command_line
 
         define('port', type=int, default=PORT_TO_BIND)
 
@@ -47,13 +43,15 @@ class PyWebService(win32serviceutil.ServiceFramework):
                 ('.*', tornado.web.FallbackHandler, dict(fallback=container)),
             ])
 
-        server = tornado.httpserver.HTTPServer(tornado_app)
-        server.listen(options.port)
-
+        self.server = tornado.httpserver.HTTPServer(tornado_app)
+        self.server.listen(options.port)
+        server = self.server
         tornado.ioloop.IOLoop.instance().start()
 
 
     def SvcStop(self):
+        import tornado.wsgi
+        server = self.server
         tornado.ioloop.IOLoop.instance().stop()
 
 
