@@ -45,9 +45,8 @@ class PyWebService(win32serviceutil.ServiceFramework):
                 ('.*', tornado.web.FallbackHandler, dict(fallback=container)),
             ])
 
-        self.server = tornado.httpserver.HTTPServer(tornado_app)
-        self.server.listen(options.port)
-        server = self.server
+        server = tornado.httpserver.HTTPServer(tornado_app)
+        server.listen(options.port)
         tornado.ioloop.IOLoop.instance().start()
 
 
