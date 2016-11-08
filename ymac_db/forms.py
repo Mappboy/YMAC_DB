@@ -202,19 +202,19 @@ class YMACSpatialRequestForm(baseform.ModelForm):
              },
             # Map
             {"columnId": 3778411379353476,
-             "value":  "true" if self.instance.map_requested else "false"
+             "value":  self.instance.map_requested
              },
             # Data
             {"columnId": 8282011006723972,
-             "value": "true" if  self.instance.data else "false"
+             "value": self.instance.data
              },
             # Analysis
             {"columnId": 963661612246916,
-             "value": "true" if  self.instance.analysis else "false"
+             "value": self.instance.analysis
              },
             # Other
             {"columnId": 5467261239617412,
-             "value": "true" if  self.instance.data else "false"
+             "value": self.instance.data
              },
             # Request Source
             {"columnId": 4533976019822468,
@@ -266,7 +266,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         job_dir = "//ymac-dc3-fs1/spatial_pub/Jobs/{year}/{job_control}".format(year=jc[1:5], job_control=jc)
         if not os.path.isdir(job_dir):
             os.makedirs(job_dir)
-            os.makedirs(os.path.join("request"))
+            os.makedirs(os.path.join(job_dir, "request"))
 
         # check if files need uploading if there is push them to new directory
         mr = settings.MEDIA_ROOT
