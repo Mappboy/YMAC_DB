@@ -5,6 +5,8 @@
 #import win32traceutil
 import win32serviceutil
 
+
+
 PORT_TO_BIND = 8888
 
 SERVICE_NAME = "TornadoWebService"
@@ -50,8 +52,7 @@ class PyWebService(win32serviceutil.ServiceFramework):
 
 
     def SvcStop(self):
-        import tornado.wsgi
-        server = self.server
+        import tornado.ioloop
         tornado.ioloop.IOLoop.instance().stop()
 
 
