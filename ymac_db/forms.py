@@ -62,7 +62,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         'autoclose': True,
         'showMeridian': True,
         # 'todayBtn': True,
-        'startDate': '-1d'
+        'startDate': 'd'
     }, bootstrap_version=3))
     claim = baseform.ModelMultipleChoiceField(YmacClaim.objects.all(), required=False, label="Claims (if known)",
                                               widget=forms.SelectMultiple(attrs={'size': 10}))
@@ -266,12 +266,17 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         job_dir = "W:/Jobs/{year}/{job_control}".format(year=jc[1:5], job_control=jc)
         if not os.path.isdir(job_dir):
             os.makedirs(job_dir)
+            os.makedirs(os.path.join("request"))
 
         # check if files need uploading if there is push them to new directory
         mr = settings.MEDIA_ROOT
         up_dir = os.path.join(mr, jc)
         if os.path.isdir(up_dir):
             shutil.move(up_dir, job_dir)
+            try:
+                os.rename(os.path.join(job_dir, jc), os.path.join(job_dir, "uploads"))
+            except OSError:
+                print("Directory already exists probably")
 
     def generate_job_control(self):
         """

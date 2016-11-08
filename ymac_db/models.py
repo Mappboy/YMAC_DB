@@ -1323,7 +1323,7 @@ class YMACSpatialRequest(models.Model):
     request_area = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
-        ordering = ('-request_datetime',)
+        ordering = ('-required_by',)
 
     def __str__(self):
         return smart_text("{}:{} {} - {} ".format(self.job_control,

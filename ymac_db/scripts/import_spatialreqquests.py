@@ -194,7 +194,7 @@ def main():
                                                   job_desc=job_desc,
                                                   job_control=job_control, map_size=clean_map, sup_data_text=sup_data_text,
                                                   required_by=required_by, request_datetime=request_datetime,
-                                                  completed_datetime=completed_datetime, product_type=delivery , other_instructions=other_instructions,
+                                                  completed_datetime=completed_datetime, product_type=delivery, other_instructions=other_instructions,
                                                   cost_centre=cost_centres, proponent=None, priority=priority, map_requested=_map, data=data, analysis=analysis,
                                                   other=other, draft=draft, done=done, assigned_to=assigned_to, time_spent=time_spent)
 
