@@ -504,6 +504,7 @@ class HeritageSurvey(models.Model):
 @python_2_unicode_compatible
 class HeritageSurveyData(models.Model):
     survey = models.ForeignKey('HeritageSurvey', help_text="The survey to which the data relates to")
+    survey_part = models.IntegerField(help_text="Polygon number for survey, must be unique")
     survey_document = models.ForeignKey('SurveyDocument', help_text="The Document where the data comes from")
     label = models.TextField(blank=True, null=True, help_text="If the data should be labelled")
     notes = models.TextField(blank=True, null=True, help_text="Any notes attached to the data")
