@@ -800,6 +800,7 @@ class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
     filepath = models.TextField(blank=True, null=True, db_index=True, )  # validators=[valid_directory]
     filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
+    file_status = models.ForeignKey('SurveyStatus', blank=True, null=True, help_text="If Spatial What type of data is it?")
     title = models.TextField(blank=True)
 
     def check_file_exists(self):
@@ -903,13 +904,14 @@ class SurveyMethodology(models.Model):
 @python_2_unicode_compatible
 class SurveyStatus(models.Model):
     survey_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(unique=True, max_length=8, blank=True, null=True, db_index=True)
+    status = models.CharField(unique=True, max_length=15, blank=True, null=True, db_index=True)
 
     def __str__(self):
         return smart_text(self.status)
 
     class Meta:
-        managed = False
+        managed = True
+        ordering = ('status',)
         db_table = 'survey_status'
 
 

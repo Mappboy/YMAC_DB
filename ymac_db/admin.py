@@ -18,6 +18,7 @@ from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
+from jet.admin import CompactInline
 
 from .forms import *
 
@@ -272,6 +273,41 @@ class ClaimDataPathFilter(baseadmin.SimpleListFilter):
         # to decide how to filter the queryset.
         if self.value():
             queryset = queryset.filter(data_path__contains=self.value())
+        return queryset
+
+
+
+class DocumentTypeFilter(baseadmin.SimpleListFilter):
+    title = _('Document Type')
+
+    parameter_name = 'document_type'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('Image', 'Image'),
+            ('Audio', 'Audio'),
+            ('Video', 'Video'),
+            ('Document', 'Document'),
+            ('Spatial', 'Spatial'),
+            ('Map', 'Map'),
+            ('Other', 'Other')
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value():
+            queryset = queryset.filter(document_type__document_type=self.value())
         return queryset
 
 
@@ -753,7 +789,7 @@ class HeritageSurveyDocumentInline(admin.TabularInline):
     #form = SurveyDocumentForm
 
 
-class HeritageSurveyInline(admin.TabularInline):
+class HeritageSurveyInline(CompactInline):
     model = SurveyDocument.surveys.through
     form = HeritageSurveyInlineForm
 
@@ -1012,7 +1048,6 @@ class YMACSpatialRequestAdmin(baseadmin.ModelAdmin):
 @admin.register(SurveyDocument)
 class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     def hsurveys(self, obj):
-        print(obj)
         try:
             return ";\n".join([smart_text(hs) for hs in obj.surveys.all()])
         except AttributeError:
@@ -1032,15 +1067,17 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
         'document_type',
         'filepath',
         'filename',
+        'file_status',
         #'surveys'
     )
     list_display = [
         'hsurveys',
         'document_type',
         'show_data_pathurl',
+        'file_status'
     ]
     list_filter = [
-        'document_type',
+        DocumentTypeFilter,
         RelatedDocClaimFilter,
         HasLinkedSurveyFilter,
     ]
@@ -1048,13 +1085,14 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                           'document_type',
                           )
     inlines = [
-        #HeritageSurveyInline
+        HeritageSurveyInline
     ]
     search_fields = [
         'surveys__survey_id',
         'filepath',
         'filename'
     ]
+    list_editable = ['file_status']
     form = SurveyDocumentForm
 
 
