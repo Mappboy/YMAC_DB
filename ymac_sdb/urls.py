@@ -19,7 +19,7 @@ from django.contrib.gis import admin
 from ymac_db import views
 
 urlpatterns = [
-    url(r'^home/', views.index, name='index'),
+    url(r'^$', views.index, name='index'),
     url(r'^about/$', views.about, name='about'),
     url(r'^contact/$', views.contact, name='contact'),
     url(r'^services/$', views.services, name='services'),
@@ -53,5 +53,5 @@ urlpatterns = [
     url(r'^requestjobcontrol-autocomplete/$', views.RequestJobAutocomplete.as_view(),
         name='requestjobcontrol-autocomplete'),
     url(r'^jet/', include('jet.urls', 'jet')),
-    url(r'^', admin.site.urls),
+    url(r'^ymac_db/', admin.site.urls, name='ymac_db'),
 ]

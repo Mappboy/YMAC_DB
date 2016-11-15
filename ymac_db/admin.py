@@ -724,10 +724,6 @@ class SiteTypeFilter(baseadmin.SimpleListFilter):
 class YMACModelAdmin(LeafletGeoAdmin):
     default_lat = -27
     default_lon = 121
-    # formfield_overrides = {
-    #    models.GeometryField: {'widget': OSMWidget},
-    # }
-
 
 
 
@@ -1489,7 +1485,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
 
 
 @admin.register(DaaSite)
-class DAASiteAdmin(admin.GeoModelAdmin):
+class DAASiteAdmin(YMACModelAdmin):
     list_display = [
         'place_id',
         'status',
@@ -1522,7 +1518,7 @@ class DAASiteAdmin(admin.GeoModelAdmin):
 geom_models = [
     YmacRegion,
     Tenement,
-    SurveyGroup
+    SurveyGroup,
 ]
 
 for gm in geom_models:
