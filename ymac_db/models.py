@@ -632,6 +632,9 @@ class RelatedSurveyCode(models.Model):
 @python_2_unicode_compatible
 class ResearchSite(models.Model):
     # Add in x, y coordinates and buffer, spatial coord, zone
+    # NOTE: need to think about coordinate accuracy
+    #       - Should we inlcude other coordinates recorded
+    #       - Proponent codes ???
     research_site_id = models.AutoField(primary_key=True)
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, blank=True, null=True,
                              help_text="The Spatial Site Data (optional)")

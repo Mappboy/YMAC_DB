@@ -134,7 +134,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         if 'cc_recipients' in self.cleaned_data:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
             msg['Cc'] = ", ".join(cc_emails)
-            toaddr.append(cc_emails)
+            toaddr += cc_emails
         msg['Subject'] = "{map_type} {job_id} request".format(map_type=self.instance.request_type,
                                                               job_id=self.instance.job_control)
         body = """
