@@ -789,6 +789,10 @@ class HeritageSurveyInline(CompactInline):
     model = SurveyDocument.surveys.through
     form = HeritageSurveyInlineForm
 
+class HeritageSurveySiteInline(CompactInline):
+    model = Site.surveys.through
+    form = HeritageSurveyInlineForm
+
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
     model = HeritageSurvey.data_source.through
@@ -1265,9 +1269,6 @@ class SiteAdmin(YMACModelAdmin):
 
     inlines = [
     ]
-    formfield_overrides = {
-        models.GeometryField: {'widget': geoforms.OSMWidget},
-    }
     list_display = [
         'site_identifier',
         'recorded_by',
