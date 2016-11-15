@@ -212,12 +212,29 @@ offices = [
     ('Pilbara', 'Pilbara'),
 ]
 
-available_projections = {
+available_projections = [
     (4326, 'WGS84 LL'),
     (4283, 'GDA94 LL'),
     (4203, 'AGD84 LL'),
     (4202, 'AGD66 LL'),
-}
+    (28349, 'MGA Zone 49'),
+    (28350, 'MGA Zone 50'),
+    (28351, 'MGA Zone 51'),
+    (28352, 'MGA Zone 52'),
+    (32749, 'UTM Zone 49'),
+    (32750, 'UTM Zone 50'),
+    (32751, 'UTM Zone 51'),
+    (32752, 'UTM Zone 52'),
+    (20349, 'AGD84/ Zone 49'),
+    (20350, 'AGD84/ Zone 50'),
+    (20351, 'AGD84/ Zone 51'),
+    (20352, 'AGD84/ Zone 52'),
+    (20249, 'AGD66/ Zone 49'),
+    (20250, 'AGD66/ Zone 50'),
+    (20251, 'AGD66/ Zone 51'),
+    (20252, 'AGD66/ Zone 52'),
+]
+
 @python_2_unicode_compatible
 class Consultant(models.Model):
     """
@@ -635,6 +652,10 @@ class ResearchSite(models.Model):
     # NOTE: need to think about coordinate accuracy
     #       - Should we inlcude other coordinates recorded
     #       - Proponent codes ???
+    #       - Should we have a basic informants table Full Name and Group
+    #       - Site Type should be it's own type and many to many
+    #       - Import Tool https://docs.djangoproject.com/en/1.10/ref/contrib/gis/geos/
+    #       - Conversions https://docs.djangoproject.com/en/1.10/ref/contrib/gis/gdal/
     research_site_id = models.AutoField(primary_key=True)
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, blank=True, null=True,
                              help_text="The Spatial Site Data (optional)")
@@ -752,7 +773,7 @@ class Site(models.Model):
     created_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='created_by',
                                    related_name='site_created_by', blank=True)
     active = models.NullBooleanField()
-    capture_coord_sys = models.TextField(blank=True, null=True)
+    capture_coord_sys = models.IntegerField(choices=available_projections, blank=True, null=True)
     docs = models.ManyToManyField('SiteDocument', blank=True)
     surveys = models.ManyToManyField('HeritageSurvey', blank=True)
     daa_sites = models.ManyToManyField('DaaSite', blank=True)
@@ -827,19 +848,7 @@ class SurveyDocument(models.Model):
             return smart_text("File does not exist")
 
     def __str__(self):
-        BAD_FIX = {1: "Document : Survey Report",
-                   2: "Document : Preliminary Advice",
-                   3: "Spatial : GPX",
-                   4: "Spatial : Shapefile",
-                   5: "Spatial : Mapinfo",
-                   6: "Spatial : Geodatabase",
-                   7: "Spatial : Google KML",
-                   8: "Image",
-                   9: "Audio",
-                   10: "Video",
-                   11: "Map",
-                   12: "Other"}
-        return smart_text("%s : %s" % (BAD_FIX[self.document_type_id], self.filename))
+        return smart_text("%s-%s : %s" % (self.document_type.document_type, self.document_type.sub_type, self.filename))
 
 
 @python_2_unicode_compatible
