@@ -132,8 +132,9 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         msg['From'] = msg_from
         msg['To'] = ', '.join(["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"])
         if 'cc_recipients' in self.cleaned_data:
-            msg['Cc'] = ", ".join(self.cleaned_data['cc_recipients'])
-            toaddr.append(self.cleaned_data['cc_recipients'])
+            cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
+            msg['Cc'] = ", ".join(cc_emails)
+            toaddr.append(cc_emails)
         msg['Subject'] = "{map_type} {job_id} request".format(map_type=self.instance.request_type,
                                                               job_id=self.instance.job_control)
         body = """
