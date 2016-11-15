@@ -20,7 +20,13 @@ class SiteForm(baseform.ModelForm):
     class Meta:
         model = Site
         exclude = []
-        widgets = {'geom': LeafletWidget()}
+        widgets = {
+            'surveys': autocomplete.ModelSelect2Multiple(
+            url='heritagesurvey-autocomplete'),
+        'daa_sites': autocomplete.ModelSelect2Multiple(
+                url='daasite-autocomplete')
+        }
+
 
 
 class SurveyDocumentForm(baseform.ModelForm):
@@ -47,6 +53,19 @@ class HeritageSurveyInlineForm(baseform.ModelForm):
         widgets = {'heritagesurveys': autocomplete.ModelSelect2Multiple(
             url='heritagesurvey-autocomplete')}
 
+class HeritageSurveySiteInlineForm(baseform.ModelForm):
+    class Meta:
+        model = Site.surveys.through
+        fields = '__all__'
+        widgets = {'surveys': autocomplete.ModelSelect2Multiple(
+            url='heritagesurvey-autocomplete')}
+
+class DAASiteInlineForm(baseform.ModelForm):
+    class Meta:
+        model = Site.daa_sites.through
+        fields = '__all__'
+        widgets = {'daa_sites': autocomplete.ModelSelect2Multiple(
+            url='daasite-autocomplete')}
 
 class HeritageSiteForm(baseform.ModelForm):
     site_description = forms.ModelMultipleChoiceField(queryset=SiteDescriptions.objects.all())

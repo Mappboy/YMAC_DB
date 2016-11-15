@@ -52,6 +52,8 @@ urlpatterns = [
         name='requestuser-autocomplete'),
     url(r'^requestjobcontrol-autocomplete/$', views.RequestJobAutocomplete.as_view(),
         name='requestjobcontrol-autocomplete'),
+    url(r'^daasite-autocomplete/$', views.DAASiteAutocomplete.as_view(),
+        name='daasite-autocomplete'),
     url(r'^jet/', include('jet.urls', 'jet')),
     url(r'^ymac_db/', admin.site.urls, name='ymac_db'),
 ]

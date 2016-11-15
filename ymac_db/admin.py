@@ -789,9 +789,16 @@ class HeritageSurveyInline(CompactInline):
     model = SurveyDocument.surveys.through
     form = HeritageSurveyInlineForm
 
+
 class HeritageSurveySiteInline(CompactInline):
     model = Site.surveys.through
-    form = HeritageSurveyInlineForm
+    form = HeritageSurveySiteInlineForm
+
+
+class DaaSiteInline(admin.TabularInline):
+    model = Site.daa_sites.through
+    form = DAASiteInlineForm
+
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
     max_num = 5
