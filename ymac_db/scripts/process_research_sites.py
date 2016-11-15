@@ -113,3 +113,23 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as 
             c[p] += 1
     for e,c in c.items():
         print(e)
+
+pkkp_site_replacement = {
+"Historical": "Hist",
+"Thalu": "Thalu",
+"Burial": "Burial",
+"Birth": "Birth",
+"Living Water": "Yinta",
+"Rock Art": "Art",
+"Warlu": "Warlu",
+"Rock hole": "RH",
+"Other Mythological": "Myth",
+"Archaelogical": "Arch",
+"Ethno-geographic Feature": "Geo",
+"Law Ground": "Law",
+"Massacre Site": "Mass",
+"Camping": "Camp",
+"Boundary": "Bound",
+"Unclassified General Ethnographic Significance": "Ethno",
+"Cultural Objects": "Obj",
+}

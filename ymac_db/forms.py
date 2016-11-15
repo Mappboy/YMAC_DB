@@ -127,13 +127,13 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         from email.mime.text import MIMEText
         msg = MIMEMultipart()
         email = self.instance.user.email
-        toaddr = "cjpoole@ymac.org.au"
+        toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
         msg['From'] = msg_from
-        msg['To'] = "cjpoole@ymac.org.au"
-        # ', '.join(["spashby@ymac.org.au",
-        #  "cjpoole@ymac.org.au",
-        #  "cforsey@ymac.org.au"])
+        msg['To'] = ', '.join(["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"])
+        if 'cc_recipients' in self.cleaned_data:
+            msg['Cc'] = ", ".join(self.cleaned_data['cc_recipients'])
+            toaddr + self.cleaned_data['cc_recipients']
         msg['Subject'] = "{map_type} {job_id} request".format(map_type=self.instance.request_type,
                                                               job_id=self.instance.job_control)
         body = """

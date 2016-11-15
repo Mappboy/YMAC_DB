@@ -37,6 +37,7 @@ disturbance_level = [('Negligible', 'Negligible'),
                      ('Significant', 'Significant'),
                      ('Major', 'Major')
                      ]
+
 site_location = [('Located', 'Located'),
                  ('Position Indicative', 'Position Indicative'),
                  ('Approximate', 'Approximate',),
@@ -94,6 +95,7 @@ document_subtype = [
     ('Preliminary Advice', 'Preliminary Advice'),
     ('Survey Report', 'Survey Report'),
     ('HISF', 'Heritage Information Submission Form'),
+    ('Zipped', 'Zipped'),
 ]
 
 states = [
@@ -210,7 +212,12 @@ offices = [
     ('Pilbara', 'Pilbara'),
 ]
 
-
+available_projections = {
+    (4326, 'WGS84 LL'),
+    (4283, 'GDA94 LL'),
+    (4203, 'AGD84 LL'),
+    (4202, 'AGD66 LL'),
+}
 @python_2_unicode_compatible
 class Consultant(models.Model):
     """
