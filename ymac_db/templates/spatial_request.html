@@ -3,8 +3,9 @@
 {% load staticfiles %}
 
 {% block head_js %}
-    <script src={% static "js/jquery1.9.js" %}></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src={% static "js/bootstrap.min.js" %}></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     {{ form.media }}
 {% endblock %}
 {% block content %}
@@ -25,3 +26,5 @@
         </div>
     </footer>
 {% endblock %}
+{%  block foot_js %}
+{%  endblock %}
