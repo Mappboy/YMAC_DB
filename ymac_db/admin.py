@@ -1037,9 +1037,15 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         'data_path',
         'surveys']
 
+def set_as_done(modeladmin, request, queryset):
+    for qs in queryset:
+        qs.update(done=True)
+    messages.info(request, "Set {} reuqests to done".format(len(queryset)))
+
+set_as_done.short_description = "Set Request Done"
 
 @admin.register(YMACSpatialRequest)
-class YMACSpatialRequestAdmin(baseadmin.ModelAdmin):
+class YMACSpatialRequestAdmin(YMACModelAdmin):
     list_display = ['user',
                     'request_type',
                     'map_size',
@@ -1051,6 +1057,7 @@ class YMACSpatialRequestAdmin(baseadmin.ModelAdmin):
                       'job_control',
                       'job_desc']
     list_filter = [ IsDoneFilter ]
+    actions = [ set_as_done ]
 
 @admin.register(SurveyDocument)
 class SurveyDocumentAdmin(baseadmin.ModelAdmin):
