@@ -29,6 +29,33 @@
     <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+          {% regroup all_requests|dictsort:"priority" by priority as request_list  %}
+          var total = {{ all_requests |length }};
+          var dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('string', 'Requests');
+            dataTable.addColumn('number', 'In Progress');
+            dataTable.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+            dataTable.addRows([
+            {%  for requests in request_list %}
+                [ "{{ requests.grouper }}", {{ requests.list |length }}, '{% for job in requests.list %}{{ job.user.name }} : {{ job.job_control}}<br>{% endfor %}' ],
+            {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Spatial Requests: ' + total + ' in progress ',
+            tooltip: { isHtml:true}
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(dataTable, options);
+      }
+    </script>
 </head>
 <body>
 {% block body %}
@@ -83,22 +110,16 @@
         {% block content %}
             <div class="jumbotron">
                 <h1>YMAC SPATIAL SERVER</h1>
-                <p>The YMAC spatial server is here to serve all your spatial needs.</p>
-                <p>&nbsp;</p>
+                <p>Welcome to the YMAC Spatial Server. An endeavour to collect our spatial assets and information.
+                        Here you will find information about what we do, our services,
+                        our Spatial Request Form, Data Kiosk, Wiki and other useful information.
+                        If you have trouble finding anything on this page or have any recommendations or problems,
+                        please let us know.</p>
             </div>
             <div class="row">
-                <div class="col-lg-8">
-                    <h2>The Spatial Server</h2>
-                    <p>Welcome to the YMAC Spatial Server. An endeavour to collect our spatial assets and information.
-                        <br>
-                        Here you will find information about who we are, what we do, our services,<br>
-                        our Spatial Request Form, Country Online, FME Server, our wiki and other useful information.
-                        <br>
-                        If you have trouble finding anything on this page or have any recommendations or problems,
-                        please let us
-                        know.</p>
-                    <p>For automated jobs use the workbenches, web page.</p>
-                </div>
+            <div class="col-lg-8">
+                <div id="piechart" style="width: 900px; height: 500px;"></div>
+            </div>
                 <div class="col-lg-4" id="linksdiv"><!-- content -->
                     <h2><span id="linksspan">Useful links</span></h2>
                     <ul class="" id="linkslist">
@@ -120,7 +141,7 @@
         {% endblock %}
     </div><!-- site container-->
     {% block footer %}
-    <footer class="fixed footer">
+    <footer class="footer">
         <div class="container">
             <p class="text-muted">&copy; YMAC 2016</p>
         </div>

@@ -17,7 +17,7 @@ if form.is_valid():
 
 import json
 from datetime import date
-
+from datetime import timedelta
 from django.contrib import messages
 from django.contrib.gis.db.models import Union
 from django.core.serializers import serialize
@@ -45,7 +45,10 @@ WORKSPACE = 'region_distance_calculator.fmw'
 
 
 def index(request):
-    return render(request, 'base.html')
+    today = date.today()
+    return render(request, 'base.html', context={
+        'all_requests': YMACSpatialRequest.objects.filter(done=False),
+        })
 
 
 def services(request):
@@ -445,10 +448,10 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
         # if not self.request.user.is_authenticated():
         #    return RequestUser.objects.none()
 
-        qs = RequestUser.objects.all()
+        qs = RequestUser.objects.filter(current_user=True)
 
         if self.q:
-            qs = qs.filter(Q(name__istartswith=self.q) & Q(current_user=True))
+            qs = qs.filter(name__istartswith=self.q)
 
         return qs
 
@@ -465,5 +468,19 @@ class RequestJobAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(Q(job_control__icontains=self.q)|
                            Q(job_desc__icontains=self.q) |
                            Q(user__name__icontains=self.q)).exclude(job_control="").order_by('-job_control')
+
+        return qs
+
+class RequestUserAllAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        # Don't worry about this
+        # if not self.request.user.is_authenticated():
+        #    return RequestUser.objects.none()
+
+        qs = RequestUser.objects.all()
+
+        if self.q:
+            qs = qs.filter(Q(name__istartswith=self.q))
 
         return qs

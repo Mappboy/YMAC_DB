@@ -23,6 +23,7 @@ def emit_week(day):
     return (end_of_week, beginning_of_week)
 
 
+
 def removeEmptyFolders(path, removeRoot=True):
     '''
     Function to remove empty folders
