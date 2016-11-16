@@ -11,7 +11,6 @@ from django.utils.encoding import smart_text
 
 from .validators import *
 
-
 VALID_DRIVES = [
     "X:",
     "V:",
@@ -235,6 +234,7 @@ available_projections = [
     (20252, 'AGD66/ Zone 52'),
 ]
 
+
 @python_2_unicode_compatible
 class Consultant(models.Model):
     """
@@ -297,7 +297,7 @@ class DaaSite(models.Model):
     boundary_last_update_date = models.CharField(max_length=200, blank=True, null=True)
     shape_length = models.CharField(max_length=200, blank=True, null=True)
     shape_area = models.CharField(max_length=200, blank=True, null=True)
-    objectid = models.BigIntegerField(blank=True,null=True)
+    objectid = models.BigIntegerField(blank=True, null=True)
     # source
     # file location
     # daa report
@@ -385,7 +385,8 @@ class Emit(models.Model):
     id = models.TextField(blank=True, null=True)
     publisheddate = models.TextField(blank=True, null=True)
     linkuri = models.TextField(blank=True, null=True)
-    field_minfield = models.CharField(db_column='_minfield', max_length=200, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_minfield = models.CharField(db_column='_minfield', max_length=200, blank=True,
+                                      null=True)  # Field renamed because it started with '_'.
     possibleclaimgroups = models.CharField(max_length=200, blank=True, null=True)
     datereceived = models.DateField()
     markout = models.CharField(max_length=200, blank=True, null=True)
@@ -831,7 +832,8 @@ class SurveyDocument(models.Model):
     document_type = models.ForeignKey(DocumentType)
     filepath = models.TextField(blank=True, null=True, db_index=True, )  # validators=[valid_directory]
     filename = models.CharField(max_length=200, blank=True, null=True, db_index=True, validators=[valid_extension])
-    file_status = models.ForeignKey('SurveyStatus', blank=True, null=True, help_text="If Spatial What type of data is it?")
+    file_status = models.ForeignKey('SurveyStatus', blank=True, null=True,
+                                    help_text="If Spatial What type of data is it?")
     title = models.TextField(blank=True)
 
     def check_file_exists(self):
@@ -974,6 +976,7 @@ class TenementsAll(models.Model):
         managed = True
         db_table = 'tenements_all'
 
+
 @python_2_unicode_compatible
 class TenementsYmac(models.Model):
     fmt_tenid = models.CharField(max_length=20, blank=True, null=True)
@@ -1031,7 +1034,6 @@ class Tenement(models.Model):
     class Meta:
         managed = False
         db_table = 'tenement'
-
 
 
 class Tenure(models.Model):
@@ -1140,6 +1142,7 @@ class YmacClaim(models.Model):
         db_table = 'ymac_claims'
         ordering = ('name',)
 
+
 @python_2_unicode_compatible
 class YmacEmitTenements(models.Model):
     title = models.CharField(max_length=20)
@@ -1157,8 +1160,7 @@ class YmacEmitTenements(models.Model):
     class Meta:
         managed = False
         db_table = 'ymac_db_emits_tenement'
-        ordering = ('datereceived','title')
-
+        ordering = ('datereceived', 'title')
 
 
 @python_2_unicode_compatible
@@ -1311,21 +1313,22 @@ class YMACSpatialRequest(models.Model):
     request_type = models.ForeignKey('RequestType',
                                      help_text="Please try to determine what sort of request "
                                                "you have before completing this form.")
-    region = models.CharField(max_length=15, choices=ymac_region, blank=True, default="Yamatji")
+    region = models.CharField(max_length=15, choices=ymac_region, blank=True)
     claim = models.ManyToManyField(YmacClaim, blank=True)
     job_desc = models.TextField()
     job_control = models.CharField(max_length=9, blank=True, validators=[valid_job_number])
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
                                 blank=True, null=True)
-    sup_data_text = models.TextField(blank=True, help_text="If you have any data with this then please "
-                                                           "provide instructions as to where it can be located. "
-                                                           "Alternatively send a separate email to "
-                                                           "spatial@ymac.org.au with directions or as attachments.")
+    sup_data_text = models.TextField(blank=True,
+                                     help_text="For large amounts of data please indicate the folder where it can be "
+                                               "found. Alternatively you can upload it with the request form "
+                                               "or send an email to spatialjobs@ymac.org.au."
+                                     )
     required_by = models.DateField()
     request_datetime = models.DateTimeField(blank=True, auto_now_add=True)
     completed_datetime = models.DateTimeField(blank=True)
-    cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True)
+    cc_recipients = models.ManyToManyField(RequestUser, related_name='cc_recipients', blank=True, help_text="You can select multiple recipients")
     product_type = models.CharField(max_length=25, choices=product_types, blank=True)
     other_instructions = models.TextField(blank=True)
     # Set this back to false
@@ -1341,17 +1344,20 @@ class YMACSpatialRequest(models.Model):
     done = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(YmacStaff, blank=True)
     time_spent = models.FloatField(blank=True)
-    related_jobs = models.ManyToManyField("self", blank=True)
+    related_jobs = models.ManyToManyField("self", blank=True,
+                                          help_text="Optional: If this job is related to a past or current job please "
+                                                    "select it. Hint: type the name of person who requested it.")
     request_area = models.GeometryField(srid=4283, blank=True, null=True)
 
     class Meta:
-        ordering = ('-job_control','-required_by',)
+        ordering = ('-job_control', '-required_by',)
 
     def __str__(self):
-        return smart_text("{}:{} {} - {} ".format(self.job_control,
-                                               self.request_datetime.strftime("%d/%m/%Y"),
-                                               self.user.name,
-                                               self.job_desc[:125]))
+        return smart_text("{} : {} : {} - ({}) {} ".format(self.job_control,
+                                                       self.request_datetime.strftime("%d/%m/%Y"),
+                                                       self.user.name,
+                                                       self.request_type.name,
+                                                       self.job_desc[:265]))
 
     def generate_job_control(self):
         """

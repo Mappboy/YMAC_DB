@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.gis import forms
 from leaflet.forms.widgets import LeafletWidget
 from suit.widgets import SuitDateWidget, AutosizedTextarea
+from django.utils.translation import ugettext_lazy as _
 
 from .models import *
 
@@ -336,6 +337,11 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             'job_control': forms.HiddenInput(),
             'request_datetime': forms.HiddenInput(),
 
+        }
+        labels = {
+            'related_jobs': _('Past/Related Jobs'),
+            'job_desc': _('Job Description'),
+            'sup_data_text': _('Supplementary Data'),
         }
 
 
