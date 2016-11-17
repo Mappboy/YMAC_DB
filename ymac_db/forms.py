@@ -173,7 +173,6 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
-        print(body)
         msg.attach(MIMEText(body, 'plain'))
         s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
         s.sendmail(msg_from, toaddr, msg.as_string())

@@ -301,8 +301,8 @@ class SpatialRequestView(FormView):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
         form.generate_folders()
-        form.send_email()
         form.update_smartsheet()
+        form.send_email()
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
         return render(self.request, 'spatial_thanks.html',
