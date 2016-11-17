@@ -64,16 +64,10 @@ her_site_status = [
     ('Stored Data', 'Stored Data')
 ]
 
-site_classification = [('Ethnographic', 'Ethnographic'),
+site_category = [('Ethnographic', 'Ethnographic'),
                        ('Archeological', 'Archeological'),
                        ('Arch & Ethno', 'Arch & Ethno')
                        ]
-
-site_category = [
-    ('GEOGRAPHIC FEATURES', 'GEOGRAPHIC FEATURES'),
-    ('RESTRICTED OR CEREMONIAL SITE', 'RESTRICTED OR CEREMONIAL SITE'),
-    ('CAMPS/ LIVING AREAS', 'CAMPS/ LIVING AREAS')
-]
 
 gender = [('Male', 'Male'),
           ('Female', 'Female')]
@@ -557,6 +551,19 @@ class HeritageCompanies(models.Model):
 
 
 @python_2_unicode_compatible
+class SiteInformant(models.Model):
+    """
+    Site informants
+    """
+    name = models.CharField(max_length=250)
+
+    def __str__(self):
+        return smart_text(self.name)
+    class Meta:
+        managed = True
+
+
+@python_2_unicode_compatible
 class NnttDetermination(models.Model):
     tribid = models.CharField(max_length=30, blank=True, null=True)
     name = models.CharField(max_length=250, blank=True, null=True, db_index=True)
@@ -625,7 +632,7 @@ class PotentialSurvey(models.Model):
 @python_2_unicode_compatible
 class Proponent(models.Model):
     id = models.AutoField(primary_key=True)
-    prop_id = models.CharField(max_length=10)
+    prop_id = models.CharField(max_length=40)
     name = models.TextField(db_index=True)
     contact = models.TextField(blank=True, null=True)
     email = models.TextField(blank=True, null=True)
@@ -634,7 +641,7 @@ class Proponent(models.Model):
         return smart_text(self.name)
 
     class Meta:
-        managed = False
+        managed = True
         ordering = ('name',)
 
 
@@ -651,28 +658,25 @@ class RelatedSurveyCode(models.Model):
 
 @python_2_unicode_compatible
 class ResearchSite(models.Model):
-    # Add in x, y coordinates and buffer, spatial coord, zone
-    # NOTE: need to think about coordinate accuracy
-    #       - Should we inlcude other coordinates recorded
-    #       - Proponent codes ???
-    #       - Should we have a basic informants table Full Name and Group
-    #       - Site Type should be it's own type and many to many
     #       - Import Tool https://docs.djangoproject.com/en/1.10/ref/contrib/gis/geos/
     #       - Conversions https://docs.djangoproject.com/en/1.10/ref/contrib/gis/gdal/
     research_site_id = models.AutoField(primary_key=True)
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, blank=True, null=True,
                              help_text="The Spatial Site Data (optional)")
-    site_classification = models.CharField(max_length=30, choices=site_classification, blank=True, null=True)
-    site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
-    site_location = models.CharField(max_length=30, choices=site_location, blank=True, null=True)
+    site_type = models.ManyToManyField('SiteType', help_text="Pick match site types or add a new one")
+    site_location = models.TextField(blank=True, null=True, help_text="If need, provide a site description")
+    site_other_coordinates = models.TextField(blank=True, null=True, help_text="Any other coordinates for the site")
+    groups = models.ManyToManyField('YmacClaim', help_text="Site belong to any groups")
+    informants = models.ManyToManyField('SiteInformant', help_text="Site belong to any groups")
+    proponent_codes = models.TextField(blank=True, null=True, help_text="Any proponent codes for matching")
     site_comments = models.TextField(blank=True, null=True)
     ethno_detail = models.TextField(blank=True, null=True)
-    reference = models.TextField(blank=True, null=True)
+    reference = models.TextField(blank=True, null=True, help_text="Field Notes")
     site_name = models.TextField(blank=True, null=True, db_index=True)
     site_label = models.TextField(blank=True, null=True)
     alt_site_name = models.TextField(blank=True, null=True)
     site_number = models.IntegerField(blank=True, null=True)
-    family_affiliation = models.TextField(blank=True, null=True)
+    family_affiliation = models.TextField(blank=True, null=True, help_text="The family that speaks for that site")
     mapsheet = models.TextField(blank=True, null=True)
     documents = models.ManyToManyField('SiteDocument',
                                        db_column='site_id',
@@ -682,8 +686,7 @@ class ResearchSite(models.Model):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
 
     class Meta:
-        managed = False
-        db_table = 'research_sites'
+        managed = True
 
 
 @python_2_unicode_compatible
@@ -770,13 +773,18 @@ class Site(models.Model):
                                        help_text="Site name to help you identify it", db_index=True)
     restricted_status = models.ForeignKey(RestrictionStatus, on_delete=models.CASCADE, db_column='restricted_status',
                                           blank=True, null=True)
-    label_x_ll = models.FloatField(blank=True, null=True)
-    label_y_ll = models.FloatField(blank=True, null=True)
+
     date_created = models.DateField(blank=True, null=True)
     created_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='created_by',
                                    related_name='site_created_by', blank=True)
+    orig_x_val = models.FloatField(blank=True, null=True, help_text="Latitude/Northing Value")
+    orig_y_val = models.FloatField(blank=True, null=True, help_text="Longitude/Easting Value")
+    buffer = models.IntegerField(default=10, help_text="Site buffer in meters")
+    coordinate_accuracy = models.CharField(max_length = 30, choices = site_location, blank = True, null = True)
     active = models.NullBooleanField()
     capture_coord_sys = models.IntegerField(choices=available_projections, blank=True, null=True)
+    label_x_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
+    label_y_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
     docs = models.ManyToManyField('SiteDocument', blank=True)
     surveys = models.ManyToManyField('HeritageSurvey', blank=True)
     daa_sites = models.ManyToManyField('DaaSite', blank=True)
@@ -789,6 +797,20 @@ class Site(models.Model):
 
     class Meta:
         managed = True
+
+
+@python_2_unicode_compatible
+class SiteType(models.Model):
+    site_classification = models.CharField(max_length=100)
+    site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
+
+    def __str__(self):
+        if self.site_category:
+            return smart_text("{} {}".format(self.site_classification, self.site_category))
+        return smart_text("{}".format(self.site_classification))
+
+    class Meta:
+        ordering = ('site_classification',)
 
 
 @python_2_unicode_compatible

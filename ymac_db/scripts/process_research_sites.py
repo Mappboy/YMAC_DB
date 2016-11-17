@@ -1,7 +1,7 @@
 import csv
 import re
 from collections import Counter
-
+# Date field is date site was recorded go with earliest date provided
 
 def standardise_names(place_type, replacements):
     rep = dict((re.escape(k), v) for k, v in replacements.items())
@@ -133,3 +133,44 @@ pkkp_site_replacement = {
 "ethnographic": "Ethno",
 "cultural objects": "Obj",
 }
+
+site_types = [
+"archaeological",
+"birthplace",
+"boundary",
+"burial",
+"camp",
+"cave",
+"ceremonial",
+"ethno-geographical",
+"fighting area",
+"fishing",
+"food source",
+"gender restricted",
+"geographical",
+"historical",
+"hunting",
+"initiation ground",
+"law ground",
+"life event",
+"massacre site",
+"meeting ground",
+"meeting place",
+"midden",
+"mythological",
+"named place",
+"namesake",
+"outcamp",
+"residence",
+"resource",
+"rock art",
+"sacred",
+"spiritual",
+"thalu",
+"warlu",
+"waterplace",
+"watersource",
+"women's place"]
+
+for classify in site_types:
+    SiteType.objects.create(site_classification=classify)

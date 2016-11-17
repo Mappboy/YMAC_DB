@@ -734,7 +734,6 @@ basemodels = [SiteUser,
               RestrictionStatus,
               SurveyMethodology,
               Consultant,
-              Proponent,
               RelatedSurveyCode,
               SurveyProponentCode,
               DocumentType,
@@ -742,6 +741,7 @@ basemodels = [SiteUser,
               RequestType,
               Department,
               YmacStaff,
+              SiteType,
               ]
 
 for m in basemodels:
@@ -751,6 +751,11 @@ for m in basemodels:
 # ADD Site Document Inline
 # SEe https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-many-to-many-models
 
+
+@admin.register(Proponent)
+class ProponentAdmin(baseadmin.ModelAdmin):
+    search_fields = ['name']
+    list_display = ['prop_id', 'name']
 
 class SiteDocumentInline(admin.TabularInline):
     model = Site.docs.through
@@ -1326,18 +1331,22 @@ class HeritageSiteAdmin(SiteAdmin):
 
 @admin.register(ResearchSite)
 class ResearchSiteAdmin(SiteAdmin):
+    def type_list(self, obj):
+        try:
+            return ";\n".join([smart_text(hs.site_classification) for hs in obj.site_type.all()])
+        except AttributeError:
+            return ''
+
+    type_list.short_description = "Site Classification"
+
     inlines = [
     ]
     list_display = [
-        'site_classification',
-        'site_category',
-        'site_location',
+        'type_list',
         'site_comments',
         'site_name'
     ]
     list_filter = [
-        'site_classification',
-        'site_category',
         'site_location',
         'site_comments',
         'site_name'
