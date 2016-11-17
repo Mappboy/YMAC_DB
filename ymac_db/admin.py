@@ -741,7 +741,6 @@ basemodels = [SiteUser,
               RequestType,
               Department,
               YmacStaff,
-              SiteType,
               ]
 
 for m in basemodels:
@@ -756,6 +755,13 @@ for m in basemodels:
 class ProponentAdmin(baseadmin.ModelAdmin):
     search_fields = ['name']
     list_display = ['prop_id', 'name']
+
+
+@admin.register(SiteType)
+class SiteTypeAdmin(baseadmin.ModelAdmin):
+    list_display = ['site_classification', 'site_category']
+    list_editable = ['site_category']
+
 
 class SiteDocumentInline(admin.TabularInline):
     model = Site.docs.through

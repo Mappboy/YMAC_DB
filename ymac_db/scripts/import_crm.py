@@ -37,9 +37,8 @@ def get_matching_surveys(cleaned_survey_string):
     Returns heritage surveys for matching cleaned survey string
     :param cleaned_survey_string:
     :return:
-        >>> get_matching_surveys("AMA245-5")
+    >>> get_matching_surveys("AMA245-5")
     []
-
     >>> get_clean_survey_code("YHW018-113")
     [<HeritageSurvey: YHW018-113 (Trip 1)- Turee Creek Drilling Program>, <HeritageSurvey: YHW018-113 (Trip 2)- Turee Creek Drilling>]
     """
