@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load bootstrap3 %}
 <!DOCTYPE html>
 <html class="html" lang="en-GB">
 <head>
@@ -108,6 +109,7 @@
             </nav>
         {% endblock %}
         {% block content %}
+            {% bootstrap_messages %}
             <div class="jumbotron">
                 <h1>YMAC SPATIAL SERVER</h1>
                 <p>Welcome to the YMAC Spatial Server. An endeavour to collect our spatial assets and information.

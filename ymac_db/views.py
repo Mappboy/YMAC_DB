@@ -17,7 +17,7 @@ if form.is_valid():
 
 import json
 from datetime import date
-from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.gis.db.models import Union
 from django.core.serializers import serialize
@@ -48,7 +48,7 @@ def index(request):
     today = date.today()
     return render(request, 'base.html', context={
         'all_requests': YMACSpatialRequest.objects.filter(done=False),
-        })
+    })
 
 
 def services(request):
@@ -113,7 +113,7 @@ class EmitsWeekView(TemplateView):
         tenements = YmacEmitTenements.objects.filter(Q(ymac_region=True, datereceived__range=(start_date, end_date)) |
                                                      Q(row_to_check=True, datereceived__range=(start_date, end_date)))
         context['emits'] = json.dumps([{'title': t.title,
-                                        'datereceived' : t.datereceived.strftime("%d/%m/%Y"),
+                                        'datereceived': t.datereceived.strftime("%d/%m/%Y"),
                                         'objectiondate': t.objectiondate,
                                         'applicants': t.applicants,
                                         'row_to_check': t.row_to_check,
@@ -305,11 +305,11 @@ class SpatialRequestView(FormView):
         form.send_email()
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
-        return render(self.request, 'spatial_thanks.html',
-                      context={'rq': form.instance.user,
-                               'required_by': form.instance.required_by,
-                               'job_control': form.instance.job_control}
-                      )
+        messages.info(self.request, "Thank you {}, Job {} submitted "
+                                    "we will aim to complete it by {}.".format(form.instance.user,
+                                                                              form.instance.job_control,
+                                                                              form.instance.required_by,))
+        return redirect("/")
 
 
 def filter_map(request):
@@ -344,6 +344,7 @@ class HeritageSurveyAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs
 
+
 class DAASiteAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
@@ -353,9 +354,10 @@ class DAASiteAutocomplete(autocomplete.Select2QuerySetView):
         qs = DaaSite.objects.all()
 
         if self.q:
-            qs = qs.filter(Q(place_id__istartswith=self.q)|Q(name__istartswith=self.q))
+            qs = qs.filter(Q(place_id__istartswith=self.q) | Q(name__istartswith=self.q))
 
         return qs
+
 
 class HeritageSurveyTripAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -416,7 +418,7 @@ class ConsultantAutocomplete(autocomplete.Select2QuerySetView):
 class CaptureOrgAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        #if not self.request.user.is_authenticated():
+        # if not self.request.user.is_authenticated():
         #   return CaptureOrg.objects.none()
 
         qs = CaptureOrg.objects.all()
@@ -455,6 +457,7 @@ class RequestUserAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs
 
+
 class RequestJobAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
@@ -465,11 +468,12 @@ class RequestJobAutocomplete(autocomplete.Select2QuerySetView):
         qs = YMACSpatialRequest.objects.all()
 
         if self.q:
-            qs = qs.filter(Q(job_control__icontains=self.q)|
+            qs = qs.filter(Q(job_control__icontains=self.q) |
                            Q(job_desc__icontains=self.q) |
                            Q(user__name__icontains=self.q)).exclude(job_control="").order_by('-job_control')
 
         return qs
+
 
 class RequestUserAllAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
