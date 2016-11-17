@@ -151,7 +151,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         msg_from = email if email else "spatialjobs@ymac.org.au"
         msg['From'] = msg_from
         msg['To'] = ', '.join(["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"])
-        if 'cc_recipients' in self.cleaned_data:
+        if 'cc_recipients' in self.cleaned_data and self.cleaned_data['cc_recipients']:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
             msg['Cc'] = ", ".join(cc_emails)
             toaddr += cc_emails

@@ -8,6 +8,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
+from django.utils.html import format_html
 
 from .validators import *
 
@@ -24,6 +25,7 @@ VALID_DRIVES = [
     "\\\\ymac-dc3-fs1\\research",
 
 ]
+
 boundary_description = [('Complete Accurate', 'Complete Accurate'),
                         ('Incomplete Accurate', 'Incomplete Accurate'),
                         ('Complete Inferred', 'Complete Inferred'),
