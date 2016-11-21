@@ -1370,7 +1370,7 @@ class YMACSpatialRequest(models.Model):
     request_area = models.GeometryField(srid=4283, blank=True, null=True)
     sup_data_text = models.TextField(blank=True,
                                      help_text="For large amounts of data please indicate the folder where it can be "
-                                               "found. Alternatively you can upload it with the request form "
+                                               "found. Alternatively you can upload files below "
                                                "or send an email to spatialjobs@ymac.org.au."
                                      )
 
