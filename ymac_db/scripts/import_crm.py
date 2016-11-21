@@ -7,7 +7,7 @@ import datetime
 import django
 
 # Loading in HSIF and PA
-sys.path.append(r"C:\Users\cjpoole\PycharmProjects\ymac_sdb\\")
+sys.path.append(r"C:\Users\cjpoole\Documents\GitHub\YMAC_DB\ymac_sdb\\")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
 
 django.setup()

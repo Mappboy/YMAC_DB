@@ -1344,11 +1344,7 @@ class YMACSpatialRequest(models.Model):
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
                                 blank=True, null=True)
-    sup_data_text = models.TextField(blank=True,
-                                     help_text="For large amounts of data please indicate the folder where it can be "
-                                               "found. Alternatively you can upload it with the request form "
-                                               "or send an email to spatialjobs@ymac.org.au."
-                                     )
+    map_title = models.CharField(max_length=300, null=True, default='', help_text="Please provide a map title")
     required_by = models.DateField()
     request_datetime = models.DateTimeField(blank=True, auto_now_add=True)
     completed_datetime = models.DateTimeField(blank=True)
@@ -1372,6 +1368,11 @@ class YMACSpatialRequest(models.Model):
                                           help_text="Optional: If this job is related to a past or current job please "
                                                     "select it. Hint: type the name of person who requested it.")
     request_area = models.GeometryField(srid=4283, blank=True, null=True)
+    sup_data_text = models.TextField(blank=True,
+                                     help_text="For large amounts of data please indicate the folder where it can be "
+                                               "found. Alternatively you can upload it with the request form "
+                                               "or send an email to spatialjobs@ymac.org.au."
+                                     )
 
     class Meta:
         ordering = ('-job_control', '-required_by',)
