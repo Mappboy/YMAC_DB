@@ -1,7 +1,17 @@
 import csv
 import re
 from collections import Counter
+import sys
+import os
+import django
+
 # Date field is date site was recorded go with earliest date provided
+sys.path.append(r"C:\Users\cjpoole\Documents\GitHub\YMAC_DB\ymac_sdb\\")
+os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
+
+django.setup()
+
+from ymac_db.models import *
 
 def standardise_names(place_type, replacements):
     rep = dict((re.escape(k), v) for k, v in replacements.items())

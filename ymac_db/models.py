@@ -1344,7 +1344,7 @@ class YMACSpatialRequest(models.Model):
     map_size = models.CharField(max_length=20, choices=map_sizes, help_text="If you know what size map "
                                                                             "you wish then please select.",
                                 blank=True, null=True)
-    map_title = models.CharField(max_length=300, null=True, default='', help_text="Please provide a map title")
+    map_title = models.CharField(max_length=300, null=True, default='', blank=True, help_text="Please provide a map title")
     required_by = models.DateField()
     request_datetime = models.DateTimeField(blank=True, auto_now_add=True)
     completed_datetime = models.DateTimeField(blank=True)

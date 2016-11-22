@@ -94,6 +94,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
     #    data = datetime.datetime.now()
     #    return data
 
+
     def clean(self):
         cleaned_data = super(YMACSpatialRequestForm, self).clean()
         # filepath = cleaned_data.get("filepath")
@@ -120,6 +121,12 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             u"Field Work",
             u"Other",
             u"Uncertain"]
+        map_title = self.cleaned_data.get('map_title')
+        if MAP_REQUESTS and not map_title:
+            msg = forms.ValidationError("All maps require a title field")
+            self.add_error('map_tile', msg)
+        else:
+            self.cleaned_data['map_title'] = ''
         req_type = cleaned_data.get('request_type').name.rstrip()
         self.instance.map_requested = req_type in MAP_REQUESTS
         self.instance.analysis = req_type in ANALYSIS
@@ -127,6 +134,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         self.instance.other = req_type in OTHER
         # By default assign the job to Steve so he can delegate
         self.instance.assigned_to = YmacStaff.objects.get(pk="spashby")
+        return self.cleaned_data
 
         # Set geom according to if either region or claim groups are set
         #if self.instance.claim:

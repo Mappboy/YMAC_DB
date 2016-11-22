@@ -38,9 +38,9 @@ def get_matching_surveys(cleaned_survey_string):
     :param cleaned_survey_string:
     :return:
     >>> get_matching_surveys("AMA245-5")
-    []
-    >>> get_clean_survey_code("YHW018-113")
-    [<HeritageSurvey: YHW018-113 (Trip 1)- Turee Creek Drilling Program>, <HeritageSurvey: YHW018-113 (Trip 2)- Turee Creek Drilling>]
+    <QuerySet []>
+    >>> get_matching_surveys("YHW018-113")
+    <QuerySet [<HeritageSurvey: YHW018-113 (Trip 2)- Turee Creek Drilling>, <HeritageSurvey: YHW018-113 (Trip 1)- Turee Creek Drilling Program>]>
     """
     return HeritageSurvey.objects.filter(Q(survey_id=cleaned_survey_string))
 
