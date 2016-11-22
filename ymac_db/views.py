@@ -32,6 +32,7 @@ from django.views.generic.edit import FormView
 from ymac_db.utils import emit_week
 from .forms import *
 from .models import HeritageSurvey, YMACRequestFiles
+import sys
 
 try:
     from urllib.parse import quote_plus, urlencode
@@ -300,15 +301,40 @@ class SpatialRequestView(FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        form.generate_folders()
-        form.update_smartsheet()
-        form.send_email()
+        try:
+            form.generate_folders()
+        except:
+            e = sys.exc_info()[0]
+            messages.error(self.request, "Sorry Could not submit {}, Job {}  "
+                                         "Please contact spatial department. Reason could not generate folders. {}".format(
+                form.instance.user,
+                form.instance.job_control,
+                e))
+            return redirect("/")
+        try:
+            form.update_smartsheet()
+        except:
+            e = sys.exc_info()[0]
+            messages.error(self.request, "Sorry Could not submit {}, Job {}  "
+                                         "Please contact spatial department. Reason could not update smartsheet. {}".format(
+                form.instance.user,
+                form.instance.job_control, e))
+            return redirect("/")
+        try:
+            form.send_email()
+        except:
+            e = sys.exc_info()[0]
+            messages.error(self.request, "Sorry Could not submit {}, Job {}  "
+                                         "Please contact spatial department. Reason could not send email. {}".format(
+                form.instance.user,
+                form.instance.job_control, e))
+            return redirect("/")
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
         messages.info(self.request, "Thank you {}, Job {} submitted "
                                     "we will aim to complete it by {}.".format(form.instance.user,
-                                                                              form.instance.job_control,
-                                                                              form.instance.required_by,))
+                                                                               form.instance.job_control,
+                                                                               form.instance.required_by, ))
         return redirect("/")
 
 

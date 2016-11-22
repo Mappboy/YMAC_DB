@@ -866,7 +866,6 @@ class Migration(migrations.Migration):
                 ('comments', models.CharField(blank=True, max_length=120, null=True)),
                 ('juris', models.CharField(blank=True, max_length=20, null=True)),
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('date_created', models.DateTimeField(blank=True, null=True)),
                 ('geom', django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4326)),
             ],
             options={

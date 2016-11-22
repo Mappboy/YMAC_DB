@@ -29,9 +29,15 @@
 {% block foot_js %}
         <script>
         var map_title = $('div .form-group').has('#id_map_title');
-        map_title.hide()
 
         var map_requests = ['Claim Map', 'Site Map', 'Quarterly Maps', 'Customised Map', 'Boundary Research Map'];
+        var req_type = $('#id_request_type :selected').text();
+            if ($.inArray(req_type, map_requests) > -1) {
+                map_title.show()
+            }
+            else {
+                map_title.hide();
+            }
         $("#id_request_type").change(function () {
             var req_type = $('#id_request_type :selected').text();
             if ($.inArray(req_type, map_requests) > -1) {

@@ -5,6 +5,7 @@ import os
 from django.db.models import Q
 import datetime
 import django
+import fnmatch
 
 # Loading in HSIF and PA
 sys.path.append(r"C:\Users\cjpoole\Documents\GitHub\YMAC_DB\ymac_sdb\\")
@@ -15,6 +16,30 @@ django.setup()
 from ymac_db.models import *
 
 DATE_CUT_OFF = datetime.datetime(2016, 7, 11)
+# Define our geofile types
+GEOFILES = {"*.shp": "Shapefile",
+            "*.shz": "Zipped Shapefile",
+            "*.gdb": "ESRI Geodatabase",
+            "*.kml": "Google KML",
+            "*.kmz": "Google Zipped KML",
+            "*.tab": "MapInfo Tabfile",
+            "*.TAB": "MapInfo Tabfile",
+            "*.Tab": "MapInfo Tabfile",
+            "*.dwg": "Cadfile",
+            "*.gpx": "Garmin GPX",
+            }
+
+REPORTFILES = {
+    "*.doc*": "Word Document",
+    "*.pdf": "PDF FILE"
+}
+
+PHOTOS = {
+    "*.jpg": "JPEG",
+}
+filesearch = re.compile("|".join([fnmatch.translate(ext) for ext in GEOFILES.keys()]))
+reportsearch = re.compile("|".join([fnmatch.translate(ext) for ext in REPORTFILES.keys()]))
+photosearch = re.compile(fnmatch.translate("*.jpg"))
 
 
 def get_clean_survey_code(survey_string):
@@ -130,13 +155,53 @@ def get_survey_type(raw_type):
     }
     return SurveyType.objects.get(type_id=survey_types[raw_type])
 
+def get_proponent(prop_name):
+    """
+    Look up proponents etc
+    :param prop_name:
+    :return:
+    """
+    prop_names = {
+        "Rio Tinto Iron Ore" : "Rio Tinto",
+        "Rio Tinto Exploration Pty Limited" : "Rio Tinto",
+        "Metal Sands Ltd" : "Metal Sands Pty Ltd",
+        "FMG Ltd": "Fortescue Metals Group Ltd",
+        "Fortescue Resources Pty Ltd & Ausquest Limited": "Fortescue Metals Group Ltd",
+        "Doray Minerals":"Doray Minerals Limited",
+        "Department of Agriculture and Food WA": "Department of Agriculture and Food",
+        "Department of Parks of Wildlife":"Department of Parks and Wildlife",
+        "Hancock Prospecting Pty Ltd & Hamersley Resources Ltd & Wright Prospecting Pty Ltd":
+            "Hamersley Resources Ltd; Hancock Prospecting Pty Ltd; Wright Prospecting Pty Ltd",
+        "Antipa Minerals": "Antipa Minerals Ltd",
+        "Berkut Minerals Ltd": "Berkut Minerals Pty Ltd",
+        "BHP Billiton Iron Ore Pty Ltd": "Bhp Billiton Minerals Pty Ltd",
+        "Paladin Energy Minerals NL":"Paladin Energy Minerals Nl",
+        "Sandfire Exploration Pty Ltd":"Sandfire Resources",
+        "SIPA & Ashling Resources & Outtokumpu Zinc Australia":"Sipa Resources Ltd"
 
-def check_folder_for_docs(folder_path):
+    }
+    if prop_name in prop_names:
+        prop_name = prop_names[prop_name]
+    return Proponent.objects.filter(name=prop_name).first()
+
+
+def check_folder_for_docs(folder_path, found_docs):
     """
     Checks folder for any heritage documents or links existing documents up
     :param folder_path:
     :return:
     """
+    pass
+
+
+def add_pa_and_reports(pa_path, report_path):
+    """
+    Add any pa documents or report docs
+    :param pa_path:
+    :param report_path:
+    :return:
+    """
+    pass
 
 
 if __name__ == "__main__":
@@ -166,6 +231,7 @@ if __name__ == "__main__":
                 continue
             start_date = datetime.datetime.strptime(row["Start Date"], "%d/%m/%y")
             end_date = datetime.datetime.strptime(row["Est End Date"], "%d/%m/%y")
+            created_on = datetime.datetime.strptime(row["Created On"], "%d/%m/%y %H:%M")
             # Check trip numbers if start_date and end_date don't match then increment trip number or set as trip 1
             matching_codes = get_matching_surveys(survey_code)
             trip_number = 1
@@ -174,22 +240,29 @@ if __name__ == "__main__":
             # check this doing the correct look ups
             created_by = SiteUser.objects.filter(user_name=row["Created By"]).first()
             survey_group = get_claim_group(row["Claim Group"], survey_code)
+            ymac_region = YmacRegion.objects.get(geom__intersects=survey_group.geom.envelope).name
             # If pa or report file path search for the relevant files
-
+            survey_status = SurveyStatus.objects.get(status="Unknown")
             folder_location = find_survey_folder(survey_code, original_ymac_code, created_on, survey_group)
-            proponent = Proponent.objects.filter(name=row['Proponent']).first()
+            proponent = get_proponent(row['Proponent'])
             methodologies = get_methodology([row["Survey Methodology"], row["Survey Methodology 2"]])
-            survey_status = row["Survey Status"]
+            project_status = row["Survey Status"]
             survey_type = get_survey_type(row["Survey Type 1"])
-            obj, created = HeritageSurvey.objects.update_or_create(
-                survey_code,
-                trip_number,
-                created_by,
-                survey_group,
-                folder_location,
-                proponent,
-                methodologies,
-                survey_status,
-                survey_type,
-                original_ymac_code)
+            survey_description = row['Survey Area']
+            found_douments = add_pa_and_reports(row["PA File Path"], row["PA and Report File Path"])
+            documents = check_folder_for_docs(folder_location, found_douments)
+            assert proponent
+            #obj, created = HeritageSurvey.objects.update_or_create(
+            #    survey_id=survey_code,
+            #    trip_number=trip_number,
+            #    created_by=created_by,
+            #    date_create=created_on,
+            #    survey_group,
+            #    survey_description=survey_description
+            #    folder_location,
+            #    proponent,
+            #    methodologies,
+            #    survey_status,
+            #    survey_type,
+            #    original_ymac_code)
     doctest.testmod()

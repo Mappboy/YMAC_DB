@@ -13,12 +13,6 @@ django.setup()
 
 from ymac_db.models import *
 
-DRIVES = [r'Z:', r'G:', r'Q:', r'K:', ]
-UPDATED_DRIVES = [r"Z:\Claim Groups\Yinhawangka\YHW handover\Missing folders (and reports from Z Drive)",
-                  r"Z:\Claim Groups\Yinhawangka\YHW handover\Missing reports (from existing folders on Z Drive)",
-                  r"Z:\Claim Groups\Yinhawangka\YHW handover\Multiple copies - Duplicates to archive",
-                  r"Z:\Claim Groups\Yinhawangka\YHW handover\Unknown - need to figure out"]
-
 
 # Define our geofile types
 GEOFILES = {"*.shp": "Shapefile",
@@ -27,6 +21,8 @@ GEOFILES = {"*.shp": "Shapefile",
             "*.kml": "Google KML",
             "*.kmz": "Google Zipped KML",
             "*.tab": "MapInfo Tabfile",
+            "*.TAB": "MapInfo Tabfile",
+            "*.Tab": "MapInfo Tabfile",
             "*.dwg": "Cadfile",
             "*.gpx": "Garmin GPX",
             }
