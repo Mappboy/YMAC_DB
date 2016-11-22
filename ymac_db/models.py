@@ -471,7 +471,7 @@ class HeritageSurvey(models.Model):
                                               " it proposed or after survey completion (Actual)")
     data_source = models.ManyToManyField('SurveyCleaning', blank=True, related_name="surveys",
                                          help_text="Any comments or data relating to the data")
-    survey_type = models.ForeignKey('SurveyType', on_delete=models.CASCADE, db_column='survey_type', blank=True,
+    survey_type = models.ForeignKey('SurveyType', on_delete=models.SET_NULL, db_column='survey_type', blank=True,
                                     null=True)
     survey_methodologies = models.ManyToManyField('SurveyMethodology', db_index=True, blank=True)
     survey_group = models.ForeignKey('SurveyGroup', db_index=True, blank=True, null=True)
@@ -520,6 +520,7 @@ class HeritageSurvey(models.Model):
         managed = True
         ordering = ('survey_id', 'date_create',)
         index_together = ['survey_id', 'trip_number']
+        unique_together = ['survey_id', 'trip_number']
 
 
 @python_2_unicode_compatible

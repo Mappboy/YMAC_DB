@@ -12,9 +12,8 @@ from django.contrib.gis import admin
 from django.contrib.gis import forms as geoforms
 from django.core import serializers
 from django.core.urlresolvers import reverse
-from django.db. models import Q
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.db. models import Q, Count
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
