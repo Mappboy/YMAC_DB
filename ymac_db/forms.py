@@ -130,11 +130,11 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         self.instance.other = req_type in OTHER
         # By default assign the job to Steve so he can delegate
         self.instance.assigned_to = YmacStaff.objects.get(pk="spashby")
-        if req_type in  MAP_REQUESTS and not map_title:
+        if req_type in MAP_REQUESTS and not map_title:
             msg = forms.ValidationError("All maps require a title field")
             self.add_error('map_title', msg)
         else:
-            self.cleaned_data['map_title'] = ''
+            self.cleaned_data['map_title'] = '' if not self.cleaned_data['map_title'] else self.cleaned_data['map_title']
         return self.cleaned_data
 
         # Set geom according to if either region or claim groups are set
@@ -176,6 +176,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Job Description: {job_desc}\n
         Supplementary Data: {sup_data_text}\n
         Map Size: {map_size}\n
+        Map Title: {map_title}\n
         Required by: {required_by} \n
         Delivery and/or Product Instructions: {product_type} {other_instructions}\n
         Cost Centre: {cost_centre}\n

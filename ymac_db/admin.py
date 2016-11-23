@@ -726,24 +726,7 @@ class YMACModelAdmin(LeafletGeoAdmin):
 
 
 
-basemodels = [SiteUser,
-              CaptureOrg,
-              SiteDocument,
-              SiteDescriptions,
-              RestrictionStatus,
-              SurveyMethodology,
-              Consultant,
-              RelatedSurveyCode,
-              SurveyProponentCode,
-              DocumentType,
-              RequestUser,
-              RequestType,
-              Department,
-              YmacStaff,
-              ]
 
-for m in basemodels:
-    admin.site.register(m)
 
 
 # ADD Site Document Inline
@@ -910,6 +893,8 @@ def move_to_clean_up(modeladmin, request, queryset):
 
 move_to_clean_up.short_description = "Move item to File Clean up"
 
+class SetSurveyActionForm(ActionForm):
+    heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all(), required=False)
 
 @admin.register(FileCleanUp)
 class FileCleanUpAdmin(baseadmin.ModelAdmin):
@@ -1069,8 +1054,12 @@ class YMACSpatialRequestAdmin(YMACModelAdmin):
     list_filter = [IsDoneFilter]
     actions = [set_as_done]
 
+
+
 @admin.register(SurveyDocument)
 class SurveyDocumentAdmin(baseadmin.ModelAdmin):
+    action_form = SetSurveyActionForm
+
     def hsurveys(self, obj):
         try:
             return ";\n".join([smart_text(hs) for hs in obj.surveys.all()])
@@ -1086,7 +1075,19 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                            full_path)
 
     show_data_pathurl.short_description = "File Location"
+    def link_to_survey(self, request, queryset):
+        """
+        Function to move a SurveyCleaning Document to our cleaned Survey Document area
+        :param modeladmin:
+        :param request:
+        :param queryset:
+        :return:
+        """
+        for qs in queryset:
 
+            survey = HeritageSurvey.objects.get(id=request.POST['heritage_survey'])
+            qs.surveys.add(survey)
+            messages.success(request, "Linked survey {} to document {}".format(survey, qs))
     fields = (
         'document_type',
         'filepath',
@@ -1116,8 +1117,10 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
         'filepath',
         'filename'
     ]
+    actions = [link_to_survey]
     list_editable = ['file_status']
     form = SurveyDocumentForm
+
 
 
 
@@ -1193,8 +1196,7 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     form = SurveyTripCleaningForm
 
 
-class SetSurveyActionForm(ActionForm):
-    heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all(), required=False)
+
 
 
 @admin.register(PotentialSurvey)
@@ -1389,6 +1391,7 @@ def set_as_completed(modeladmin, request, queryset):
 
 set_as_completed.short_description = "Set to Completed"
 
+
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
     # TODO: Include related surveys
@@ -1506,6 +1509,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'survey_group__group_name',
         'survey_type',
         'project_status',
+        'date_create',
+        'date_from',
         HasSpatialDataFilter,
         HasReportFilter,
         HasFolderLocationFilter,
@@ -1542,7 +1547,24 @@ class DAASiteAdmin(YMACModelAdmin):
     ]
 
 
+basemodels = [SiteUser,
+              CaptureOrg,
+              SiteDocument,
+              SiteDescriptions,
+              RestrictionStatus,
+              SurveyMethodology,
+              Consultant,
+              RelatedSurveyCode,
+              SurveyProponentCode,
+              DocumentType,
+              RequestUser,
+              RequestType,
+              Department,
+              YmacStaff,
+              ]
 
+for m in basemodels:
+    admin.site.register(m)
 
 geom_models = [
     YmacRegion,

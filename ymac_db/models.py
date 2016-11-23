@@ -466,34 +466,34 @@ class HeritageSurvey(models.Model):
     trip_number = models.SmallIntegerField(blank=True, null=True, db_index=True)
     date_from = models.DateField(blank=True, null=True)
     date_to = models.DateField(blank=True, null=True)
-    data_status = models.ForeignKey('SurveyStatus', blank=True, null=True, db_index=True,
+    data_status = models.ForeignKey('SurveyStatus',on_delete=models.DO_NOTHING, blank=True, null=True, db_index=True,
                                     help_text="For current spatial data is"
                                               " it proposed or after survey completion (Actual)")
     data_source = models.ManyToManyField('SurveyCleaning', blank=True, related_name="surveys",
                                          help_text="Any comments or data relating to the data")
-    survey_type = models.ForeignKey('SurveyType', on_delete=models.SET_NULL, db_column='survey_type', blank=True,
+    survey_type = models.ForeignKey('SurveyType', on_delete=models.DO_NOTHING, db_column='survey_type', blank=True,
                                     null=True)
     survey_methodologies = models.ManyToManyField('SurveyMethodology', db_index=True, blank=True)
-    survey_group = models.ForeignKey('SurveyGroup', db_index=True, blank=True, null=True)
-    proponent = models.ForeignKey('Proponent', on_delete=models.CASCADE, blank=True, null=True)
+    survey_group = models.ForeignKey('SurveyGroup', on_delete=models.DO_NOTHING,db_index=True, blank=True, null=True)
+    proponent = models.ForeignKey('Proponent', on_delete=models.DO_NOTHING, blank=True, null=True)
     proponent_codes = models.ManyToManyField('SurveyProponentCode', db_index=True, blank=True,
                                              help_text="Any proponent codes relating to the survey"
                                                        " i.e RIO Area Codes AR-00-00000")
     sampling_meth = models.ForeignKey('SampleMethodology', db_index=True, db_column='sampling_meth',
-                                      on_delete=models.CASCADE, default=6, blank=True, null=True)
-    sampling_conf = models.ForeignKey('SamplingConfidence', db_index=True, on_delete=models.CASCADE, default=5,
+                                      on_delete=models.DO_NOTHING, default=6, blank=True, null=True)
+    sampling_conf = models.ForeignKey('SamplingConfidence', db_index=True, on_delete=models.DO_NOTHING, default=5,
                                       blank=True, null=True)
     project_name = models.TextField(blank=True, db_index=True, null=True, help_text="Internal or Survey Project Name")
-    project_status = models.CharField(max_length=25, db_index=True, default=3, choices=project_status, blank=True,
+    project_status = models.CharField(max_length=25, db_index=True, default="Unknown", choices=project_status, blank=True,
                                       null=True)
     survey_region = models.CharField(max_length=15, choices=ymac_region, blank=True, null=True)
     survey_description = models.TextField(blank=True, null=True,
                                           help_text="Description of the proposed or actual survey")
     survey_note = models.TextField(blank=True, null=True, help_text="Additional Survey notes")
-    created_by = models.ForeignKey('SiteUser', db_index=True, related_name='created_user', blank=True, null=True)
-    date_create = models.DateField(blank=True, null=True)
+    created_by = models.ForeignKey('SiteUser',on_delete=models.DO_NOTHING, db_index=True, related_name='created_user', blank=True, null=True)
+    date_create = models.DateField(blank=True, null=True, default=datetime.date.today)
     mod_by = models.ForeignKey('SiteUser', db_index=True, related_name='mod_user', blank=True, null=True)
-    date_mod = models.DateField(blank=True, null=True)
+    date_mod = models.DateField(blank=True, null=True, default=datetime.date.today)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
     spatial_data_exists = models.BooleanField(default=False,
                                               help_text="Do we know if there is actually spatial data for the survey?")
