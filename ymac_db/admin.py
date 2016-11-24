@@ -12,13 +12,13 @@ from django.contrib.gis import admin
 from django.contrib.gis import forms as geoforms
 from django.core import serializers
 from django.core.urlresolvers import reverse
-from django.db. models import Q, Count
+from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
 from jet.admin import CompactInline
-
+from .validators import valid_surveyid
 from .forms import *
 
 
@@ -55,6 +55,7 @@ class HasGeomFilter(baseadmin.SimpleListFilter):
         else:
             return queryset.filter(geom__isnull=True)
 
+
 class HasSpatialDataFilter(baseadmin.SimpleListFilter):
     title = _('Spatial Data Exists')
 
@@ -87,6 +88,7 @@ class HasSpatialDataFilter(baseadmin.SimpleListFilter):
             return queryset.filter(spatial_data_exists=False)
         else:
             return queryset.filter(spatial_data_exists=True)
+
 
 class IsDoneFilter(baseadmin.SimpleListFilter):
     title = _('Job Completed')
@@ -121,6 +123,7 @@ class IsDoneFilter(baseadmin.SimpleListFilter):
         else:
             return queryset.filter(done=True)
 
+
 class HasReportFilter(baseadmin.SimpleListFilter):
     title = _('Linked Report')
 
@@ -153,6 +156,7 @@ class HasReportFilter(baseadmin.SimpleListFilter):
             return queryset.filter(documents__isnull=False)
         else:
             return queryset.exclude(documents__isnull=False)
+
 
 class HasFolderLocationFilter(baseadmin.SimpleListFilter):
     title = _('Folder Location')
@@ -221,6 +225,7 @@ class HasLinkedSurveyFilter(baseadmin.SimpleListFilter):
         else:
             return queryset.filter(surveys__isnull=True)
 
+
 class ClaimDataPathFilter(baseadmin.SimpleListFilter):
     title = _('Potential Claim')
 
@@ -273,7 +278,6 @@ class ClaimDataPathFilter(baseadmin.SimpleListFilter):
         if self.value():
             queryset = queryset.filter(data_path__contains=self.value())
         return queryset
-
 
 
 class DocumentTypeFilter(baseadmin.SimpleListFilter):
@@ -417,6 +421,7 @@ class RelatedClaimFilter(baseadmin.SimpleListFilter):
             queryset = queryset.filter(surveys__survey_group__group_id=self.value())
         return queryset
 
+
 class RelatedDocClaimFilter(baseadmin.SimpleListFilter):
     title = _('Related Claim')
 
@@ -469,6 +474,7 @@ class RelatedDocClaimFilter(baseadmin.SimpleListFilter):
         if self.value():
             queryset = queryset.filter(surveys__survey_group__group_id=self.value())
         return queryset
+
 
 class CorrectlyFiledFilter(baseadmin.SimpleListFilter):
     title = _('Correct Filing')
@@ -530,6 +536,7 @@ class NoDataPathfilterFilter(baseadmin.SimpleListFilter):
         if self.value():
             queryset = queryset.filter(data_path__isnull=self.value())
         return queryset
+
 
 class DriveFilter(baseadmin.SimpleListFilter):
     title = _('Drive Location')
@@ -725,10 +732,6 @@ class YMACModelAdmin(LeafletGeoAdmin):
     default_lon = 121
 
 
-
-
-
-
 # ADD Site Document Inline
 # SEe https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-many-to-many-models
 
@@ -775,7 +778,7 @@ class HeritageSurveyProponentInline(admin.TabularInline):
 
 class HeritageSurveyDocumentInline(admin.TabularInline):
     model = HeritageSurvey.documents.through
-    #form = SurveyDocumentForm
+    form = HeritageDocumentInlineForm
 
 
 class HeritageSurveyInline(CompactInline):
@@ -858,7 +861,7 @@ def move_to_surveydocs(modeladmin, request, queryset, linkfiles=True):
                 deleted += 1
             if surveys:
                 messages.success(request, "Created new document {}, added to survey"
-                                      " {} and deleted {} Trip Cleanings".format(sd, surveys, deleted))
+                                          " {} and deleted {} Trip Cleanings".format(sd, surveys, deleted))
             else:
                 messages.success(request, "Created new document {}"
                                           " and deleted {} Trip Cleanings".format(sd, deleted))
@@ -893,8 +896,10 @@ def move_to_clean_up(modeladmin, request, queryset):
 
 move_to_clean_up.short_description = "Move item to File Clean up"
 
+
 class SetSurveyActionForm(ActionForm):
     heritage_survey = forms.ModelChoiceField(queryset=HeritageSurvey.objects.all(), required=False)
+
 
 @admin.register(FileCleanUp)
 class FileCleanUpAdmin(baseadmin.ModelAdmin):
@@ -906,11 +911,11 @@ class FileCleanUpAdmin(baseadmin.ModelAdmin):
 
 def url_to_docedit(self, request, queryset):
     doc_urls = r'<br/>'.join([format_html('<a href="{}">Edit {}</a>',
-                                           reverse('admin:%s_%s_change' % (
-                                               hs._meta.app_label, hs._meta.model_name),
-                                                   args=[hs.id]),
-                                           hs.__str__()) for qs in queryset for hs in
-                               qs.survey.documents.all()])
+                                          reverse('admin:%s_%s_change' % (
+                                              hs._meta.app_label, hs._meta.model_name),
+                                                  args=[hs.id]),
+                                          hs.__str__()) for qs in queryset for hs in
+                              qs.survey.documents.all()])
     messages.info(request, format_html(doc_urls))
 
 
@@ -929,6 +934,7 @@ def url_to_edit(self, request, queryset):
 
 url_to_edit.short_description = "Get Heritage Surveys Links"
 
+
 @admin.register(YACReturn)
 class YACReturnAdmin(baseadmin.ModelAdmin):
     list_display = [
@@ -938,14 +944,15 @@ class YACReturnAdmin(baseadmin.ModelAdmin):
         'spatial'
     ]
     list_filter = [
-    'pa',
-    'report',
-    'spatial']
+        'pa',
+        'report',
+        'spatial']
     search_fields = [
         'survey__survey_id'
     ]
-    actions=[url_to_docedit,
-             url_to_edit]
+    actions = [url_to_docedit,
+               url_to_edit]
+
 
 @admin.register(SurveyCleaning)
 class SurveyCleaningAdmin(baseadmin.ModelAdmin):
@@ -1032,12 +1039,15 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
         'data_path',
         'surveys']
 
+
 def set_as_done(modeladmin, request, queryset):
     num_requests = len(queryset)
     queryset.update(done=True)
     messages.info(request, "Set {} requests to done".format(num_requests))
 
+
 set_as_done.short_description = "Set Request Done"
+
 
 @admin.register(YMACSpatialRequest)
 class YMACSpatialRequestAdmin(YMACModelAdmin):
@@ -1049,11 +1059,10 @@ class YMACSpatialRequestAdmin(YMACModelAdmin):
                     'required_by',
                     'done']
     search_fields = ['user__name',
-                      'job_control',
-                      'job_desc']
+                     'job_control',
+                     'job_desc']
     list_filter = [IsDoneFilter]
     actions = [set_as_done]
-
 
 
 @admin.register(SurveyDocument)
@@ -1075,6 +1084,7 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
                            full_path)
 
     show_data_pathurl.short_description = "File Location"
+
     def link_to_survey(self, request, queryset):
         """
         Function to move a SurveyCleaning Document to our cleaned Survey Document area
@@ -1084,16 +1094,17 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
         :return:
         """
         for qs in queryset:
-
             survey = HeritageSurvey.objects.get(id=request.POST['heritage_survey'])
             qs.surveys.add(survey)
             messages.success(request, "Linked survey {} to document {}".format(survey, qs))
+
+    link_to_survey.short_description = "Link to Survey"
     fields = (
         'document_type',
         'filepath',
         'filename',
         'file_status',
-        #'surveys'
+        # 'surveys'
     )
     list_display = [
         'hsurveys',
@@ -1120,8 +1131,6 @@ class SurveyDocumentAdmin(baseadmin.ModelAdmin):
     actions = [link_to_survey]
     list_editable = ['file_status']
     form = SurveyDocumentForm
-
-
 
 
 @admin.register(SurveyTripCleaning)
@@ -1194,9 +1203,6 @@ class SurveyTripCleaningAdmin(baseadmin.ModelAdmin):
     search_fields = ['survey_trip__survey_id',
                      'data_path']
     form = SurveyTripCleaningForm
-
-
-
 
 
 @admin.register(PotentialSurvey)
@@ -1384,21 +1390,80 @@ def export_as_shz(modeladmin, request, queryset):
     h['token'] = "782b77ba48c390cf8f74f9184a4398a8423d9efa"
     return h
 
+
 def set_as_completed(modeladmin, request, queryset):
     for qs in queryset:
         qs.update(project_status="Completed")
     messages.info(request, "Set {} surveys to completed".format(len(queryset)))
 
+
 set_as_completed.short_description = "Set to Completed"
+
+
+class SetSurveyId(ActionForm):
+    heritage_survey = forms.CharField(max_length=10, validators=[valid_surveyid], required=False)
 
 
 @admin.register(HeritageSurvey)
 class HeritageSurveyAdmin(YMACModelAdmin):
-    # TODO: Include related surveys
+    action_form = SetSurveyId
+
     def show_data_pathurl(self, obj):
         return format_html('<a href="file:///{}">{}</a>',
                            obj.folder_location,
                            obj.folder_location)
+
+    def clone_survey(self, request, queryset):
+        """
+        Function Clone a Survey and Set Survey Id = to new Survey Id
+        :param modeladmin:
+        :param request:
+        :param queryset:
+        :return:
+        """
+        if len(queryset) > 1:
+            messages.error(request, "Can only clone one survey at a time".format())
+        for qs in queryset:
+            survey_id = request.POST['heritage_survey']
+            obj, created = HeritageSurvey.objects.get_or_create(
+                survey_id=survey_id,
+                trip_number=qs.trip_number,
+            )
+            attrs = ["original_ymac_id",
+                     "data_status",
+                     "date_from",
+                     "date_to",
+                     "survey_type",
+                     "survey_group",
+                     "proponent",
+                     "sampling_meth",
+                     "sampling_conf",
+                     "project_name",
+                     "project_status",
+                     "survey_region",
+                     "survey_description",
+                     "survey_note",
+                     "created_by",
+                     "date_create",
+                     "mod_by",
+                     "date_mod",
+                     "data_qa",
+                     "spatial_data_exists",
+                     "folder_location",
+                     "geom"]
+            for attr in attrs:
+                if not getattr(obj, attr):
+                    setattr(obj, attr, getattr(qs, attr))
+            obj.data_source.add(*[d.id for d in qs.data_source.all()])
+            obj.survey_methodologies.add(*[s.id for s in qs.survey_methodologies.all()])
+            obj.proponent_codes.add(*[p.id for p in qs.proponent_codes.all()])
+            obj.consultants.add(*[c.id for c in qs.consultants.all()])
+            related_code, created = RelatedSurveyCode.objects.get_or_create(rel_survey_id=qs.survey_id)
+            obj.related_surveys.add(related_code)
+            obj.documents.add(*[d.id for d in qs.documents.all()])
+            messages.success(request, "Cloned survey {} to new Survey {}".format(qs, survey_id, ))
+
+    clone_survey.short_description = "Clone Current Survey To New Id"
 
     show_data_pathurl.short_description = "Z: Location"
     fields = (
@@ -1424,34 +1489,29 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'data_qa',
         'data_status',
         'folder_location',
-        'geom',
         'documents',
         'consultants',
         'proponent_codes',
+        'related_surveys',
+        'geom',
     )
-    inlines = [
-        # HeritageSurveyConsultantInline,
-        # HeritageSurveyProponentInline,
-        # HeritageSurveyCleaningInline,
-        # HeritageSurveyDocumentInline
-    ]
     actions = [
         export_as_json,
         export_as_shz,
-        set_as_completed
+        set_as_completed,
+        clone_survey
     ]
     search_fields = ['survey_id',
                      'survey_group__group_id',
                      'project_name',
                      'original_ymac_id']
 
-
     def documentpath(self, obj):
         if obj.documents.values():
             return format_html("<br>".join([format_html('<a href="file:///{}">{}</a>',
-                                                      os.path.join(ds.filepath, ds.filename),
-                                                      ds.filename) for ds
-                                          in obj.documents.all() if ds.filepath]))
+                                                        os.path.join(ds.filepath, ds.filename),
+                                                        ds.filename) for ds
+                                            in obj.documents.all() if ds.filepath]))
         return ''
 
     documentpath.short_description = "Linked Files"
@@ -1497,13 +1557,13 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         'original_ymac_id',
         'survey_type',
         'spatial_data_exists',
-        #'sampling_meth',
-        #'datastatus',
-        #'data_qa',
+        # 'sampling_meth',
+        # 'datastatus',
+        # 'data_qa',
         'show_document_pathurl',
         'documentpath',
     ]
-    #list_editable = ['spatial_data_exists']
+    # list_editable = ['spatial_data_exists']
 
     list_filter = [
         'survey_group__group_name',
@@ -1515,7 +1575,7 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         HasReportFilter,
         HasFolderLocationFilter,
     ]
-    #form = HeritageSurveyForm
+    form = HeritageSurveyForm
 
 
 @admin.register(DaaSite)

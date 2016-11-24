@@ -516,6 +516,7 @@ class HeritageSurvey(models.Model):
                            self.survey_id,
                            self.survey_description)
 
+
     class Meta:
         managed = True
         ordering = ('survey_id', 'date_create',)

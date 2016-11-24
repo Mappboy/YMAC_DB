@@ -25,7 +25,7 @@ from django.db.models import Q
 from django.http import *
 from django.shortcuts import render, redirect
 from django.template import Context
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import DetailView, TemplateView, ListView
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
@@ -97,12 +97,65 @@ class YMACClaimView(DetailView):
                                          DaaSite.objects.filter(geom__intersects=self.object.geom),
                                          geometry_field='geom', fields=('place_id',
                                                                         'name'))
+
         context['map_data'] = serialize('geojson', YmacClaim.objects.filter(pk=self.object.id), geometry_field='geom')
         # Site History
         # Surveys
         # Old Boundaries
         return context
 
+class HeritageSurveyView(ListView):
+    model = HeritageSurvey
+    # Create template
+    # We will need a filter for current
+    queryset = HeritageSurvey.objects.filter(geom__isnull=False)
+    template_name = 'ymac_heritage_surveys.html'
+
+    def get_context_data(self, **kwargs):
+        surveys = HeritageSurvey.objects.filter(geom__isnull=False)
+        context = super(HeritageSurveyView, self).get_context_data(**kwargs)
+        context['table_data'] = json.dumps([{'survey_id': t.survey_id,
+                                        'trip_number':  t.trip_number,
+                                        'date_from': t.date_from.strftime("%d/%m/%Y"),
+                                        'date_to': t.date_from.strftime("%d/%m/%Y"),
+                                        'project_name': t.project_name,
+                                        'folder_location': t.folder_location,
+                                        'survey_description': t.survey_description } for t in surveys])
+
+        context['heritage_surveys'] = serialize('geojson', surveys,
+                                        fields=('pk',
+                                                'survey_id',
+                                                'trip_number',
+                                                'date_from',
+                                                'date_to',
+                                                'project_name',
+                                                'survey_description',
+                                                'folder_location'),
+                                        geometry_field='geom')
+        return context
+
+class HeritageSurveyDetailView(DetailView):
+    model = HeritageSurvey
+    template_name = 'ymac_heritage_surveys_detail.html'
+
+    def get_context_data(self, **kwargs):
+        surveys = HeritageSurvey.objects.filter(pk=self.object.id)
+        context = super(HeritageSurveyDetailView, self).get_context_data(**kwargs)
+        context['daa_data'] = serialize('geojson',
+                                        DaaSite.objects.filter(geom__intersects=self.object.geom),
+                                        geometry_field='geom', fields=('place_id',
+                                                                       'name'))
+        context['heritage_surveys'] = serialize('geojson', surveys,
+                                                fields=('pk',
+                                                        'survey_id',
+                                                        'trip_number',
+                                                        'date_from',
+                                                        'date_to',
+                                                        'project_name',
+                                                        'survey_description',
+                                                        'folder_location'),
+                                                geometry_field='geom')
+        return context
 
 class EmitsWeekView(TemplateView):
     template_name = 'emits_report.html'

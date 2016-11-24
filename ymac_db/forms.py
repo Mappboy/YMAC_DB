@@ -54,6 +54,13 @@ class HeritageSurveyInlineForm(baseform.ModelForm):
         widgets = {'heritagesurveys': autocomplete.ModelSelect2Multiple(
             url='heritagesurvey-autocomplete')}
 
+class HeritageDocumentInlineForm(baseform.ModelForm):
+    class Meta:
+        model = HeritageSurvey.documents.through
+        fields = '__all__'
+        widgets = {'surveydocument': autocomplete.ModelSelect2Multiple(
+            url='surveydocument-autocomplete')}
+
 class HeritageSurveySiteInlineForm(baseform.ModelForm):
     class Meta:
         model = Site.surveys.through
@@ -376,15 +383,11 @@ class HeritageSurveyForm(baseform.ModelForm):
         model = HeritageSurvey
         fields = '__all__'
         widgets = {
-            'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
-            'date_create': SuitDateWidget(),
-            'date_mod': SuitDateWidget(),
-            'date_from': SuitDateWidget(),
-            'date_to': SuitDateWidget(),
-            'trip_number': baseform.NumberInput(),
-            'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete', attrs={'class': 'wide'}),
+            #'proponent': autocomplete.ModelSelect2(url='proponent-autocomplete'),
+            #'trip_number': baseform.NumberInput(),
+            #'consultants': autocomplete.ModelSelect2Multiple(url='consultant-autocomplete', attrs={'class': 'wide'}),
             'documents': autocomplete.ModelSelect2Multiple(url='surveydocument-autocomplete'),
-            'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
+            #'proponent_codes': autocomplete.ModelSelect2Multiple(url='proponentcodes-autocomplete'),
         }
 
 
