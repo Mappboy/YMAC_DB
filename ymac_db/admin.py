@@ -22,6 +22,14 @@ from .validators import valid_surveyid
 from .forms import *
 
 
+def custom_titled_filter(title):
+    class Wrapper(baseadmin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = baseadmin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+    return Wrapper
+
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Geometry Exists')
 
@@ -1061,7 +1069,7 @@ class YMACSpatialRequestAdmin(YMACModelAdmin):
     search_fields = ['user__name',
                      'job_control',
                      'job_desc']
-    list_filter = ['user__department__name',
+    list_filter = [('user__department__name', custom_titled_filter("Department Name")),
                    'required_by',
                    'request_datetime',
                    IsDoneFilter]
