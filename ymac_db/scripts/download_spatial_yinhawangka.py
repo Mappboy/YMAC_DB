@@ -14,6 +14,20 @@ from ymac_db.models import *
 
 yinfile = r"C:\Temp\ymac_saptial_extract.zip"
 
+# Define our geofile types
+geofiles = {".shp": "Shapefile",
+            ".shz": "Zipped Shapefile",
+            ".gdb": "ESRI Geodatabase",
+            ".kml": "Google KML",
+            ".kmz": "Google Zipped KML",
+            ".tab": "MapInfo Tabfile",
+            ".TAB": "MapInfo Tabfile",
+            ".Tab": "MapInfo Tabfile",
+            ".dwg": "Cadfile",
+            ".gpx": "Garmin GPX",
+            }
+
+
 extra_files = {
     '.shp': [".ext", ".prj", ".cpg", ".shx", ".dbf", ".sbn"],
     ".tab": [".DAT", ".dat", ".map", ".MAP", ".id", ".id"],
@@ -28,6 +42,16 @@ def write_out_docs(docs, hs):
                                        hs.survey_id,
                                        hs.trip_number,
                                        doc.filename))
+
+def update_documents():
+    for survey in HeritageSurvey.objects.filter(survey_group__group_id='YHW', folder_location__isnull=False):
+        if survey.folder_location and survey.survey_id != 'YHW007-9':
+            for direntry in rscandir(survey.folder_location):
+                filepath, filename = os.path.split(direntry.path)
+                check = SurveyDocument.objects.filter(filepath=filepath, filename=filename)
+                if direntry.is_file and os.path.splitext(direntry.name)[1] in geofiles.keys() and not check:
+                    print(direntry.path)
+
 
 def rscandir(path):
     for entry in os.scandir(path):
@@ -76,6 +100,7 @@ def write_yin_zip_all():
                                                               s.survey_id,
                                                               s.trip_number,
                                                               sd.filename))
+
                     # deal with geodatabases
                     elif os.path.isdir(file2write):
                         for geop in rscandir(file2write):
@@ -92,6 +117,7 @@ def write_yin_zip_all():
 
 
 def main():
+    #update_documents()
     write_yin_zip_all()
     print("Finished you dilly")
 

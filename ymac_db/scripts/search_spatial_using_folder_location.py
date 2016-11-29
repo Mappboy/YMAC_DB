@@ -42,12 +42,6 @@ survey_match = re.compile("[A-Z&]{3}\d{3}[-_]?(\d{1,5})?")
 
 # Define our geofile types
 
-def find_empty_dirs(path):
-    count = []
-    for direntry in rscandir(path):
-        if direntry.is_dir() and not os.listdir(direntry.path):
-            count.append(direntry)
-    return count
 
 def rscandir(path):
     for entry in os.scandir(path):
@@ -99,7 +93,7 @@ def main():
         total_files +=1
         # Make sure it isn't already in our survey documents
         hs = None
-        if filesearch.search(direntry.path) and not SurveyDocument.objects.filter(filename=direntry.name):
+        if direntry.is_file and filesearch.search(direntry.path) and not SurveyDocument.objects.filter(filename=direntry.name):
             all_geo_files +=1
             new_geofiles +=1
             ext = GEO_EXT[os.path.splitext(direntry.name)[1]]
@@ -112,13 +106,17 @@ def main():
                 if hs:
                     break
             filepath, filename = os.path.split(direntry.path)
-            if hs:
+            check = SurveyDocument.objects.filter(filepath=filepath, filename=filename)
+            if hs and not check:
                 geofiles_survey+=1
+                print(filepath, filename)
                 sd, created = SurveyDocument.objects.get_or_create(document_type=doc_type, filepath=filepath, filename=filename)
                 hs.documents.add(sd)
             else:
                 geofiles_no_survey += 1
-                sd, created = SurveyDocument.objects.get_or_create(document_type=doc_type, filepath=filepath, filename=filename)
+                #sd, created = SurveyDocument.objects.get_or_create(document_type=doc_type, filepath=filepath, filename=filename)
+        if direntry.is_dir and direntry.path.endswith(".gdb"):
+            print("Found geodatabase", direntry.path)
         elif filesearch.search(direntry.path):
             all_geo_files+=1
     print("All Files {}\n Geofiles {} \nNew Geofiles {} \n "

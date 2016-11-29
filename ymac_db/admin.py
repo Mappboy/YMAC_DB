@@ -1061,7 +1061,10 @@ class YMACSpatialRequestAdmin(YMACModelAdmin):
     search_fields = ['user__name',
                      'job_control',
                      'job_desc']
-    list_filter = [IsDoneFilter]
+    list_filter = ['user__department__name',
+                   'required_by',
+                   'request_datetime',
+                   IsDoneFilter]
     actions = [set_as_done]
 
 

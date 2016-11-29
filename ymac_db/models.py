@@ -878,6 +878,8 @@ class SurveyDocument(models.Model):
     def __str__(self):
         return smart_text("%s-%s : %s" % (self.document_type.document_type, self.document_type.sub_type, self.filename))
 
+    class Meta:
+        unique_together = (('document_type', 'filepath', 'filename'),)
 
 @python_2_unicode_compatible
 class SurveyProponentCode(models.Model):

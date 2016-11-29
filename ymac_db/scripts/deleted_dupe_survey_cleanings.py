@@ -15,10 +15,12 @@ django.setup()
 
 from ymac_db.models import *
 
+# WE actually want to make sure that and documents whose surveys are different are joined up.
+# If however the survey id is the same and document id is different then delete it
 for row in SurveyDocument.objects.all():
-    matched = SurveyDocument.objects.filter(Q(filepath=row.filepath)&Q(filename=row.filename))
+    matched = SurveyDocument.objects.filter(Q(filepath=row.filepath)& Q(filename=row.filename))
     if matched.count() > 1:
         for sd in matched:
-            print(row.surveys.all())
-            if sd.surveys.all() == row.surveys.all():
-                print(matched)
+            if [d.id for d in sd.surveys.all()] != [ d.id for d in row.surveys.all()] and sd.id != row.id:
+                print(sd,row)
+                #SurveyDocument.objects.filter(id=row.id).delete()
