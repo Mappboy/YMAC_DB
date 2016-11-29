@@ -1376,6 +1376,48 @@ def export_as_json(modeladmin, request, queryset):
     return response
 
 
+def export_as_csv(modeladmin, request, queryset):
+    import csv
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="heritage_surveys.csv"'
+
+    writer = csv.writer(response)
+    fields = (
+        'survey_id',
+        'date_from',
+        'date_to',
+        'trip_number',
+        'project_name',
+        'project_status',
+        'survey_type',
+        'survey_group',
+        'sampling_meth',
+        'sampling_conf',
+        'survey_region',
+        'survey_description',
+        'survey_note',
+        'proponent',
+        'data_status',
+         'consultants',
+        'survey_methodology'
+    )
+    writer.writerow(fields)
+    for qs in queryset:
+        row = [getattr(qs, f) for f in fields if f not in ['survey_methodology','consultants']]
+        if qs.consultants.all():
+            row.append(";".join([ q.name for q in qs.consultants.all()]))
+        else:
+            row.append("")
+        if qs.survey_methodologies.all():
+            row.append(";".join([ q.survey_meth for q in qs.survey_methodologies.all()]))
+        else:
+            row.append("")
+        writer.writerow(row)
+
+    return response
+
+
 def export_as_shz(modeladmin, request, queryset):
     response_dict = {'id_list': [], 'db_table': modeladmin.model._meta.db_table}
     for qs in queryset:
@@ -1499,7 +1541,8 @@ class HeritageSurveyAdmin(YMACModelAdmin):
         export_as_json,
         export_as_shz,
         set_as_completed,
-        clone_survey
+        clone_survey,
+        export_as_csv
     ]
     search_fields = ['survey_id',
                      'survey_group__group_id',
