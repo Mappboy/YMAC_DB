@@ -756,14 +756,6 @@ class SiteTypeAdmin(baseadmin.ModelAdmin):
     list_editable = ['site_category']
 
 
-class SiteDocumentInline(admin.TabularInline):
-    model = Site.docs.through
-
-
-class SiteSurveyInline(admin.TabularInline):
-    model = Site.surveys.through
-
-
 class HeritageSiteDocumentInline(admin.TabularInline):
     model = HeritageSite.heritage_surveys.through
 
@@ -792,16 +784,6 @@ class HeritageSurveyDocumentInline(admin.TabularInline):
 class HeritageSurveyInline(CompactInline):
     model = SurveyDocument.surveys.through
     form = HeritageSurveyInlineForm
-
-
-class HeritageSurveySiteInline(CompactInline):
-    model = Site.surveys.through
-    form = HeritageSurveySiteInlineForm
-
-
-class DaaSiteInline(admin.TabularInline):
-    model = Site.daa_sites.through
-    form = DAASiteInlineForm
 
 
 class HeritageSurveyCleaningInline(admin.TabularInline):
@@ -1326,7 +1308,6 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
             messages.success(request, "Created document {} and moved to survey {}".format(sd, survey))
 
 
-@admin.register(Site)
 class SiteAdmin(YMACModelAdmin):
     def get_queryset(self, request):
         my_model = super(SiteAdmin, self).get_queryset(request)
@@ -1351,7 +1332,6 @@ class SiteAdmin(YMACModelAdmin):
     search_fields = [
         'group_name',
     ]
-    form = SiteForm
 
 
 @admin.register(HeritageSite)
@@ -1395,7 +1375,7 @@ class ResearchSiteAdmin(SiteAdmin):
         'site_name'
     ]
     list_filter = [
-        'site_location',
+        'site_location_desc',
         'site_comments',
         'site_name'
     ]

@@ -27,11 +27,9 @@ geofiles = {".shp": "Shapefile",
             ".gpx": "Garmin GPX",
             }
 
-
 extra_files = {
     '.shp': [".ext", ".prj", ".cpg", ".shx", ".dbf", ".sbn"],
-    ".tab": [".DAT", ".dat", ".map", ".MAP", ".id", ".id"],
-    ".TAB": [".DAT", ".dat", ".map", ".MAP", ".id", ".id"],
+    ".TAB": [".DAT", ".MAP", ".ID", ".IND"],
 }
 
 
@@ -42,6 +40,7 @@ def write_out_docs(docs, hs):
                                        hs.survey_id,
                                        hs.trip_number,
                                        doc.filename))
+
 
 def update_documents():
     for survey in HeritageSurvey.objects.filter(survey_group__group_id='YHW', folder_location__isnull=False):
@@ -69,6 +68,7 @@ def rscandir(path):
             except FileNotFoundError:
                 continue
 
+
 def write_yin_zip_all():
     """
     Write everything in our documents table that are YHW OUT
@@ -76,7 +76,8 @@ def write_yin_zip_all():
     """
     with open(yinfile, "wb") as returnfile:
         with ZipFile(returnfile, 'w') as yinzip:
-            for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW').filter(document_type__document_type='Spatial'):
+            for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW').filter(
+                    document_type__document_type='Spatial'):
                 surveys = sd.surveys.all()
                 file2write = os.path.join(sd.filepath, sd.filename)
                 for s in surveys:
@@ -90,34 +91,34 @@ def write_yin_zip_all():
                                 fname = os.path.split(file_prefix)[1] + file_suffix
                                 if os.path.isfile(fpath):
                                     yinzip.write(fpath,
-                                             "{}/{}_Trip{}/{}".format(folder_date,
-                                                                      s.survey_id,
-                                                                      s.trip_number,
-                                                                      fname))
-                        else:
-                            yinzip.write(file2write,
-                                     "{}/{}_Trip{}/{}".format(folder_date,
-                                                              s.survey_id,
-                                                              s.trip_number,
-                                                              sd.filename))
+                                                 "{}/{}_Trip{}/{}/{}".format(folder_date,
+                                                                             s.survey_id,
+                                                                             s.trip_number,
+                                                                             sd.file_status,
+                                                                             fname))
+                        yinzip.write(file2write,
+                                         "{}/{}_Trip{}/{}/{}".format(folder_date,
+                                                                     s.survey_id,
+                                                                     s.trip_number,
+                                                                     sd.file_status,
+                                                                     sd.filename))
 
                     # deal with geodatabases
                     elif os.path.isdir(file2write):
                         for geop in rscandir(file2write):
                             yinzip.write(geop.path,
-                                         "{}/{}_Trip{}/{}/{}".format(folder_date,
-                                                                  s.survey_id,
-                                                                  s.trip_number,
-                                                                  sd.filename,
-                                                                     geop.name))
+                                         "{}/{}_Trip{}/{}/{}/{}".format(folder_date,
+                                                                        s.survey_id,
+                                                                        s.trip_number,
+                                                                        sd.file_status,
+                                                                        sd.filename,
+                                                                        geop.name))
                     else:
                         print("Couldn't write %s" % file2write)
 
 
-
-
 def main():
-    #update_documents()
+    # update_documents()
     write_yin_zip_all()
     print("Finished you dilly")
 

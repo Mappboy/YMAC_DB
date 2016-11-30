@@ -55,7 +55,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DaaSite',
             fields=[
-                ('place_id', models.CharField(max_length=200, primary_key=True, serialize=False)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, unique=True, serialize=False, verbose_name='ID')),
+                ('place_id', models.CharField(max_length=200)),
                 ('name', models.CharField(blank=True, db_index=True, max_length=200, null=True)),
                 ('legacy_id', models.CharField(blank=True, max_length=200, null=True)),
                 ('status', models.CharField(blank=True, max_length=200, null=True)),

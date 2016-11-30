@@ -17,18 +17,6 @@ from .models import *
 # Increase Widget sizes for multiple2Select
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
 
-class SiteForm(baseform.ModelForm):
-    class Meta:
-        model = Site
-        exclude = []
-        widgets = {
-            'surveys': autocomplete.ModelSelect2Multiple(
-            url='heritagesurvey-autocomplete'),
-        'daa_sites': autocomplete.ModelSelect2Multiple(
-                url='daasite-autocomplete')
-        }
-
-
 
 class SurveyDocumentForm(baseform.ModelForm):
     def clean(self):
@@ -61,19 +49,6 @@ class HeritageDocumentInlineForm(baseform.ModelForm):
         widgets = {'surveydocument': autocomplete.ModelSelect2Multiple(
             url='surveydocument-autocomplete')}
 
-class HeritageSurveySiteInlineForm(baseform.ModelForm):
-    class Meta:
-        model = Site.surveys.through
-        fields = '__all__'
-        widgets = {'surveys': autocomplete.ModelSelect2Multiple(
-            url='heritagesurvey-autocomplete')}
-
-class DAASiteInlineForm(baseform.ModelForm):
-    class Meta:
-        model = Site.daa_sites.through
-        fields = '__all__'
-        widgets = {'daa_sites': autocomplete.ModelSelect2Multiple(
-            url='daasite-autocomplete')}
 
 class HeritageSiteForm(baseform.ModelForm):
     site_description = forms.ModelMultipleChoiceField(queryset=SiteDescriptions.objects.all())

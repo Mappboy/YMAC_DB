@@ -41,7 +41,7 @@ disturbance_level = [('Negligible', 'Negligible'),
 
 site_location = [('Located', 'Located'),
                  ('Position Indicative', 'Position Indicative'),
-                 ('Approximate', 'Approximate',),
+                 ('Approximate', 'Approximate'),
                  ('Unknown', 'Unknown')
                  ]
 # TODO: Consider making this a site table
@@ -274,7 +274,8 @@ class CaptureOrg(models.Model):
 
 @python_2_unicode_compatible
 class DaaSite(models.Model):
-    place_id = models.CharField(max_length=200, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    place_id = models.CharField(max_length=200)
     name = models.CharField(max_length=200, blank=True, null=True, db_index=True)
     legacy_id = models.CharField(max_length=200, blank=True, null=True)
     status = models.CharField(max_length=200, blank=True, null=True)
@@ -304,10 +305,10 @@ class DaaSite(models.Model):
 
     class Meta:
         ordering = ('name',)
-        managed = False
         db_table = 'daa_sites_new'
         verbose_name = 'DAA Site'
         verbose_name_plural = 'DAA Sites'
+        unique_together = (('place_id', 'id'),)
 
 
 class DaaSiteHistory(models.Model):
@@ -434,11 +435,8 @@ class FileCleanUp(models.Model):
 # Site Centroid ???
 # WHAT TO DO ABOUT Tracks
 # Datum to read in
-# Avoidance Buffer
 @python_2_unicode_compatible
 class HeritageSite(models.Model):
-    site = models.ForeignKey('Site', on_delete=models.CASCADE, blank=True, db_index=True,
-                             null=True, help_text="The Spatial Site Data")
     site_description = models.ForeignKey('SiteDescriptions', blank=True, null=True)
     boundary_description = models.CharField(max_length=30, choices=boundary_description, blank=True, null=True)
     disturbance_level = models.CharField(max_length=30, choices=disturbance_level, blank=True, null=True)
@@ -447,12 +445,34 @@ class HeritageSite(models.Model):
     heritage_surveys = models.ManyToManyField('HeritageSurvey',
                                               related_name='her_sites',
                                               )
-    documents = models.ManyToManyField('SiteDocument',
-                                       related_name='heritagesites',
-                                       )
+    recorded_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='recorded_by',
+                                    related_name='herritage_recorded_by', blank=True, null=True)
+    date_recorded = models.DateField(blank=True, null=True)
+    group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
+    site_identifier = models.CharField(max_length=200, blank=True, null=True,
+                                       help_text="Site name to help you identify it", db_index=True)
+    restricted_status = models.ForeignKey('RestrictionStatus', on_delete=models.DO_NOTHING, db_column='restricted_status',
+                                          blank=True, null=True)
+    date_created = models.DateField(blank=True, null=True)
+    created_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='created_by',
+                                   related_name='heritage_created_by', blank=True)
+    orig_x_val = models.FloatField(blank=True, null=True, help_text="Latitude/Northing Value")
+    orig_y_val = models.FloatField(blank=True, null=True, help_text="Longitude/Easting Value")
+    buffer = models.IntegerField(default=10, help_text="Site buffer in meters")
+    coordinate_accuracy = models.CharField(max_length=30, choices=site_location, blank = True, null = True)
+    active = models.NullBooleanField()
+    capture_coord_sys = models.IntegerField(choices=available_projections, blank=True, null=True)
+    label_x_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
+    label_y_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
+    documents = models.ManyToManyField('SiteDocument', blank=True)
+    surveys = models.ManyToManyField('HeritageSurvey', blank=True)
+    daa_sites = models.ManyToManyField('DaaSite', blank=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        return smart_text(self.site)
+        if self.site_identifier:
+            return smart_text(self.site_identifier)
+        return smart_text("Site {}".format(self.site_id))
 
     class Meta:
         managed = True
@@ -663,10 +683,8 @@ class ResearchSite(models.Model):
     #       - Import Tool https://docs.djangoproject.com/en/1.10/ref/contrib/gis/geos/
     #       - Conversions https://docs.djangoproject.com/en/1.10/ref/contrib/gis/gdal/
     research_site_id = models.AutoField(primary_key=True)
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, blank=True, null=True,
-                             help_text="The Spatial Site Data (optional)")
     site_type = models.ManyToManyField('SiteType', help_text="Pick match site types or add a new one")
-    site_location = models.TextField(blank=True, null=True, help_text="If need, provide a site description")
+    site_location_desc = models.TextField(blank=True, null=True, help_text="If need, provide a site description")
     site_other_coordinates = models.TextField(blank=True, null=True, help_text="Any other coordinates for the site")
     groups = models.ManyToManyField('YmacClaim', help_text="Site belong to any groups")
     informants = models.ManyToManyField('SiteInformant', help_text="Site belong to any groups")
@@ -680,9 +698,29 @@ class ResearchSite(models.Model):
     site_number = models.IntegerField(blank=True, null=True)
     family_affiliation = models.TextField(blank=True, null=True, help_text="The family that speaks for that site")
     mapsheet = models.TextField(blank=True, null=True)
-    documents = models.ManyToManyField('SiteDocument',
-                                       db_column='site_id',
-                                       related_name='researchdocuments')
+    recorded_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='recorded_by',
+                                    related_name='research_recorded_by', blank=True, null=True)
+    date_recorded = models.DateField(blank=True, null=True)
+    group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
+    site_identifier = models.CharField(max_length=200, blank=True, null=True,
+                                       help_text="Site name to help you identify it", db_index=True)
+    restricted_status = models.ForeignKey('RestrictionStatus', on_delete=models.DO_NOTHING, db_column='restricted_status',
+                                          blank=True, null=True)
+
+    date_created = models.DateField(blank=True, null=True)
+    created_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='created_by',
+                                   related_name='research_created_by', blank=True)
+    orig_x_val = models.FloatField(blank=True, null=True, help_text="Latitude/Northing Value")
+    orig_y_val = models.FloatField(blank=True, null=True, help_text="Longitude/Easting Value")
+    buffer = models.IntegerField(default=10, help_text="Site buffer in meters")
+    coordinate_accuracy = models.CharField(max_length=30, choices=site_location, blank = True, null = True)
+    active = models.NullBooleanField()
+    capture_coord_sys = models.IntegerField(choices=available_projections, blank=True, null=True)
+    label_x_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
+    label_y_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
+    documents = models.ManyToManyField('SiteDocument', blank=True)
+    daa_sites = models.ManyToManyField('DaaSite', blank=True)
+    geom = models.GeometryField(srid=4283, blank=True, null=True)
 
     def __str__(self):
         return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
@@ -765,41 +803,6 @@ class SiteDocument(models.Model):
         db_table = 'site_documents'
 
 
-@python_2_unicode_compatible
-class Site(models.Model):
-    recorded_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='recorded_by',
-                                    related_name='site_recorded_by', blank=True, null=True)
-    date_recorded = models.DateField(blank=True, null=True)
-    group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
-    site_identifier = models.CharField(max_length=200, blank=True, null=True,
-                                       help_text="Site name to help you identify it", db_index=True)
-    restricted_status = models.ForeignKey(RestrictionStatus, on_delete=models.CASCADE, db_column='restricted_status',
-                                          blank=True, null=True)
-
-    date_created = models.DateField(blank=True, null=True)
-    created_by = models.ForeignKey('SiteUser', on_delete=models.CASCADE, db_column='created_by',
-                                   related_name='site_created_by', blank=True)
-    orig_x_val = models.FloatField(blank=True, null=True, help_text="Latitude/Northing Value")
-    orig_y_val = models.FloatField(blank=True, null=True, help_text="Longitude/Easting Value")
-    buffer = models.IntegerField(default=10, help_text="Site buffer in meters")
-    coordinate_accuracy = models.CharField(max_length = 30, choices = site_location, blank = True, null = True)
-    active = models.NullBooleanField()
-    capture_coord_sys = models.IntegerField(choices=available_projections, blank=True, null=True)
-    label_x_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
-    label_y_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
-    docs = models.ManyToManyField('SiteDocument', blank=True)
-    surveys = models.ManyToManyField('HeritageSurvey', blank=True)
-    daa_sites = models.ManyToManyField('DaaSite', blank=True)
-    geom = models.GeometryField(srid=4283, blank=True, null=True)
-
-    def __str__(self):
-        if self.site_identifier:
-            return smart_text(self.site_identifier)
-        return smart_text("Site {}".format(self.site_id))
-
-    class Meta:
-        managed = True
-
 
 @python_2_unicode_compatible
 class SiteType(models.Model):
@@ -808,7 +811,7 @@ class SiteType(models.Model):
 
     def __str__(self):
         if self.site_category:
-            return smart_text("{} {}".format(self.site_classification, self.site_category))
+            return smart_text("{} ({})".format(self.site_classification.capitalize(), self.site_category))
         return smart_text("{}".format(self.site_classification))
 
     class Meta:

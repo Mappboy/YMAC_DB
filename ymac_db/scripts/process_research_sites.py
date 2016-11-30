@@ -182,5 +182,5 @@ site_types = [
 "watersource",
 "women's place"]
 
-for classify in site_types:
-    SiteType.objects.create(site_classification=classify)
+#for classify in site_types:
+#    SiteType.objects.create(site_classification=classify)
