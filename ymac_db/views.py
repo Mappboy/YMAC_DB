@@ -33,6 +33,7 @@ from ymac_db.utils import emit_week
 from .forms import *
 from .models import HeritageSurvey, YMACRequestFiles
 import sys
+import requests
 
 try:
     from urllib.parse import quote_plus, urlencode

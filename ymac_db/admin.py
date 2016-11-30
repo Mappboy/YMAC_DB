@@ -1049,8 +1049,32 @@ class SurveyCleaningAdmin(baseadmin.ModelAdmin):
 
 
 def set_as_done(modeladmin, request, queryset):
+    """
+    Set completed datetime too
+    :param modeladmin:
+    :param request:
+    :param queryset:
+    :return:
+    """
+    import smartsheet
     num_requests = len(queryset)
     queryset.update(done=True)
+    row_updates = []
+    ss = smartsheet.Smartsheet("4104lxpew3jppnp3xvoeff7yp")
+    for qs in queryset:
+        qs.completed_datetime = datetime.datetime.now()
+        try:
+            search_result = ss.Search.search_sheet(3001821196248964, qs.job_control)
+            row_to_update = ss.Sheets.get_row(3001821196248964, search_result.to_dict()['results'][0]['objectId'])
+            # Done column = 8925425461159812
+            # check columns = action = ss.Sheets.get_columns(3001821196248964, include_all=True)
+            cell = row_to_update.get_column(8925425461159812)
+            cell.value = qs.done
+            row_to_update.set_column(cell.column_id, cell)
+            row_updates.append(row_to_update)
+        except:
+            messages.info(request, "Couldn't update smartsheet")
+    ss.Sheets.update_rows(3001821196248964, row_updates)
     messages.info(request, "Set {} requests to done".format(num_requests))
 
 

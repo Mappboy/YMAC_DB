@@ -166,7 +166,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
         msg['From'] = msg_from
-        msg['To'] = ', '.join(["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"])
+        msg['To'] = ', '.join(toaddr)
         if 'cc_recipients' in self.cleaned_data and self.cleaned_data['cc_recipients']:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
             msg['Cc'] = ", ".join(cc_emails)
@@ -190,7 +190,11 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
-        msg.attach(MIMEText(body, 'plain',"utf-8"))
+        try:
+            msg.attach(MIMEText(body.encode("utf-8"), 'plain', "utf-8"))
+        except UnicodeError:
+            msg.attach(MIMEText("Attempted to send email for job {job_id} but failed, please check database".format(
+                job_id=self.instance.job_control)))
         s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
         s.sendmail(msg_from, toaddr, msg.as_string())
         s.quit()
