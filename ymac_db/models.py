@@ -694,6 +694,8 @@ class SiteGroup(models.Model):
     name = models.CharField(max_length=50)
     def __str__(self):
         return smart_text(self.name)
+    def natural_key(self):
+        return (self.name)
 
 @python_2_unicode_compatible
 class ResearchSite(models.Model):
@@ -1352,6 +1354,9 @@ class SurveyGroup(models.Model):
 
     def __str__(self):
         return smart_text(self.group_name)
+
+    def natural_key(self):
+        return (self.group_name)
 
     class Meta:
         managed = True

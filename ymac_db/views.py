@@ -87,7 +87,7 @@ def claims(request):
 
 def research_site_json(request):
     data = json.loads(serialize('geojson', ResearchSite.objects.all(), geometry_field='geom',
-                         fields=('site_name', 'alt_site_name', 'site_comments', 'informants', 'site_type',),
+                         fields=('site_name', 'alt_site_name', 'site_comments', 'informants', 'site_type','site_groups','claim_groups'),
                          use_natural_foreign_keys=True, use_natural_primary_keys=True))
     data["name"] = "Research Sites"
     return JsonResponse(data)
