@@ -85,6 +85,14 @@ def claims(request):
     return render(request, 'claim_overview.html', context={'claim_groups': YmacClaim.objects.filter(current=True)})
 
 
+def research_site_json(request):
+    data = json.loads(serialize('geojson', ResearchSite.objects.all(), geometry_field='geom',
+                         fields=('site_name', 'alt_site_name', 'site_comments', 'informants', 'site_type',),
+                         use_natural_foreign_keys=True, use_natural_primary_keys=True))
+    data["name"] = "Research Sites"
+    return JsonResponse(data)
+
+
 class YMACClaimView(DetailView):
     model = YmacClaim
     # Create template
@@ -105,6 +113,7 @@ class YMACClaimView(DetailView):
         # Old Boundaries
         return context
 
+
 class HeritageSurveyView(ListView):
     model = HeritageSurvey
     # Create template
@@ -116,24 +125,25 @@ class HeritageSurveyView(ListView):
         surveys = HeritageSurvey.objects.filter(geom__isnull=False)
         context = super(HeritageSurveyView, self).get_context_data(**kwargs)
         context['table_data'] = json.dumps([{'survey_id': t.survey_id,
-                                        'trip_number':  t.trip_number,
-                                        'date_from': t.date_from.strftime("%d/%m/%Y"),
-                                        'date_to': t.date_from.strftime("%d/%m/%Y"),
-                                        'project_name': t.project_name,
-                                        'folder_location': t.folder_location,
-                                        'survey_description': t.survey_description } for t in surveys])
+                                             'trip_number': t.trip_number,
+                                             'date_from': t.date_from.strftime("%d/%m/%Y"),
+                                             'date_to': t.date_from.strftime("%d/%m/%Y"),
+                                             'project_name': t.project_name,
+                                             'folder_location': t.folder_location,
+                                             'survey_description': t.survey_description} for t in surveys])
 
         context['heritage_surveys'] = serialize('geojson', surveys,
-                                        fields=('pk',
-                                                'survey_id',
-                                                'trip_number',
-                                                'date_from',
-                                                'date_to',
-                                                'project_name',
-                                                'survey_description',
-                                                'folder_location'),
-                                        geometry_field='geom')
+                                                fields=('pk',
+                                                        'survey_id',
+                                                        'trip_number',
+                                                        'date_from',
+                                                        'date_to',
+                                                        'project_name',
+                                                        'survey_description',
+                                                        'folder_location'),
+                                                geometry_field='geom')
         return context
+
 
 class HeritageSurveyDetailView(DetailView):
     model = HeritageSurvey
@@ -157,6 +167,7 @@ class HeritageSurveyDetailView(DetailView):
                                                         'folder_location'),
                                                 geometry_field='geom')
         return context
+
 
 class EmitsWeekView(TemplateView):
     template_name = 'emits_report.html'
@@ -286,23 +297,23 @@ class RegionDistanceView(FormView):
         return super(RegionDistanceView, self).form_valid(form)
 
 
-def get_site(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = SiteForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect('/thanks/')
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = SiteForm()
-
-    return render(request, 'site_form.html', {'form': form})
+# def get_site(request):
+#     # if this is a POST request we need to process the form data
+#     if request.method == 'POST':
+#         # create a form instance and populate it with data from the request:
+#         form = SiteForm(request.POST)
+#         # check whether it's valid:
+#         if form.is_valid():
+#             # process the data in form.cleaned_data as required
+#             # ...
+#             # redirect to a new URL:
+#             return HttpResponseRedirect('/thanks/')
+#
+#     # if a GET (or any other method) we'll create a blank form
+#     else:
+#         form = SiteForm()
+#
+#     return render(request, 'site_form.html', {'form': form})
 
 
 class SurveyView(View):

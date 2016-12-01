@@ -1309,12 +1309,6 @@ class PotentialSurveyAdmin(baseadmin.ModelAdmin):
 
 
 class SiteAdmin(YMACModelAdmin):
-    def get_queryset(self, request):
-        my_model = super(SiteAdmin, self).get_queryset(request)
-        my_model = my_model.prefetch_related('daa_sites')
-        my_model = my_model.prefetch_related('surveys')
-        return my_model
-
     inlines = [
     ]
     list_display = [
@@ -1370,9 +1364,9 @@ class ResearchSiteAdmin(SiteAdmin):
     inlines = [
     ]
     list_display = [
-        'type_list',
+        'site_name',
         'site_comments',
-        'site_name'
+        'type_list',
     ]
     list_filter = [
         'site_location_desc',
@@ -1383,6 +1377,7 @@ class ResearchSiteAdmin(SiteAdmin):
     search_fields = [
         'site_name',
     ]
+    form = ResearchSiteForm
 
 
 def export_as_json(modeladmin, request, queryset):
@@ -1448,7 +1443,9 @@ def export_as_csv(modeladmin, request, queryset):
         'proponent',
         'data_status',
          'consultants',
-        'survey_methodology'
+        'survey_methodology',
+        "actual_data",
+        "proposed_data",
     )
     writer.writerow(fields)
     for qs in queryset:
@@ -1721,6 +1718,7 @@ geom_models = [
     YmacRegion,
     Tenement,
     SurveyGroup,
+    YmacClaim
 ]
 
 for gm in geom_models:

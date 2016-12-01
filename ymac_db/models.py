@@ -571,18 +571,27 @@ class HeritageCompanies(models.Model):
     def __str__(self):
         return smart_text("Company {}".format(self.company_name))
 
+class InformantManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
 
 @python_2_unicode_compatible
 class SiteInformant(models.Model):
     """
     Site informants
     """
-    name = models.CharField(max_length=250)
+    objects = InformantManager()
+    name = models.CharField(max_length=250, unique=True)
 
     def __str__(self):
         return smart_text(self.name)
+
+    def natural_key(self):
+        return (self.name)
+
     class Meta:
         managed = True
+        unique_together = ('name',)
 
 
 @python_2_unicode_compatible
@@ -687,12 +696,12 @@ class ResearchSite(models.Model):
     site_location_desc = models.TextField(blank=True, null=True, help_text="If need, provide a site description")
     site_other_coordinates = models.TextField(blank=True, null=True, help_text="Any other coordinates for the site")
     groups = models.ManyToManyField('YmacClaim', help_text="Site belong to any groups")
-    informants = models.ManyToManyField('SiteInformant', help_text="Site belong to any groups")
+    informants = models.ManyToManyField('SiteInformant', blank=True, help_text="Site belong to any groups")
     proponent_codes = models.TextField(blank=True, null=True, help_text="Any proponent codes for matching")
     site_comments = models.TextField(blank=True, null=True)
     ethno_detail = models.TextField(blank=True, null=True)
     reference = models.TextField(blank=True, null=True, help_text="Field Notes")
-    site_name = models.TextField(blank=True, null=True, db_index=True)
+    site_name = models.TextField(blank=True, unique=True, null=True, db_index=True)
     site_label = models.TextField(blank=True, null=True)
     alt_site_name = models.TextField(blank=True, null=True)
     site_number = models.IntegerField(blank=True, null=True)
@@ -702,8 +711,6 @@ class ResearchSite(models.Model):
                                     related_name='research_recorded_by', blank=True, null=True)
     date_recorded = models.DateField(blank=True, null=True)
     group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
-    site_identifier = models.CharField(max_length=200, blank=True, null=True,
-                                       help_text="Site name to help you identify it", db_index=True)
     restricted_status = models.ForeignKey('RestrictionStatus', on_delete=models.DO_NOTHING, db_column='restricted_status',
                                           blank=True, null=True)
 
@@ -720,10 +727,10 @@ class ResearchSite(models.Model):
     label_y_ll = models.FloatField(blank=True, null=True, help_text="Used for setting labels in qgis")
     documents = models.ManyToManyField('SiteDocument', blank=True)
     daa_sites = models.ManyToManyField('DaaSite', blank=True)
-    geom = models.GeometryField(srid=4283, blank=True, null=True)
+    geom = models.PolygonField(srid=4283, blank=True, null=True)
 
     def __str__(self):
-        return smart_text("Research Site {} {}".format(self.site_name, self.site_id))
+        return smart_text("Research Site {} ".format(self.site_name))
 
     class Meta:
         managed = True
@@ -803,9 +810,13 @@ class SiteDocument(models.Model):
         db_table = 'site_documents'
 
 
+class SiteTypeManager(models.Manager):
+    def get_by_natural_key(self, site_classification, site_category):
+        return self.get(site_classification=site_classification, site_category=site_category)
 
 @python_2_unicode_compatible
 class SiteType(models.Model):
+    objects = SiteTypeManager()
     site_classification = models.CharField(max_length=100)
     site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
 
@@ -814,8 +825,12 @@ class SiteType(models.Model):
             return smart_text("{} ({})".format(self.site_classification.capitalize(), self.site_category))
         return smart_text("{}".format(self.site_classification))
 
+    def natural_key(self):
+        return (self.site_classification, self.site_category)
+
     class Meta:
         ordering = ('site_classification',)
+        unique_together = (('site_classification', 'site_category'),)
 
 
 @python_2_unicode_compatible

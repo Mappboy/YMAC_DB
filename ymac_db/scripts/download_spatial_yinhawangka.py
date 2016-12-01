@@ -76,8 +76,8 @@ def write_yin_zip_all():
     """
     with open(yinfile, "wb") as returnfile:
         with ZipFile(returnfile, 'w') as yinzip:
-            for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW').filter(
-                    document_type__document_type='Spatial'):
+            for sd in SurveyDocument.objects.filter(surveys__survey_group__group_id='YHW').filter(Q(document_type__document_type='Spatial')|Q(document_type__sub_type='Zipped')
+                    ):
                 surveys = sd.surveys.all()
                 file2write = os.path.join(sd.filepath, sd.filename)
                 for s in surveys:
