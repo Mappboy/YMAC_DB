@@ -1369,9 +1369,11 @@ class ResearchSiteAdmin(SiteAdmin):
         'type_list',
     ]
     list_filter = [
-        'site_location_desc',
-        'site_comments',
-        'site_name'
+        'site_type__site_classification',
+        'site_type__site_category',
+        'informants__name',
+        'site_groups__name',
+        'claim_groups'
     ]
 
     search_fields = [
@@ -1446,10 +1448,11 @@ def export_as_csv(modeladmin, request, queryset):
         'survey_methodology',
         "actual_data",
         "proposed_data",
+        "reports"
     )
     writer.writerow(fields)
     for qs in queryset:
-        row = [getattr(qs, f) for f in fields if f not in ['survey_methodology','consultants']]
+        row = [getattr(qs, f) for f in fields if f not in ['survey_methodology','consultants',"actual_data","proposed_data", "reports"]]
         if qs.consultants.all():
             row.append(";".join([ q.name for q in qs.consultants.all()]))
         else:
@@ -1458,6 +1461,17 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(";".join([ q.survey_meth for q in qs.survey_methodologies.all()]))
         else:
             row.append("")
+        docs = qs.documents.all()
+        actual_data = ""
+        proposed_data = ""
+        reports = ""
+        if docs:
+            actual_data = "TRUE" if any([ d.file_status.status == "Actual" for d in docs if d.file_status ]) else "FALSE"
+            proposed_data = "TRUE" if any([ d.file_status.status == "Proposed" for d in docs if d.file_status]) else "FALSE"
+            reports = "TRUE" if any([ d.document_type.sub_type == "Survey Report" for d in docs if d.document_type ]) else "FALSE"
+        row.append(actual_data)
+        row.append(proposed_data)
+        row.append(reports)
         writer.writerow(row)
 
     return response
@@ -1709,6 +1723,7 @@ basemodels = [SiteUser,
               RequestType,
               Department,
               YmacStaff,
+              SiteGroup,
               ]
 
 for m in basemodels:

@@ -686,6 +686,14 @@ class RelatedSurveyCode(models.Model):
     def __str__(self):
         return smart_text(self.rel_survey_id)
 
+@python_2_unicode_compatible
+class SiteGroup(models.Model):
+    """
+    Table for separate site groups
+    """
+    name = models.CharField(max_length=50)
+    def __str__(self):
+        return smart_text(self.name)
 
 @python_2_unicode_compatible
 class ResearchSite(models.Model):
@@ -695,7 +703,8 @@ class ResearchSite(models.Model):
     site_type = models.ManyToManyField('SiteType', help_text="Pick match site types or add a new one")
     site_location_desc = models.TextField(blank=True, null=True, help_text="If need, provide a site description")
     site_other_coordinates = models.TextField(blank=True, null=True, help_text="Any other coordinates for the site")
-    groups = models.ManyToManyField('YmacClaim', help_text="Site belong to any groups")
+    claim_groups = models.ForeignKey('SurveyGroup', help_text="Claim Group or Determination for Site")
+    site_groups = models.ManyToManyField('SiteGroup', help_text="Does the site or information belong to one group?")
     informants = models.ManyToManyField('SiteInformant', blank=True, help_text="Site belong to any groups")
     proponent_codes = models.TextField(blank=True, null=True, help_text="Any proponent codes for matching")
     site_comments = models.TextField(blank=True, null=True)
@@ -811,13 +820,13 @@ class SiteDocument(models.Model):
 
 
 class SiteTypeManager(models.Manager):
-    def get_by_natural_key(self, site_classification, site_category):
-        return self.get(site_classification=site_classification, site_category=site_category)
+    def get_by_natural_key(self, site_classification):
+        return self.get(site_classification=site_classification)
 
 @python_2_unicode_compatible
 class SiteType(models.Model):
     objects = SiteTypeManager()
-    site_classification = models.CharField(max_length=100)
+    site_classification = models.CharField(max_length=100, unique=True)
     site_category = models.CharField(max_length=30, choices=site_category, blank=True, null=True)
 
     def __str__(self):
@@ -826,7 +835,7 @@ class SiteType(models.Model):
         return smart_text("{}".format(self.site_classification))
 
     def natural_key(self):
-        return (self.site_classification, self.site_category)
+        return (self.site_classification)
 
     class Meta:
         ordering = ('site_classification',)

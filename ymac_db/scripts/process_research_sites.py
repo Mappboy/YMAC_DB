@@ -153,6 +153,19 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as 
             c[p] += 1
     print(c)
 
+#     rs, created = ResearchSite.objects.update(
+#         site_name=site_name,
+#         site_label=site_name,
+#         alt_site_name=alt_site_name,
+#         orig_x_val=orig_x_val,
+#         orig_y_val=orig_y_val,
+#         buffer=buf,
+#         capture_coord_sys=proj,
+#         created_by=created_by,
+#         date_created=date_created,
+#         geom=geom
+#     )
+# except:
 # map across  projection details
 # create informants and site type
 with open("X:\Projects\SpatialDatabase\REsearchSites\pkkp_sites.txt", "r") as testfile:
@@ -219,7 +232,6 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\pkkp_sites.txt", "r") as te
             proj = None
         if orig_x_val and orig_y_val:
             geom = get_site(proj, orig_x_val, orig_y_val, buf)
-            print(geom)
         else:
             geom = None
             buf = 10
@@ -227,22 +239,12 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\pkkp_sites.txt", "r") as te
         other_cords = line["Other Coordinates Recorded"]
         date_created = datetime.datetime.today()
         created_by = SiteUser.objects.get(user_name="Cameron Poole")
-        try:
-            rs, created = ResearchSite.objects.get_or_create(site_other_coordinates=other_cords,
-                                                site_comments=site_comments,
-                                                site_name=site_name,
-                                                site_label=site_name,
-                                                alt_site_name=alt_site_name,
-                                                orig_x_val=orig_x_val,
-                                                orig_y_val=orig_y_val,
-                                                buffer=buf,
-                                                capture_coord_sys=proj,
-                                                created_by=created_by,
-                                                date_created=date_created,
-                                                geom=geom
-                                                )
-        except:
-            print("Site name {} exists".format(site_name))
-        rs.site_type.add(*db_site_types)
-        rs.informants.add(*db_informs)
+        if line["Group(s)"]:
+            groups = [SiteGroup.objects.get(name=l.strip()) for l in line["Group(s)"].split("/") if l.strip() ]
+            rs = ResearchSite.objects.get(
+                                                    site_name=site_name,
+                                                    )
+            rs.site_groups.add(*groups)
+        #rs.site_type.add(*db_site_types)
+        #rs.informants.add(*db_informs)
     print(c)
