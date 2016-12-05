@@ -9,7 +9,7 @@ sys.path.append(r"C:\Users\cjpoole\PycharmProjects\ymac_sdb\\")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ymac_sdb.settings'
 
 django.setup()
-
+from django.contrib.gis.gdal import DataSource
 from ymac_db.models import *
 
 yinfile = r"C:\Temp\ymac_saptial_extract.zip"
@@ -72,6 +72,7 @@ def rscandir(path):
 def write_yin_zip_all():
     """
     Write everything in our documents table that are YHW OUT
+    TODO: Check if data can be opened
     :return:
     """
     with open(yinfile, "wb") as returnfile:
@@ -85,6 +86,11 @@ def write_yin_zip_all():
                     if os.path.isfile(file2write):
                         # find extra files for TAB or SHP files
                         file_prefix, file_ext = os.path.splitext(file2write)
+                        if file_ext != ".zip":
+                            try:
+                                ds = DataSource(file2write)
+                            except:
+                                print("Bad file ", file2write)
                         if file_ext in extra_files:
                             for file_suffix in extra_files[file_ext]:
                                 fpath = file_prefix + file_suffix

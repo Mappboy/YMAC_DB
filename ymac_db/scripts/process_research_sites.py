@@ -60,6 +60,18 @@ def site_type_clean(row, header, replacements, split_type="\n", sublines=False):
     return place_types
 
 
+def group_check(group_string):
+    groups = [l.strip() for l in group_string.replace("\n", ";").replace("/", ";").replace(",", ";").split(";")  if l.strip()]
+    return set(groups)
+
+
+
+def informant_check(informant_string):
+    informants = [i.strip(" ") for i in informant_string.replace("\n", ";").replace("\t", ";").replace("&", ";").replace("/", ";").replace(",", ";").split(";") if i.strip()]
+    return set(informants)
+
+def clean_site_name(raw_sitename):
+    return raw_sitename.replace("\n", " ").strip(" ")
 with open("X:\Projects\SpatialDatabase\REsearchSites\mal_sites.txt", "r") as testfile:
     c = Counter()
     replacements = {"camping": "camp",
@@ -76,10 +88,7 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\mal_sites.txt", "r") as tes
         place_types = site_type_clean(line, "Type of Place", replacements)
         for p in place_types:
             SiteType.objects.get(site_classification=p)
-            if not p:
-                print(line)
             c[p] += 1
-    print(c)
 
 with open("X:\Projects\SpatialDatabase\REsearchSites\km_sites.txt", "r") as testfile:
     reader = csv.DictReader(testfile, delimiter='\t')
@@ -106,10 +115,7 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\km_sites.txt", "r") as test
         place_types = site_type_clean(line, "Site Type", replacements, split_type=" ")
         for p in place_types:
             SiteType.objects.get(site_classification=p)
-            if not p:
-                print(place_types)
             c[p] += 1
-    print(c)
 
 with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as testfile:
     reader = csv.DictReader(testfile, delimiter='\t')
@@ -134,6 +140,7 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as 
         "burial site": "burial",
         "historical site": "historical",
         "fishing spot": "fishing",
+        "fishing camp": "fishing",
         "boundary marker": "boundary",
         "bounary": "boundary",
         "mythalogical": "mythological",
@@ -144,14 +151,28 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as 
         "masacre site": "massacre site",
         "residence?": "residence"
     }
+    c = Counter()
     for line in reader:
+        site_name = clean_site_name(line["NAME"])
+        if not site_name:
+            break
+        site_types = []
         place_types = site_type_clean(line, "Site Types", replacements, split_type=";", sublines=True)
         for p in place_types:
-            SiteType.objects.get(site_classification=p)
+            try:
+                site_types.append(SiteType.objects.get(site_classification=p))
+            except:
+                print(place_types)
             if not p:
                 print(place_types, line)
-            c[p] += 1
-    print(c)
+        groups = [SiteGroup.objects.get_or_create(name=g.strip()) for g in group_check(line["Group"])]
+        db_informs = [SiteInformant.objects.get_or_create(name=i.strip(" "))for i in informant_check(line["Informants"])]
+        site_number = int(line["MAP SITE ID"]) if line["MAP SITE ID"] else None
+        if line["Unnamed Site"]:
+            c[site_name] +=1
+            site_name = "{} {} {}".format(site_name,"Gnulli", c[site_name])
+            site_label = site_name
+        print(site_name, site_types, site_number, groups, db_informs)
 
 #     rs, created = ResearchSite.objects.update(
 #         site_name=site_name,
@@ -168,83 +189,83 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as 
 # except:
 # map across  projection details
 # create informants and site type
-with open("X:\Projects\SpatialDatabase\REsearchSites\pkkp_sites.txt", "r") as testfile:
-    reader = csv.DictReader(testfile, delimiter='\t')
-    pkkp_site_replacement = {
-        "hist": "historical",
-        "thalu": "thalu",
-        "bur": "burial",
-        "birth": "birthplace",
-        "brith": "birthplace",
-        "yinta": "living water",
-        "yinda": "living water",
-        "art": "rock art",
-        "warlu": "warlu",
-        "rh": "rock hole",
-        "myth": "mythological",
-        "arch": "archaeological",
-        "geo": "ethno-geographical",
-        "law": "law ground",
-        "mass": "massacre site",
-        "camp": "camp",
-        "bound": "boundary",
-        "ethno": "ethnographic",
-        "obj": "cultural objects",
-    }
-    all_informants = set()
-    lines = 0
-    for line in reader:
-        if line["RTIO Fieldsite [Spatial]"] or line["FMG ID [Spatial]"] or line["Survey Code"] or line[
-            "Layer Name"] == "PKKP_RRA" or not (any((line["Aboriginal site name"], line["English site name"]))):
-            continue
-        site_cols = ["Site Type 1", "Site Type 2", "Site Type 3"]
-        db_site_types = []
-        alt_site_name = None
-        if line["Aboriginal site name"] and line["English site name"]:
-            site_name = line["Aboriginal site name"]
-            alt_site_name = line["English site name"]
-        elif line["Aboriginal site name"] and not line["English site name"]:
-            site_name = line["Aboriginal site name"]
-        elif line["English site name"] and not line["Aboriginal site name"]:
-            site_name = line["English site name"]
-        else:
-            break
-        for sc in site_cols:
-            place_types = site_type_clean(line, sc, pkkp_site_replacement, split_type=";", sublines=False)
-            for p in place_types:
-                try:
-                    db_site_types.append(SiteType.objects.get(site_classification=p))
-                except:
-                    print("Bad ", p)
-                if not p:
-                    print(place_types, line)
-                c[p] += 1
-        informants = line["Informants"].replace("\n", ";").replace("/", ";").replace(",", ";").split(";")
-        db_informs = [SiteInformant.objects.get_or_create(name=i.strip(" "))[0] for i in informants if i]
-        buf = int(line["Required Buffer"].rstrip(" ").replace("m", "")) if line["Required Buffer"] else 10
-        if line["Easting "] and line["Northing "]:
-            orig_x_val = float(line["Easting "])
-            orig_y_val = float(line["Northing "])
-            proj = get_projections(line["Datum"], line["Map"])
-        else:
-            orig_x_val = None
-            orig_y_val = None
-            proj = None
-        if orig_x_val and orig_y_val:
-            geom = get_site(proj, orig_x_val, orig_y_val, buf)
-        else:
-            geom = None
-            buf = 10
-        site_comments = line["Notes 1"]
-        other_cords = line["Other Coordinates Recorded"]
-        date_created = datetime.datetime.today()
-        created_by = SiteUser.objects.get(user_name="Cameron Poole")
-        if line["Group(s)"]:
-            groups = [SiteGroup.objects.get(name=l.strip()) for l in line["Group(s)"].split("/") if l.strip() ]
-            rs = ResearchSite.objects.get(
-                                                    site_name=site_name,
-                                                    )
-            rs.site_groups.add(*groups)
-        #rs.site_type.add(*db_site_types)
-        #rs.informants.add(*db_informs)
-    print(c)
+# with open("X:\Projects\SpatialDatabase\REsearchSites\pkkp_sites.txt", "r") as testfile:
+#     reader = csv.DictReader(testfile, delimiter='\t')
+#     pkkp_site_replacement = {
+#         "hist": "historical",
+#         "thalu": "thalu",
+#         "bur": "burial",
+#         "birth": "birthplace",
+#         "brith": "birthplace",
+#         "yinta": "living water",
+#         "yinda": "living water",
+#         "art": "rock art",
+#         "warlu": "warlu",
+#         "rh": "rock hole",
+#         "myth": "mythological",
+#         "arch": "archaeological",
+#         "geo": "ethno-geographical",
+#         "law": "law ground",
+#         "mass": "massacre site",
+#         "camp": "camp",
+#         "bound": "boundary",
+#         "ethno": "ethnographic",
+#         "obj": "cultural objects",
+#     }
+#     all_informants = set()
+#     lines = 0
+#     for line in reader:
+#         if line["RTIO Fieldsite [Spatial]"] or line["FMG ID [Spatial]"] or line["Survey Code"] or line[
+#             "Layer Name"] == "PKKP_RRA" or not (any((line["Aboriginal site name"], line["English site name"]))):
+#             continue
+#         site_cols = ["Site Type 1", "Site Type 2", "Site Type 3"]
+#         db_site_types = []
+#         alt_site_name = None
+#         if line["Aboriginal site name"] and line["English site name"]:
+#             site_name = line["Aboriginal site name"]
+#             alt_site_name = line["English site name"]
+#         elif line["Aboriginal site name"] and not line["English site name"]:
+#             site_name = line["Aboriginal site name"]
+#         elif line["English site name"] and not line["Aboriginal site name"]:
+#             site_name = line["English site name"]
+#         else:
+#             break
+#         for sc in site_cols:
+#             place_types = site_type_clean(line, sc, pkkp_site_replacement, split_type=";", sublines=False)
+#             for p in place_types:
+#                 try:
+#                     db_site_types.append(SiteType.objects.get(site_classification=p))
+#                 except:
+#                     print("Bad ", p)
+#                 if not p:
+#                     print(place_types, line)
+#                 c[p] += 1
+#         informants = line["Informants"].replace("\n", ";").replace("/", ";").replace(",", ";").split(";")
+#         db_informs = [SiteInformant.objects.get_or_create(name=i.strip(" "))[0] for i in informants if i]
+#         buf = int(line["Required Buffer"].rstrip(" ").replace("m", "")) if line["Required Buffer"] else 10
+#         if line["Easting "] and line["Northing "]:
+#             orig_x_val = float(line["Easting "])
+#             orig_y_val = float(line["Northing "])
+#             proj = get_projections(line["Datum"], line["Map"])
+#         else:
+#             orig_x_val = None
+#             orig_y_val = None
+#             proj = None
+#         if orig_x_val and orig_y_val:
+#             geom = get_site(proj, orig_x_val, orig_y_val, buf)
+#         else:
+#             geom = None
+#             buf = 10
+#         site_comments = line["Notes 1"]
+#         other_cords = line["Other Coordinates Recorded"]
+#         date_created = datetime.datetime.today()
+#         created_by = SiteUser.objects.get(user_name="Cameron Poole")
+#         if line["Group(s)"]:
+#             groups = [SiteGroup.objects.get(name=l.strip()) for l in line["Group(s)"].split("/") if l.strip() ]
+#             rs = ResearchSite.objects.get(
+#                                                     site_name=site_name,
+#                                                     )
+#             rs.site_groups.add(*groups)
+#         #rs.site_type.add(*db_site_types)
+#         #rs.informants.add(*db_informs)
+#     print(c)
