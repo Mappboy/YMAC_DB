@@ -202,7 +202,7 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\km_sites.txt", "r") as test
                     "law": "law ground",
                     "mas": "massacre site",
                     "nr": "not recorded"}
-    groups = set()
+    db_groups = []
     informants =set()
     bad_replacements = {"warlulu":"warlu", "historicalory":"historical"}
     for line in reader:
@@ -214,12 +214,16 @@ with open("X:\Projects\SpatialDatabase\REsearchSites\km_sites.txt", "r") as test
             try:
                 SiteType.objects.get(site_classification=p)
             except:
-                print(p)
+                print(type(p))
             c[p] += 1
-        [groups.add(g) for g in group_check(line["Group(s)"])]
+        for g in group_check(line["Group(s)"]):
+            if g == "Robe River Kurrama":
+                g = "Robe River Kurruma"
+                #Get from database
+            db_groups.append(g)
         # rename Robe River Kurrama = Robe River Kurruma
         [informants.add(i) for i in informant_check(split_names(line["Informants"]))]
-    print(groups)
+    print(db_groups)
     print(informants)
 
 # with open("X:\Projects\SpatialDatabase\REsearchSites\gnulli_sites.txt", "r") as testfile:

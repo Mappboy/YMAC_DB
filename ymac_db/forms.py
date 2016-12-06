@@ -164,7 +164,11 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         from email.header import Header
-        msg = MIMEMultipart()
+        from email.charset import Charset
+        from email.generator import Generator
+        from cStringIO import StringIO
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        msg = MIMEMultipart('alternative')
         email = self.instance.user.email
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
@@ -195,7 +199,10 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         )
         try:
             msg.attach(MIMEText(body.encode("utf-8"), 'plain', "utf-8"))
-            msg_body = msg.as_string()
+            io = StringIO()
+            g = Generator(io, False)  # second argument means "should I mangle From?"
+            g.flatten(msg)
+            msg_body = io.getvalue()
         except UnicodeError:
             msg = MIMEMultipart()
             msg['From'] = Header("spatialjobs@ymac.org.au".encode("utf-8"), "UTF-8").encode()
