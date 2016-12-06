@@ -182,6 +182,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Map Size: {map_size}\n
         Map Title: {map_title}\n
         Required by: {required_by} \n
+        Related Job: {related_jobs} \n
         Delivery and/or Product Instructions: {product_type} {other_instructions}\n
         Cost Centre: {cost_centre}\n
         Priority and urgency: {priority}\n""".format(
