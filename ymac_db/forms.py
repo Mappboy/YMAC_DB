@@ -164,11 +164,11 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         from email.header import Header
-        from email.charset import Charset
-        from email.generator import Generator
-        from cStringIO import StringIO
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        def _contains_non_ascii_characters(str):
+            return not all(ord(c) < 128 for c in str)
+
         msg = MIMEMultipart('alternative')
+
         email = self.instance.user.email
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
@@ -197,12 +197,16 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
+        s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
         try:
             msg.attach(MIMEText(body.encode("utf-8"), 'plain', "utf-8"))
-            io = StringIO()
-            g = Generator(io, False)  # second argument means "should I mangle From?"
+            from cStringIO import StringIO
+            from email.generator import Generator
+            fp = StringIO()
+            g = Generator(fp,False)
             g.flatten(msg)
-            msg_body = io.getvalue()
+            msg_body = fp.getvalue()
+            s.sendmail(msg_from, toaddr, msg_body)
         except UnicodeError:
             msg = MIMEMultipart()
             msg['From'] = Header("spatialjobs@ymac.org.au".encode("utf-8"), "UTF-8").encode()
@@ -213,8 +217,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             msg.attach(MIMEText("Attempted to send email for job {job_id} but failed, please check database".format(
                 job_id=self.instance.job_control)))
             msg_body = msg.as_string()
-        s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        s.sendmail(msg_from, toaddr, msg_body)
+            s.sendmail(msg_from, toaddr, msg_body)
         s.quit()
 
     def update_smartsheet(self):
