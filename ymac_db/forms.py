@@ -172,7 +172,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
             toaddr += cc_emails
         msg_subject ="{map_type} {job_id} request".format(map_type=self.instance.request_type,
                                                               job_id=self.instance.job_control)
-        msg_body = """
+        msg_body = u"""
         Name: {user}\n
         Email: {user.email}\n
         Department: {user.department}\n

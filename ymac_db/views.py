@@ -393,6 +393,7 @@ class SpatialRequestView(FormView):
                                          "Please contact spatial department. Reason could not send email. {}".format(
                 form.instance.user,
                 form.instance.job_control, e))
+
             return redirect("/")
         # form.instance.user.name = self.request.name
         # form.instance.required_by = self.request.req_by
