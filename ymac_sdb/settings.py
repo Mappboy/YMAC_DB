@@ -147,7 +147,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # EMAIL CONFIG
 # https://docs.djangoproject.com/en/1.9/topics/email/
-EMAIL_HOST = ""
+EMAIL_HOST = "ymac-org-au.mail.protection.outlook.com"
+EMAIL_PORT = 25
 EMAIL_HOST_PASSWORD = ""
 EMAIL_HOST_USER = ""
 EMAIL_SUBJECT_PREFIX = ""

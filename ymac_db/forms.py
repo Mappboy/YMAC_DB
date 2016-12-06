@@ -160,27 +160,19 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         This function will send the usual email to us spatial jobs guys.
         :return:
         """
-        import smtplib
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.text import MIMEText
-        from email.header import Header
-        def _contains_non_ascii_characters(str):
-            return not all(ord(c) < 128 for c in str)
-
-        msg = MIMEMultipart('alternative')
+        from django.core.mail import send_mail
 
         email = self.instance.user.email
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
-        msg['From'] = Header(msg_from.encode("utf-8"), "UTF-8").encode()
-        msg['To'] = Header(', '.join(toaddr).encode("utf-8"), "UTF-8").encode()
+        msg_to = ', '.join(toaddr)
         if 'cc_recipients' in self.cleaned_data and self.cleaned_data['cc_recipients']:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
-            msg['Cc'] = Header(", ".join(cc_emails).encode("utf-8"), "UTF-8").encode()
+            msg_cc = ", ".join(cc_emails)
             toaddr += cc_emails
-        msg['Subject'] = Header("{map_type} {job_id} request".format(map_type=self.instance.request_type,
-                                                              job_id=self.instance.job_control).encode("utf-8"), "UTF-8").encode()
-        body = """
+        msg_subject ="{map_type} {job_id} request".format(map_type=self.instance.request_type,
+                                                              job_id=self.instance.job_control)
+        msg_body = """
         Name: {user}\n
         Email: {user.email}\n
         Department: {user.department}\n
@@ -197,28 +189,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
-        s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        try:
-            msg.attach(MIMEText(body.encode("utf-8"), 'plain', "utf-8"))
-            from cStringIO import StringIO
-            from email.generator import Generator
-            fp = StringIO()
-            g = Generator(fp,False)
-            g.flatten(msg)
-            msg_body = fp.getvalue()
-            s.sendmail(msg_from, toaddr, msg_body)
-        except UnicodeError:
-            msg = MIMEMultipart()
-            msg['From'] = Header("spatialjobs@ymac.org.au".encode("utf-8"), "UTF-8").encode()
-            msg['To'] = Header("cjpoole@ymac.org.au".encode("utf-8"), "UTF-8").encode()
-            msg['Subject'] = Header("Couldn't send {map_type} {job_id} request".format(map_type=self.instance.request_type,
-                                                                         job_id=self.instance.job_control).encode(
-                "utf-8"), "UTF-8").encode()
-            msg.attach(MIMEText("Attempted to send email for job {job_id} but failed, please check database".format(
-                job_id=self.instance.job_control)))
-            msg_body = msg.as_string()
-            s.sendmail(msg_from, toaddr, msg_body)
-        s.quit()
+        send_mail(msg_subject, msg_body, msg_from, msg_to)
 
     def update_smartsheet(self):
         """
