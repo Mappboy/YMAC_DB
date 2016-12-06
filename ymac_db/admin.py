@@ -1365,14 +1365,14 @@ class ResearchSiteAdmin(SiteAdmin):
     ]
     list_display = [
         'site_name',
-        'site_comments',
+        'ethno_detail',
         'type_list',
     ]
     list_filter = [
         'site_type__site_classification',
         'site_type__site_category',
-        'informants__name',
-        'site_groups__name',
+        ('informants__name',custom_titled_filter('informant')),
+        ('site_groups__name', custom_titled_filter('site_group')),
         'claim_groups'
     ]
 

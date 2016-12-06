@@ -9,6 +9,8 @@ from django.contrib.gis import forms
 from leaflet.forms.widgets import LeafletWidget
 from suit.widgets import SuitDateWidget, AutosizedTextarea
 from django.utils.translation import ugettext_lazy as _
+from ymac_db.models import ResearchSite
+
 
 from .models import *
 
@@ -18,6 +20,18 @@ from .models import *
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
 
 class ResearchSiteForm(baseform.ModelForm):
+    # Validators geom inside WA, custom site name for unnamed sites
+    # Function for automatically assigning our unnamed research sites
+    # Need a cleaning function for geometry WA bouinding box
+    # If no Geometry create it based upon x,y, projection, buffer
+    def clean(self):
+        site_name = self.cleaned_data.get("site_name")
+        unnamed_site = self.cleaned_data.get("unnamed_site")
+        if site_name and unnamed_site:
+            claim_group = self.cleaned_data.get("claim_groups")
+            self.cleaned_data["site_name"] = "{} {} {}".format(site_name, claim_group,  len(ResearchSite.objects.filter(unnamed_site=True,site_name__icontains=site_name,claim_groups__group_name=claim_group))+1)
+        return self.cleaned_data
+
     class Meta:
         model = ResearchSite
         exclude = []
@@ -149,18 +163,19 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
+        from email.header import Header
         msg = MIMEMultipart()
         email = self.instance.user.email
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
-        msg['From'] = msg_from
-        msg['To'] = ', '.join(toaddr)
+        msg['From'] = Header(msg_from.encode("utf-8"), "UTF-8").encode()
+        msg['To'] = Header(', '.join(toaddr).encode("utf-8"), "UTF-8").encode()
         if 'cc_recipients' in self.cleaned_data and self.cleaned_data['cc_recipients']:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
-            msg['Cc'] = ", ".join(cc_emails)
+            msg['Cc'] = Header(", ".join(cc_emails).encode("utf-8"), "UTF-8").encode()
             toaddr += cc_emails
-        msg['Subject'] = "{map_type} {job_id} request".format(map_type=self.instance.request_type,
-                                                              job_id=self.instance.job_control)
+        msg['Subject'] = Header("{map_type} {job_id} request".format(map_type=self.instance.request_type,
+                                                              job_id=self.instance.job_control).encode("utf-8"), "UTF-8").encode()
         body = """
         Name: {user}\n
         Email: {user.email}\n
@@ -180,11 +195,19 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         )
         try:
             msg.attach(MIMEText(body.encode("utf-8"), 'plain', "utf-8"))
+            msg_body = msg.as_string()
         except UnicodeError:
+            msg = MIMEMultipart()
+            msg['From'] = Header("spatialjobs@ymac.org.au".encode("utf-8"), "UTF-8").encode()
+            msg['To'] = Header("cjpoole@ymac.org.au".encode("utf-8"), "UTF-8").encode()
+            msg['Subject'] = Header("Couldn't send {map_type} {job_id} request".format(map_type=self.instance.request_type,
+                                                                         job_id=self.instance.job_control).encode(
+                "utf-8"), "UTF-8").encode()
             msg.attach(MIMEText("Attempted to send email for job {job_id} but failed, please check database".format(
                 job_id=self.instance.job_control)))
+            msg_body = msg.as_string()
         s = smtplib.SMTP('ymac-org-au.mail.protection.outlook.com', 25)
-        s.sendmail(msg_from, toaddr, msg.as_string())
+        s.sendmail(msg_from, toaddr, msg_body)
         s.quit()
 
     def update_smartsheet(self):
