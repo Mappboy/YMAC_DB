@@ -165,10 +165,8 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         email = self.instance.user.email
         toaddr = ["spashby@ymac.org.au", "cjpoole@ymac.org.au","cforsey@ymac.org.au"]
         msg_from = email if email else "spatialjobs@ymac.org.au"
-        msg_to = ', '.join(toaddr)
         if 'cc_recipients' in self.cleaned_data and self.cleaned_data['cc_recipients']:
             cc_emails = [u.email for u in self.cleaned_data['cc_recipients']]
-            msg_cc = ", ".join(cc_emails)
             toaddr += cc_emails
         msg_subject ="{map_type} {job_id} request".format(map_type=self.instance.request_type,
                                                               job_id=self.instance.job_control)
@@ -189,7 +187,7 @@ class YMACSpatialRequestForm(baseform.ModelForm):
         Priority and urgency: {priority}\n""".format(
             **self.cleaned_data
         )
-        send_mail(msg_subject, msg_body, msg_from, msg_to)
+        send_mail(msg_subject, msg_body, msg_from, toaddr)
 
     def update_smartsheet(self):
         """
