@@ -20,6 +20,8 @@ from leaflet.admin import LeafletGeoAdmin
 from jet.admin import CompactInline
 from .validators import valid_surveyid
 from .forms import *
+from import_export import resources, fields
+from import_export.admin import ImportExportModelAdmin, ImportExportActionModelAdmin
 
 
 def custom_titled_filter(title):
@@ -28,7 +30,9 @@ def custom_titled_filter(title):
             instance = baseadmin.FieldListFilter.create(*args, **kwargs)
             instance.title = title
             return instance
+
     return Wrapper
+
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Geometry Exists')
@@ -232,6 +236,40 @@ class HasLinkedSurveyFilter(baseadmin.SimpleListFilter):
             return queryset.filter(surveys__isnull=False)
         else:
             return queryset.filter(surveys__isnull=True)
+
+
+class HasSiteTypeFilter(baseadmin.SimpleListFilter):
+    title = _('Has Site Type')
+
+    parameter_name = 'has_site_type'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('False', _('Site Type Exists')),
+            ('True', _('No Site Type')),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        # Compare the requested value (either '80s' or '90s')
+        # to decide how to filter the queryset.
+        if not self.value():
+            return queryset.all()
+        elif self.value() == 'False':
+            return queryset.filter(site_type__isnull=False)
+        else:
+            return queryset.filter(site_type__isnull=True)
 
 
 class ClaimDataPathFilter(baseadmin.SimpleListFilter):
@@ -1351,8 +1389,32 @@ class HeritageSiteAdmin(SiteAdmin):
     form = HeritageSiteForm
 
 
+class ResearchSiteResource(resources.ModelResource):
+    informants = fields.Field(column_name='informants')
+    site_type = fields.Field(column_name='site_type')
+
+    class Meta:
+        model = ResearchSite
+        import_id_fields = ('research_site_id',)
+        fields = (
+        'research_site_id', 'site_name', 'alt_site_name', 'site_label', 'site_number', 'claim_groups__group_name',
+        'ethno_detail',
+        'site_type', 'informants', 'site_groups__name', 'date_recorded', 'restricted_status',
+        'reference', 'orig_x_val',
+        'orig_y_val', 'buffer', 'capture_coord_sys', 'coordinate_accuracy',
+        'geom',)
+
+        def dehydrate_informants(self, informants):
+            return ", ".join([r.name for r in informants])
+
+        def dehydrate_site_type(self, site_type):
+            return "%s" % site_type.site_classification
+
+
 @admin.register(ResearchSite)
-class ResearchSiteAdmin(SiteAdmin):
+class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
+    resource_class = ResearchSiteResource
+
     def type_list(self, obj):
         try:
             return ";\n".join([smart_text(hs.site_classification) for hs in obj.site_type.all()])
@@ -1366,14 +1428,19 @@ class ResearchSiteAdmin(SiteAdmin):
     list_display = [
         'site_name',
         'ethno_detail',
+        'site_location_desc',
+        'site_number',
+        'claim_groups',
         'type_list',
     ]
     list_filter = [
         'site_type__site_classification',
         'site_type__site_category',
-        ('informants__name',custom_titled_filter('informant')),
+        ('informants__name', custom_titled_filter('informant')),
         ('site_groups__name', custom_titled_filter('site_group')),
-        'claim_groups'
+        'claim_groups',
+        HasGeomFilter,
+        HasSiteTypeFilter
     ]
 
     search_fields = [
@@ -1444,7 +1511,7 @@ def export_as_csv(modeladmin, request, queryset):
         'survey_note',
         'proponent',
         'data_status',
-         'consultants',
+        'consultants',
         'survey_methodology',
         "actual_data",
         "proposed_data",
@@ -1452,13 +1519,14 @@ def export_as_csv(modeladmin, request, queryset):
     )
     writer.writerow(fields)
     for qs in queryset:
-        row = [getattr(qs, f) for f in fields if f not in ['survey_methodology','consultants',"actual_data","proposed_data", "reports"]]
+        row = [getattr(qs, f) for f in fields if
+               f not in ['survey_methodology', 'consultants', "actual_data", "proposed_data", "reports"]]
         if qs.consultants.all():
-            row.append(";".join([ q.name for q in qs.consultants.all()]))
+            row.append(";".join([q.name for q in qs.consultants.all()]))
         else:
             row.append("")
         if qs.survey_methodologies.all():
-            row.append(";".join([ q.survey_meth for q in qs.survey_methodologies.all()]))
+            row.append(";".join([q.survey_meth for q in qs.survey_methodologies.all()]))
         else:
             row.append("")
         docs = qs.documents.all()
@@ -1466,9 +1534,11 @@ def export_as_csv(modeladmin, request, queryset):
         proposed_data = ""
         reports = ""
         if docs:
-            actual_data = "TRUE" if any([ d.file_status.status == "Actual" for d in docs if d.file_status ]) else "FALSE"
-            proposed_data = "TRUE" if any([ d.file_status.status == "Proposed" for d in docs if d.file_status]) else "FALSE"
-            reports = "TRUE" if any([ d.document_type.sub_type == "Survey Report" for d in docs if d.document_type ]) else "FALSE"
+            actual_data = "TRUE" if any([d.file_status.status == "Actual" for d in docs if d.file_status]) else "FALSE"
+            proposed_data = "TRUE" if any(
+                [d.file_status.status == "Proposed" for d in docs if d.file_status]) else "FALSE"
+            reports = "TRUE" if any(
+                [d.document_type.sub_type == "Survey Report" for d in docs if d.document_type]) else "FALSE"
         row.append(actual_data)
         row.append(proposed_data)
         row.append(reports)

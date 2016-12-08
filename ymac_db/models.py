@@ -42,6 +42,8 @@ disturbance_level = [('Negligible', 'Negligible'),
 site_location = [('Located', 'Located'),
                  ('Position Indicative', 'Position Indicative'),
                  ('Approximate', 'Approximate'),
+                 ('Less Approximate', 'Less Approximate'),
+                 ('Unreliable', 'Unreliable'),
                  ('Unknown', 'Unknown')
                  ]
 # TODO: Consider making this a site table
@@ -571,23 +573,16 @@ class HeritageCompanies(models.Model):
     def __str__(self):
         return smart_text("Company {}".format(self.company_name))
 
-class InformantManager(models.Manager):
-    def get_by_natural_key(self, name):
-        return self.get(name=name)
 
 @python_2_unicode_compatible
 class SiteInformant(models.Model):
     """
     Site informants
     """
-    objects = InformantManager()
     name = models.CharField(max_length=250, unique=True)
 
     def __str__(self):
         return smart_text(self.name)
-
-    def natural_key(self):
-        return (self.name)
 
     class Meta:
         managed = True
@@ -694,15 +689,14 @@ class SiteGroup(models.Model):
     name = models.CharField(max_length=50)
     def __str__(self):
         return smart_text(self.name)
-    def natural_key(self):
-        return (self.name)
 
 @python_2_unicode_compatible
 class ResearchSite(models.Model):
     #       - Import Tool https://docs.djangoproject.com/en/1.10/ref/contrib/gis/geos/
     #       - Conversions https://docs.djangoproject.com/en/1.10/ref/contrib/gis/gdal/
+    #       - xlwings for exporting out potentially http://docs.xlwings.org/en/stable/vba.html
     research_site_id = models.AutoField(primary_key=True)
-    site_name = models.TextField(blank=True, unique=True, null=True, db_index=True)
+    site_name = models.TextField(blank=True, null=True, db_index=True)
     unnamed_site = models.BooleanField(default=False, help_text="If site is a generic unnamed site select this")
     alt_site_name = models.TextField(blank=True, null=True)
     site_label = models.TextField(blank=True, null=True)
@@ -747,6 +741,8 @@ class ResearchSite(models.Model):
 
     class Meta:
         managed = True
+        unique_together = ('site_name', 'claim_groups')
+        ordering = ('research_site_id', 'site_name', 'site_number',)
 
 
 @python_2_unicode_compatible
