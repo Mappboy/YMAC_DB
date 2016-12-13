@@ -3,6 +3,7 @@ import shutil
 import smartsheet
 from dal import autocomplete
 from datetimewidget.widgets import DateWidget
+import django
 from django import forms as baseform
 from django.conf import settings
 from django.contrib.gis import forms
@@ -10,14 +11,72 @@ from leaflet.forms.widgets import LeafletWidget
 from suit.widgets import SuitDateWidget, AutosizedTextarea
 from django.utils.translation import ugettext_lazy as _
 from ymac_db.models import ResearchSite
-
+from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
+from django.contrib.gis.gdal import DataSource, OGRGeometry
 
 from .models import *
+
+
+GDA94 = 4283
 
 
 # ADD Site Document Inline
 # Increase Widget sizes for multiple2Select
 # Seee https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#working-with-manyto-many-models
+class OutsideBoundaryError(Exception):
+    """When geometry doesn't intersect with WA area"""
+
+
+projections = {
+    'WGS84': {'LL': 4326, "49": 32749, "50": 32750, "51": 32751, "52": 32752},
+    'GDA94': {"LL": 4283, "49": 28349, "50": 28350, '51': 28351, '52': 28352},
+    'GDA 94': {"LL": 4283, "49": 28349, "50": 28350, '51': 28351, '52': 28352},
+    "AGD84": {"LL": 4203, "49": 20349, "50": 20350, "51": 20351, "52": 20352},
+    "AGD66": {"LL": 4202, "49": 20249, "50": 20250, "51": 20251, "52": 20252}
+}
+
+
+
+def get_projections(datum, zone):
+    datum = datum if datum != "AMG" else "AGD84"
+    datum = datum if datum != "MGA" else "GDA94"
+    datum = datum if datum != "UTM" else "WGS84"
+    zone = zone.lower().replace("k", "")
+    return projections[datum][zone]
+
+
+class SiteGeomCheck(object):
+    def __init__(self, datasource, error_msg):
+        self.datasource = DataSource(datasource)
+        self.error_msg = error_msg
+        self.geom = self.get_geom()
+
+    def get_geom(self):
+        if not self.datasource.layer_count == 1:
+            raise Exception("More than one layer in filter check")
+        return self.datasource[0][0].geom
+
+    def intersects(self, geom_test):
+        if type(geom_test) == django.contrib.gis.geos.polygon.Polygon:
+            geom_test = OGRGeometry(geom_test.wkt)
+        if type(geom_test) == django.contrib.gis.gdal.geometries.Polygon:
+            if self.geom.intersects(geom_test):
+                return True
+            else:
+                return False
+        raise Exception("Bad geometry ... I think " + str(type(geom_test)))
+
+
+def get_site(projection, easting, northing, filters=(), site_buffer=10):
+    ct = CoordTransform(SpatialReference(projection), SpatialReference(GDA94))
+    buf_point = Point(easting, northing, srid=projection).buffer(site_buffer)
+    trans_geom = buf_point.transform(ct, True)
+    if filters:
+        for f in filters:
+            if not f.intersects(trans_geom):
+                raise OutsideBoundaryError(f.error_msg)
+    return trans_geom
 
 class ResearchSiteForm(baseform.ModelForm):
     # Validators geom inside WA, custom site name for unnamed sites
@@ -30,6 +89,32 @@ class ResearchSiteForm(baseform.ModelForm):
         if site_name and unnamed_site:
             claim_group = self.cleaned_data.get("claim_groups")
             self.cleaned_data["site_name"] = "{} {} {}".format(site_name, claim_group,  len(ResearchSite.objects.filter(unnamed_site=True,site_name__icontains=site_name,claim_groups__group_name=claim_group))+1)
+        orig_x_val = self.cleaned_data.get("orig_x_val")
+        orig_y_val = self.cleaned_data.get("orig_y_val")
+        buffer = self.cleaned_data.get("buffer")
+        proj = self.cleaned_data.get("capture_coord_sys")
+        daa_sites = self.cleaned_data.get("daa_sites")
+        # If proj is not in meters alert user fudge this for now. Add in WA and Claim Check too after
+        try:
+            if orig_x_val and orig_y_val and buffer:
+                if proj < 5000:
+                    raise ValidationError(
+                        _(' SRS %(proj)s projection not supported provide in UTM or MGA'),
+                        params={'proj': proj},
+                    )
+                if not proj:
+                    raise ValidationError(
+                        _('%(proj)s is empty'),
+                        params={'proj': proj},
+                    )
+                geom = get_site(proj, orig_x_val, orig_y_val, site_buffer=buffer)
+                self.cleaned_data["geom"] = geom
+            if not (orig_x_val and orig_y_val) and daa_sites:
+                geom = daa_sites[0].geom
+                self.cleaned_data["geom"] = geom
+        except OutsideBoundaryError:
+            #TODO Implement this alert as well as other alerts
+            throw_validation_error = True
         return self.cleaned_data
 
     class Meta:

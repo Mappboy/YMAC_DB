@@ -722,7 +722,7 @@ class ResearchSite(models.Model):
 
     date_created = models.DateField(blank=True, null=True)
     created_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='created_by',
-                                   related_name='research_created_by', blank=True)
+                                   related_name='research_created_by',)
     orig_x_val = models.FloatField(blank=True, null=True, help_text="Latitude/Northing Value")
     orig_y_val = models.FloatField(blank=True, null=True, help_text="Longitude/Easting Value")
     buffer = models.IntegerField(default=10, help_text="Site buffer in meters")

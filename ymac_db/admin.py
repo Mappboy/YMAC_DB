@@ -1116,6 +1116,7 @@ class YMACSpatialRequestAdmin(YMACModelAdmin):
     list_filter = [('user__department__name', custom_titled_filter("Department Name")),
                    'required_by',
                    'request_datetime',
+                   'request_type__name',
                    IsDoneFilter]
     actions = [set_as_done]
 
@@ -1794,6 +1795,7 @@ basemodels = [SiteUser,
               Department,
               YmacStaff,
               SiteGroup,
+              SiteInformant,
               ]
 
 for m in basemodels:
