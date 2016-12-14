@@ -56,5 +56,6 @@ urlpatterns = [
     url(r'^daasite-autocomplete/$', views.DAASiteAutocomplete.as_view(),
         name='daasite-autocomplete'),
     url(r'^jet/', include('jet.urls', 'jet')),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^ymac_db/', admin.site.urls, name='ymac_db'),
 ]

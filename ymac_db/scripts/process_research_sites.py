@@ -235,6 +235,10 @@ def date_parser(raw_dates):
 
 
 class SiteRegister(object):
+    """
+    Each mapping should have a dictionary of header name and checks
+    """
+
     def __init__(self, filesource, mappings, replacements, filters):
         self.filesource = filesource
         self.filters = filters
@@ -249,303 +253,402 @@ class SiteRegister(object):
         pass
 
 
-# Ngarlawangka
-# Change
-# NLW
-# groups
-# To
-# Ngarlawanka
-# JUR / To
-# Jurrru
-# YINH
-# to
-# Yin
-# EAsting and northing
-# strip
-# mNE *
-# Lookup and join
-# DAA
-# sites
-# from Notes1 and
-
-with open(r"X:\Projects\SpatialDatabase\REsearchSites\narlawangka_sites.txt", "r") as testfile:
-    ResearchSite.objects.filter(claim_groups__group_id="NLW").delete()
-    nanda_map = {
-        "unnamed_site": "unnamed site",
-        "site_name": "site_name",
-        "alt_site_name": "Other Name",
-        "site_types": "Type of Place",
-        "ethno_information": "Claimant Information",
-        "informants": "Claimants",
-        "recorded_dates": "Date",
-        "raw_field_notes": "References",
-        "source_coordinates": "Coordinates",
-        "accuracy": "Source of co-ordinates",
-        "zone": "Zone",
-        "easting": "Easting",
-        "northing": "Northing",
-        "est_easting": "Estimated Easting",
-        "est_northing": "Estimated Northing",
-        "site_location_desc": "location_desc"
+with open(r"X:\Projects\SpatialDatabase\REsearchSites\kariyarra_sites_lockyer.txt", "r") as testfile:
+    ResearchSite.objects.filter(claim_groups__group_id="KAR").delete()
+    replacements = {"m": "mythological", "x": "resource", "o": "historical", "c": "boundary", "b": "burial",
+                    "a": "camp", "e": "rock art", "r": "ceremonial", "t": "thalu", "v": "avoidance"}
+    kar_map = {
+        "unnamed_site": "unnamed_site",
+        "site_name": "Kariyarra",
+        "alt_site_name": "Alternativ",
+        "site_number": "F1",
+        "site_type": "Site_type",
+        "informants": "Informants",
+        "ethno_detail": "Description",
+        "raw_field_notes": "Ref",
+        "site_comments": "Other_info",
+        "accuracy": "accuracy",
+        "zone": "zone",
+        "easting": "Gr_e",
+        "northing": "Gr_n",
     }
     site_names = []
-    claim_check = SiteGeomCheck(r"V:\Custodial\NativeTitle\Claims\Nanda\Nanda_ClaimArea.shp",
-                                "Outside Claim Area")
-    wa_check = SiteGeomCheck(r"V:\NonCustodial\Admin\State Boundaries\WA_Boundary.shp", "Outside Claim WA")
-    filters = [claim_check, wa_check]
+    # claim_check = SiteGeomCheck(r"V:\Custodial\NativeTitle\Claims\Ngarlawangga\Ngarlawangga_ClaimArea.shp",
+    #                             "Outside Claim Area")
+    # wa_check = SiteGeomCheck(r"V:\NonCustodial\Admin\State Boundaries\WA_Boundary.shp", "Outside Claim WA")
+    # filters = [claim_check, wa_check]
     c = Counter()
     reader = csv.DictReader(testfile, delimiter='\t')
     for index, line in enumerate(reader):
-        db_sitetypes = []
-        db_informants = []
-        site_name = line[nanda_map["site_name"]]
-        unnamed_site = line[nanda_map["unnamed_site"]]
-        alt_site_name = line[nanda_map["alt_site_name"]]
-        site_types = line[nanda_map["site_types"]]
-        ethno_detail = line[nanda_map["ethno_information"]]
-        informants = line[nanda_map["informants"]]
-        dates = line[nanda_map["recorded_dates"]]
-        raw_field_notes = line[nanda_map["raw_field_notes"]]
-        source_coordinates = line[nanda_map["source_coordinates"]]
-        easting = line[nanda_map["easting"]]
-        est_easting = line[nanda_map["est_easting"]]
-        northing = line[nanda_map["northing"]]
-        est_northing = line[nanda_map["est_northing"]]
-        zone = line[nanda_map["zone"]]
-        accuracy = line[nanda_map["accuracy"]]
-        site_location_desc = line[nanda_map["site_location_desc"]]
-        cleaned_site_types = site_type_clean(site_types, {"art": "rock art", "hist": "historical", "war": "warlu",
-                                                          "wal": "warlu", "myth": "mythological", "cer": "ceremonial",
-                                                          "bir": "birthplace", "death": "death", "bur": "burial",
-                                                          "th": "thalu", "arch": "archaeological", "res": "resource",
-                                                          "camp": "camp", "geo": "ethno-geographical",
-                                                          "meet": "meeting place", "lw": "living water",
-                                                          "law": "law ground", "mas": "massacre site",
-                                                          "nr": "not recorded", "mod tree": "modified",
-                                                          "claypan": "geographic",
-                                                          }, sublines=True)
-        if cleaned_site_types:
-            [db_sitetypes.append(SiteType.objects.get(site_classification=p)) for p in cleaned_site_types]
-        checked_informants = informant_check(informants)
-        if checked_informants:
-            [db_informants.append(SiteInformant.objects.get_or_create(name=inf)[0]) for inf in set(checked_informants)
-             if inf]
-        cleaned_dates = date_parser(dates) if dates else None
-        date_strings = []
-        date_recorded = None
-        if cleaned_dates:
-            date_recorded = cleaned_dates[0]
-            for d in cleaned_dates:
-                date_strings.append(d.strftime("%d/%m/%Y"))
-        field_notes = ""
-        # print(raw_field_notes, date_strings)
-        if not re.search("\d+\s\w+\s\d+", raw_field_notes):
-            for f in zip_longest(date_strings, [rf for rf in raw_field_notes.split("\n") if rf.strip()]):
-                if f[0] and f[1]:
-                    field_notes += " ".join(f) + "\n"
-                elif f[1]:
-                    field_notes += f[1] + " "
-                elif f[0]:
-                    field_notes += f[0] + " "
+        site_name = line[kar_map["site_name"]]
+        site_number = int(line[kar_map["site_number"]]) if line[kar_map["site_number"]] else None
+        unnamed_site = line[kar_map["unnamed_site"]]
+        alt_site_name = line[kar_map["alt_site_name"]]
+        site_types = line[kar_map["site_type"]]
+        informants = line[kar_map["informants"]]
+        raw_field_notes = line[kar_map["raw_field_notes"]]
+        ethno_detail = line[kar_map["ethno_detail"]]
+        site_comments = line[kar_map["site_comments"]]
+        easting = line[kar_map["easting"]]
+        northing = line[kar_map["northing"]]
+        zone = line[kar_map["zone"]]
+        accuracy = line[kar_map["accuracy"]]
+        if not site_name:
+            site_name = alt_site_name
+            alt_site_name = None
+        if unnamed_site:
+            c[site_name] += 1
+            site_name = "{} {} {}".format(site_name, "Kariyarra", c[site_name])
+            unnamed_site = True
         else:
-            field_notes = "\n".join([rf for rf in raw_field_notes.split("\n") if rf.strip()])
+            unnamed_site = False
+        db_sitetypes = [SiteType.objects.get(site_classification=st) for st in
+                        site_type_clean(site_types, replacements, sublines=True)]
+        db_informants = [SiteInformant.objects.get_or_create(name=i)[0] for i in informant_check(informants)]
+        orig_x_val = float(easting) if easting else None
+        orig_y_val = float(northing) if northing else None
         date_created = datetime.datetime.today()
         created_by = SiteUser.objects.get(user_name="Cameron Poole")
         buf = 10
-        proj = None
-        geom = None
-        location_accuracy = None
-        orig_x_val = easting if easting else est_easting
-        orig_y_val = northing if northing else est_northing
         if orig_y_val and orig_x_val:
-            orig_x_val = int(orig_x_val)
-            orig_y_val = int(orig_y_val)
             datum = "GDA94"
             proj = get_projections(datum, zone)
-            try:
-                geom = get_site(proj, orig_x_val, orig_y_val, filters, 10)
-            except Exception as e:
-                print(e.args)
-                print(index, orig_x_val, orig_y_val, proj)
-                geom = get_site(proj, orig_x_val, orig_y_val)
-        else:
-            orig_x_val = None
-            orig_y_val = None
-        claim_group = SurveyGroup.objects.get(group_id="NAN")
-        if (est_easting and est_northing) and not (easting and northing):
-            location_accuracy = "Approximate"
-        if accuracy == "GPS":
-            location_accuracy = "Located"
-        location_accuracy = location_accuracy if location_accuracy else "Unknown"
-        # rs, created = ResearchSite.objects.get_or_create(
-        #     site_name=site_name,
-        #     alt_site_name=alt_site_name,
-        #     site_label=site_name,
-        #     claim_groups=claim_group,
-        #     ethno_detail=ethno_detail,
-        #     site_location_desc=site_location_desc,
-        #     reference=raw_field_notes,
-        #     date_created=date_created,
-        #     date_recorded=date_recorded,
-        #     created_by=created_by,
-        #     orig_x_val=orig_x_val,
-        #     orig_y_val=orig_y_val,
-        #     buffer=buf,
-        #     capture_coord_sys=proj,
-        #     coordinate_accuracy=location_accuracy,
-        #     coordinate_source=source_coordinates,
-        #     geom=geom
-        # )
-        # if db_sitetypes:
-        #     rs.site_type.add(*db_sitetypes)
-        # if db_informants:
-        #     rs.informants.add(*db_informants)
+            geom = get_site(proj, orig_x_val, orig_y_val, filters=None, site_buffer=10)
+            claim_group = SurveyGroup.objects.get(group_id="KAR")
+            location_accuracy = accuracy if accuracy else "Unknown"
+            rs, created = ResearchSite.objects.get_or_create(
+                site_name=site_name,
+                alt_site_name=alt_site_name,
+                site_number=site_number,
+                site_label=site_name,
+                claim_groups=claim_group,
+                ethno_detail=ethno_detail,
+                site_comments=site_comments,
+                reference=raw_field_notes,
+                date_created=date_created,
+                created_by=created_by,
+                orig_x_val=orig_x_val,
+                orig_y_val=orig_y_val,
+                buffer=buf,
+                capture_coord_sys=proj,
+                coordinate_accuracy=location_accuracy,
+                geom=geom
+            )
+            if created:
+                print("Created site {}".format(site_name))
+            if db_sitetypes:
+                rs.site_type.add(*db_sitetypes)
+            if db_informants:
+                rs.informants.add(*db_informants)
+
+# with open(r"X:\Projects\SpatialDatabase\REsearchSites\ngarlawangka_sites.txt", "r") as testfile:
+#     ResearchSite.objects.filter(claim_groups__group_id="NLW").delete()
+#     nlw_map = {
+#         "unnamed_site": "unnamed_site",
+#         "site_name": "Aboriginal site name",
+#         "alt_site_name": "English site name",
+#         "site_number": "ID #",
+#         "site_type1": "Site Type 1",
+#         "site_type2": "Site Type 2",
+#         "site_type3": "Site Type 3",
+#         "informants": "Informant (s)",
+#         "recorded_dates": "Date (DD/MM/YYYY)",
+#         "raw_field_notes": "Reference",
+#         "site_comments1": "Notes 1",
+#         "site_comments2": "Notes 2 - notes on location",
+#         "accuracy": "Accurate",
+#         "zone": "Map",
+#         "datum": "Datum",
+#         "easting": "Easting",
+#         "northing": "Northing",
+#         "site_location_desc": "location_desc",
+#         "site_groups": "Group(s)",
+#         "registered_site": "DIA/ Registered Site",
+#         "other_daa_site": "DIA/ Other Heritage Place",
+#         "restricted": "Restricted",
+#         "daa_place_id": "daa_place_id"
+#     }
+#     site_names = []
+#     claim_check = SiteGeomCheck(r"V:\Custodial\NativeTitle\Claims\Ngarlawangga\Ngarlawangga_ClaimArea.shp",
+#                                 "Outside Claim Area")
+#     wa_check = SiteGeomCheck(r"V:\NonCustodial\Admin\State Boundaries\WA_Boundary.shp", "Outside Claim WA")
+#     filters = [claim_check, wa_check]
+#     c = Counter()
+#     reader = csv.DictReader(testfile, delimiter='\t')
+#     for index, line in enumerate(reader):
+#         db_sitetypes = []
+#         db_informants = []
+#         site_name = line[nlw_map["site_name"]]
+#         site_number = int(line[nlw_map["site_number"]]) if line[nlw_map["site_number"]] else None
+#         unnamed_site = line[nlw_map["unnamed_site"]]
+#         alt_site_name = line[nlw_map["alt_site_name"]]
+#         site_types = ",".join([line[nlw_map["site_type1"]], line[nlw_map["site_type2"]], line[nlw_map["site_type3"]]])
+#         informants = line[nlw_map["informants"]]
+#         dates = line[nlw_map["recorded_dates"]]
+#         raw_field_notes = line[nlw_map["raw_field_notes"]]
+#         ethno_detail = line[nlw_map["site_comments1"]]
+#         site_comments = line[nlw_map["site_comments2"]]
+#         easting = line[nlw_map["easting"]]
+#         northing = line[nlw_map["northing"]]
+#         zone = line[nlw_map["zone"]]
+#         datum = line[nlw_map["datum"]]
+#         accuracy = line[nlw_map["accuracy"]]
+#         site_location_desc = line[nlw_map["site_location_desc"]]
+#         site_groups = line[nlw_map["site_groups"]]
+#         restricted = RestrictionStatus.objects.get(gender='Male', claim=False) if line[nlw_map[
+#             "restricted"]] == "Male Only Restricted" else None
+#         cleaned_site_types = site_type_clean(site_types, {"art": "rock art", "hist": "historical", "war": "warlu",
+#                                                           "wal": "warlu", "myth": "mythological", "cer": "ceremonial",
+#                                                           "bir": "birthplace", "death": "death", "bur": "burial",
+#                                                           "th": "thalu", "arch": "archaeological", "res": "resource",
+#                                                           "camp": "camp", "geo": "ethno-geographical",
+#                                                           "lw": "living water", "law": "law ground",
+#                                                           "mas": "massacre site", "nr": "not recorded",
+#                                                           "mod tree": "modified tree", "water/ yinda": "yinta",
+#                                                           "yinda": "yinta", "claypan": "geographical",
+#                                                           "water": "waterplace", "geographic": "geographical",
+#                                                           "marriage": "life event", "country marker": "boundary",
+#                                                           "boundary marker": "boundary", "river": "waterplace"
+#                                                           }, sublines=True)
+#         daa_sites = line[nlw_map["daa_place_id"]]
+#         db_daa_sites = [DaaSite.objects.get(place_id=d) for d in daa_sites.split(",") if d]
+#         if not site_name:
+#             site_name = alt_site_name
+#             alt_site_name = None
+#         sg_map = {"NLW": "Ngarlawangka", "YINH": "Yinhawangka", "JUR": "Jurruru"}
+#         site_groups = [SiteGroup.objects.get(name=sg_map[sg.strip()]) for sg in site_groups.split("/") if sg]
+#         if cleaned_site_types:
+#             [db_sitetypes.append(SiteType.objects.get(site_classification=p)) for p in cleaned_site_types]
+#         checked_informants = informant_check(informants)
+#         if checked_informants:
+#             [db_informants.append(SiteInformant.objects.get_or_create(name=inf)[0]) for inf in set(checked_informants)
+#              if inf]
+#         cleaned_dates = date_parser(dates) if dates else None
+#         date_strings = []
+#         date_recorded = None
+#         if cleaned_dates:
+#             date_recorded = cleaned_dates[0]
+#             for d in cleaned_dates:
+#                 date_strings.append(d.strftime("%d/%m/%Y"))
+#         field_notes = ""
+#         if unnamed_site:
+#             c[site_name] += 1
+#             site_name = "{} {} {}".format(site_name, "Ngarlawangka", c[site_name])
+#             unnamed_site = True
+#         else:
+#             unnamed_site = False
+#         # print(raw_field_notes, date_strings)
+#         if not re.search("\d+\s\w+\s\d+", raw_field_notes):
+#             for f in zip_longest(date_strings, [rf for rf in raw_field_notes.split("\n") if rf.strip()]):
+#                 if f[0] and f[1]:
+#                     field_notes += " ".join(f) + "\n"
+#                 elif f[1]:
+#                     field_notes += f[1] + " "
+#                 elif f[0]:
+#                     field_notes += f[0] + " "
+#         else:
+#             field_notes = "\n".join([rf for rf in raw_field_notes.split("\n") if rf.strip()])
+#         date_created = datetime.datetime.today()
+#         created_by = SiteUser.objects.get(user_name="Cameron Poole")
+#         buf = 10
+#         proj = None
+#         geom = None
+#         location_accuracy = None
+#         orig_x_val = easting.rstrip("*mE") if easting else None
+#         orig_y_val = northing.rstrip("*mN") if northing else None
+#         if orig_y_val and orig_x_val:
+#             orig_x_val = int(orig_x_val)
+#             orig_y_val = int(orig_y_val)
+#             datum = "GDA94"
+#             proj = get_projections(datum, zone)
+#             try:
+#                 geom = get_site(proj, orig_x_val, orig_y_val, filters, 10)
+#             except Exception as e:
+#                 print(e.args)
+#                 print(index, orig_x_val, orig_y_val, proj)
+#                 geom = get_site(proj, orig_x_val, orig_y_val)
+#         else:
+#             orig_x_val = None
+#             orig_y_val = None
+#         claim_group = SurveyGroup.objects.get(group_id="NLW")
+#         location_accuracy = location_accuracy if location_accuracy else "Unknown"
+#         rs, created = ResearchSite.objects.get_or_create(
+#             site_name=site_name,
+#             alt_site_name=alt_site_name,
+#             site_number=site_number,
+#             site_label=site_name,
+#             claim_groups=claim_group,
+#             ethno_detail=ethno_detail,
+#             site_comments=site_comments,
+#             site_location_desc=site_location_desc,
+#             reference=raw_field_notes,
+#             date_created=date_created,
+#             date_recorded=date_recorded,
+#             created_by=created_by,
+#             orig_x_val=orig_x_val,
+#             orig_y_val=orig_y_val,
+#             buffer=buf,
+#             capture_coord_sys=proj,
+#             coordinate_accuracy=location_accuracy,
+#             restricted_status=restricted,
+#             geom=geom
+#         )
+#         if created:
+#             print("Created site {}".format(site_name))
+#         if db_sitetypes:
+#             rs.site_type.add(*db_sitetypes)
+#         if db_informants:
+#             rs.informants.add(*db_informants)
+#         if site_groups:
+#             rs.site_groups.add(*site_groups)
+#         if db_daa_sites:
+#             rs.daa_sites.add(*db_daa_sites)
 
 
 # Nanda
-with open(r"X:\Projects\SpatialDatabase\REsearchSites\nanda_sites.txt", "r") as testfile:
-    ResearchSite.objects.filter(claim_groups__group_id="NAN").delete()
-    nanda_map = {
-        "unnamed_site": "unnamed site",
-        "site_name": "site_name",
-        "alt_site_name": "Other Name",
-        "site_types": "Type of Place",
-        "ethno_information": "Claimant Information",
-        "informants": "Claimants",
-        "recorded_dates": "Date",
-        "raw_field_notes": "References",
-        "source_coordinates": "Coordinates",
-        "accuracy": "Source of co-ordinates",
-        "zone": "Zone",
-        "easting": "Easting",
-        "northing": "Northing",
-        "est_easting": "Estimated Easting",
-        "est_northing": "Estimated Northing",
-        "site_location_desc": "location_desc"
-    }
-    site_names = []
-    claim_check = SiteGeomCheck(r"V:\Custodial\NativeTitle\Claims\Nanda\Nanda_ClaimArea.shp",
-                                "Outside Claim Area")
-    wa_check = SiteGeomCheck(r"V:\NonCustodial\Admin\State Boundaries\WA_Boundary.shp", "Outside Claim WA")
-    filters = [claim_check, wa_check]
-    c = Counter()
-    reader = csv.DictReader(testfile, delimiter='\t')
-    for index, line in enumerate(reader):
-        db_sitetypes = []
-        db_informants = []
-        site_name = line[nanda_map["site_name"]]
-        unnamed_site = line[nanda_map["unnamed_site"]]
-        alt_site_name = line[nanda_map["alt_site_name"]]
-        site_types = line[nanda_map["site_types"]]
-        ethno_detail = line[nanda_map["ethno_information"]]
-        informants = line[nanda_map["informants"]]
-        dates = line[nanda_map["recorded_dates"]]
-        raw_field_notes = line[nanda_map["raw_field_notes"]]
-        source_coordinates = line[nanda_map["source_coordinates"]]
-        easting = line[nanda_map["easting"]]
-        est_easting = line[nanda_map["est_easting"]]
-        northing = line[nanda_map["northing"]]
-        est_northing = line[nanda_map["est_northing"]]
-        zone = line[nanda_map["zone"]]
-        accuracy = line[nanda_map["accuracy"]]
-        site_location_desc = line[nanda_map["site_location_desc"]]
-        cleaned_site_types = site_type_clean(site_types, {
-            "camp site": "camp", "camping": "camp", "foodsource": "food source", "fighting place": "fighting area",
-            "namaed place": "named place", "watersouce": "watersource", "water source": "watersource",
-            "fishing place": "fishing", "geographic feature": "geographical", "geographical feature": "geographical",
-            "geographical feature???": "geographical", "geographic": "geographical", "flat": "geographical",
-            "geological": "ethno-geographical", "claypan": "ethno-geographical", "camp ground": "camp",
-            "food collection": "food source", "archaeological site": "archaeological",
-            "archealogical": "archaeological", "archaelogical": "archaeological", "burial place": "burial",
-            "burial site": "burial", "historical site": "historical", "fishing spot": "fishing",
-            "fishing camp": "fishing", "boundary marker": "boundary", "bounary": "boundary",
-            "boundary area": "boundary", "mythalogical": "mythological", "mythological site": "mythological",
-            "mythological association": "mythological", "mythological accociation": "mythological",
-            "burial ground": "burial", "birth place": "birthplace", "arc site??": "archaeological",
-            "arc site": "archaeological", "masacre site": "massacre site", "residence?": "residence",
-            "place of birth": "birthplace", "place of burial": "burial", "watersourse": "watersource",
-            "water place": "waterplace", "hill": "geographical", "camping place": "camp", "camp place": "camp",
-            "creek": "waterplace", "pool": "waterplace", "spring": "waterplace", "waterhole": "waterplace",
-            "waterplaces": "waterplace", "waterholes": "waterplace", "permanent waterhole": "waterplace",
-            "spirit place": "spiritual", "sacred site": "sacred",
-
-        }, sublines=True)
-        if cleaned_site_types:
-            [db_sitetypes.append(SiteType.objects.get(site_classification=p)) for p in cleaned_site_types]
-        checked_informants = informant_check(informants)
-        if checked_informants:
-            [db_informants.append(SiteInformant.objects.get_or_create(name=inf)[0]) for inf in set(checked_informants)
-             if inf]
-        cleaned_dates = date_parser(dates) if dates else None
-        date_strings = []
-        date_recorded = None
-        if cleaned_dates:
-            date_recorded = cleaned_dates[0]
-            for d in cleaned_dates:
-                date_strings.append(d.strftime("%d/%m/%Y"))
-        field_notes = ""
-        # print(raw_field_notes, date_strings)
-        if not re.search("\d+\s\w+\s\d+", raw_field_notes):
-            for f in zip_longest(date_strings, [rf for rf in raw_field_notes.split("\n") if rf.strip()]):
-                if f[0] and f[1]:
-                    field_notes += " ".join(f) + "\n"
-                elif f[1]:
-                    field_notes += f[1] + " "
-                elif f[0]:
-                    field_notes += f[0] + " "
-        else:
-            field_notes = "\n".join([rf for rf in raw_field_notes.split("\n") if rf.strip()])
-        date_created = datetime.datetime.today()
-        created_by = SiteUser.objects.get(user_name="Cameron Poole")
-        buf = 10
-        proj = None
-        geom = None
-        location_accuracy = None
-        orig_x_val = easting if easting else est_easting
-        orig_y_val = northing if northing else est_northing
-        if orig_y_val and orig_x_val:
-            orig_x_val = int(orig_x_val)
-            orig_y_val = int(orig_y_val)
-            datum = "GDA94"
-            proj = get_projections(datum, zone)
-            try:
-                geom = get_site(proj, orig_x_val, orig_y_val, filters, 10)
-            except Exception as e:
-                print(e.args)
-                print(index, orig_x_val, orig_y_val, proj)
-                geom = get_site(proj, orig_x_val, orig_y_val)
-        else:
-            orig_x_val = None
-            orig_y_val = None
-        claim_group = SurveyGroup.objects.get(group_id="NAN")
-        if (est_easting and est_northing) and not (easting and northing):
-            location_accuracy = "Approximate"
-        if accuracy == "GPS":
-            location_accuracy = "Located"
-        location_accuracy = location_accuracy if location_accuracy else "Unknown"
-        rs, created = ResearchSite.objects.get_or_create(
-            site_name=site_name,
-            alt_site_name=alt_site_name,
-            site_label=site_name,
-            claim_groups=claim_group,
-            ethno_detail=ethno_detail,
-            site_location_desc=site_location_desc,
-            reference=raw_field_notes,
-            date_created=date_created,
-            date_recorded=date_recorded,
-            created_by=created_by,
-            orig_x_val=orig_x_val,
-            orig_y_val=orig_y_val,
-            buffer=buf,
-            capture_coord_sys=proj,
-            coordinate_accuracy=location_accuracy,
-            coordinate_source=source_coordinates,
-            geom=geom
-        )
-        if db_sitetypes:
-            rs.site_type.add(*db_sitetypes)
-        if db_informants:
-            rs.informants.add(*db_informants)
+# with open(r"X:\Projects\SpatialDatabase\REsearchSites\nanda_sites.txt", "r") as testfile:
+#     ResearchSite.objects.filter(claim_groups__group_id="NAN").delete()
+#     nanda_map = {
+#         "unnamed_site": "unnamed site",
+#         "site_name": "site_name",
+#         "alt_site_name": "Other Name",
+#         "site_types": "Type of Place",
+#         "ethno_information": "Claimant Information",
+#         "informants": "Claimants",
+#         "recorded_dates": "Date",
+#         "raw_field_notes": "References",
+#         "source_coordinates": "Coordinates",
+#         "accuracy": "Source of co-ordinates",
+#         "zone": "Zone",
+#         "easting": "Easting",
+#         "northing": "Northing",
+#         "est_easting": "Estimated Easting",
+#         "est_northing": "Estimated Northing",
+#         "site_location_desc": "location_desc"
+#     }
+#     site_names = []
+#     claim_check = SiteGeomCheck(r"V:\Custodial\NativeTitle\Claims\Nanda\Nanda_ClaimArea.shp",
+#                                 "Outside Claim Area")
+#     wa_check = SiteGeomCheck(r"V:\NonCustodial\Admin\State Boundaries\WA_Boundary.shp", "Outside Claim WA")
+#     filters = [claim_check, wa_check]
+#     c = Counter()
+#     reader = csv.DictReader(testfile, delimiter='\t')
+#     for index, line in enumerate(reader):
+#         db_sitetypes = []
+#         db_informants = []
+#         site_name = line[nanda_map["site_name"]]
+#         unnamed_site = line[nanda_map["unnamed_site"]]
+#         alt_site_name = line[nanda_map["alt_site_name"]]
+#         site_types = line[nanda_map["site_types"]]
+#         ethno_detail = line[nanda_map["ethno_information"]]
+#         informants = line[nanda_map["informants"]]
+#         dates = line[nanda_map["recorded_dates"]]
+#         raw_field_notes = line[nanda_map["raw_field_notes"]]
+#         source_coordinates = line[nanda_map["source_coordinates"]]
+#         easting = line[nanda_map["easting"]]
+#         est_easting = line[nanda_map["est_easting"]]
+#         northing = line[nanda_map["northing"]]
+#         est_northing = line[nanda_map["est_northing"]]
+#         zone = line[nanda_map["zone"]]
+#         accuracy = line[nanda_map["accuracy"]]
+#         site_location_desc = line[nanda_map["site_location_desc"]]
+#         cleaned_site_types = site_type_clean(site_types, {
+#             "camp site": "camp", "camping": "camp", "foodsource": "food source", "fighting place": "fighting area",
+#             "namaed place": "named place", "watersouce": "watersource", "water source": "watersource",
+#             "fishing place": "fishing", "geographic feature": "geographical", "geographical feature": "geographical",
+#             "geographical feature???": "geographical", "geographic": "geographical", "flat": "geographical",
+#             "geological": "ethno-geographical", "claypan": "ethno-geographical", "camp ground": "camp",
+#             "food collection": "food source", "archaeological site": "archaeological",
+#             "archealogical": "archaeological", "archaelogical": "archaeological", "burial place": "burial",
+#             "burial site": "burial", "historical site": "historical", "fishing spot": "fishing",
+#             "fishing camp": "fishing", "boundary marker": "boundary", "bounary": "boundary",
+#             "boundary area": "boundary", "mythalogical": "mythological", "mythological site": "mythological",
+#             "mythological association": "mythological", "mythological accociation": "mythological",
+#             "burial ground": "burial", "birth place": "birthplace", "arc site??": "archaeological",
+#             "arc site": "archaeological", "masacre site": "massacre site", "residence?": "residence",
+#             "place of birth": "birthplace", "place of burial": "burial", "watersourse": "watersource",
+#             "water place": "waterplace", "hill": "geographical", "camping place": "camp", "camp place": "camp",
+#             "creek": "waterplace", "pool": "waterplace", "spring": "waterplace", "waterhole": "waterplace",
+#             "waterplaces": "waterplace", "waterholes": "waterplace", "permanent waterhole": "waterplace",
+#             "spirit place": "spiritual", "sacred site": "sacred",
+#
+#         }, sublines=True)
+#         if cleaned_site_types:
+#             [db_sitetypes.append(SiteType.objects.get(site_classification=p)) for p in cleaned_site_types]
+#         checked_informants = informant_check(informants)
+#         if checked_informants:
+#             [db_informants.append(SiteInformant.objects.get_or_create(name=inf)[0]) for inf in set(checked_informants)
+#              if inf]
+#         cleaned_dates = date_parser(dates) if dates else None
+#         date_strings = []
+#         date_recorded = None
+#         if cleaned_dates:
+#             date_recorded = cleaned_dates[0]
+#             for d in cleaned_dates:
+#                 date_strings.append(d.strftime("%d/%m/%Y"))
+#         field_notes = ""
+#         # print(raw_field_notes, date_strings)
+#         if not re.search("\d+\s\w+\s\d+", raw_field_notes):
+#             for f in zip_longest(date_strings, [rf for rf in raw_field_notes.split("\n") if rf.strip()]):
+#                 if f[0] and f[1]:
+#                     field_notes += " ".join(f) + "\n"
+#                 elif f[1]:
+#                     field_notes += f[1] + " "
+#                 elif f[0]:
+#                     field_notes += f[0] + " "
+#         else:
+#             field_notes = "\n".join([rf for rf in raw_field_notes.split("\n") if rf.strip()])
+#         date_created = datetime.datetime.today()
+#         created_by = SiteUser.objects.get(user_name="Cameron Poole")
+#         buf = 10
+#         proj = None
+#         geom = None
+#         location_accuracy = None
+#         orig_x_val = easting if easting else est_easting
+#         orig_y_val = northing if northing else est_northing
+#         if orig_y_val and orig_x_val:
+#             orig_x_val = int(orig_x_val)
+#             orig_y_val = int(orig_y_val)
+#             datum = "GDA94"
+#             proj = get_projections(datum, zone)
+#             try:
+#                 geom = get_site(proj, orig_x_val, orig_y_val, filters, 10)
+#             except Exception as e:
+#                 print(e.args)
+#                 print(index, orig_x_val, orig_y_val, proj)
+#                 geom = get_site(proj, orig_x_val, orig_y_val)
+#         else:
+#             orig_x_val = None
+#             orig_y_val = None
+#         claim_group = SurveyGroup.objects.get(group_id="NAN")
+#         if (est_easting and est_northing) and not (easting and northing):
+#             location_accuracy = "Approximate"
+#         if accuracy == "GPS":
+#             location_accuracy = "Located"
+#         location_accuracy = location_accuracy if location_accuracy else "Unknown"
+#         rs, created = ResearchSite.objects.get_or_create(
+#             site_name=site_name,
+#             alt_site_name=alt_site_name,
+#             site_label=site_name,
+#             claim_groups=claim_group,
+#             ethno_detail=ethno_detail,
+#             site_location_desc=site_location_desc,
+#             reference=raw_field_notes,
+#             date_created=date_created,
+#             date_recorded=date_recorded,
+#             created_by=created_by,
+#             orig_x_val=orig_x_val,
+#             orig_y_val=orig_y_val,
+#             buffer=buf,
+#             capture_coord_sys=proj,
+#             coordinate_accuracy=location_accuracy,
+#             coordinate_source=source_coordinates,
+#             geom=geom
+#         )
+#         if db_sitetypes:
+#             rs.site_type.add(*db_sitetypes)
+#         if db_informants:
+#             rs.informants.add(*db_informants)
 
 
 

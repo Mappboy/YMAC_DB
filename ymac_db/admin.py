@@ -1416,6 +1416,11 @@ class ResearchSiteResource(resources.ModelResource):
 class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
     resource_class = ResearchSiteResource
 
+    def get_queryset(self, request):
+        research_model = super(ResearchSiteAdmin, self).get_queryset(request)
+        research_model = research_model.prefetch_related('site_type')
+        return research_model
+
     def type_list(self, obj):
         try:
             return ";\n".join([smart_text(hs.site_classification) for hs in obj.site_type.all()])
@@ -1439,11 +1444,11 @@ class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
         'site_type__site_category',
         ('informants__name', custom_titled_filter('informant')),
         ('site_groups__name', custom_titled_filter('site_group')),
-        'claim_groups',
+        ('claim_groups', baseadmin.RelatedOnlyFieldListFilter),
         HasGeomFilter,
         HasSiteTypeFilter
     ]
-
+    list_select_related = ('claim_groups',)
     search_fields = [
         'site_name',
     ]

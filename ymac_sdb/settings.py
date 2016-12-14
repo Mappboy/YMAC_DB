@@ -20,7 +20,7 @@ MAybe include:
 
 import os
 
-#from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
+# from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     # 'grappelli',
     'jet',
     'django_tables2',
-    #'suit',
+    'rest_framework',
+'rest_framework_gis',
+    # 'suit',
     # 'material',
     # 'material.frontend',
     # 'material.admin',
@@ -81,7 +83,6 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')]
         ,
-        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -91,6 +92,11 @@ TEMPLATES = [
                 # Included this for suit
                 # 'django.core.context_processors.request',
             ],
+            'loaders': [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]), ],
         },
     },
 ]
@@ -114,7 +120,8 @@ DATABASES = {
         'USER': 'spuser',
         'PASSWORD': 'Yamatji01',
         'HOST': '192.168.0.141',
-        'PORT': '5438'
+        'PORT': '5438',
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -185,23 +192,23 @@ SUIT_CONFIG = {
                                                              'auth.group',
                                                              'ymac_db.YmacStaff',
                                                              'ymac_db.RequestUser')},
-        {'app':'ymac_db' ,
-         'label':'Spatial Database',
-         'icon':'icon-globe',
+        {'app': 'ymac_db',
+         'label': 'Spatial Database',
+         'icon': 'icon-globe',
          'models': ('HeritageSite',
-                     'DaaSite',
-                     'HeritageSurvey',
-                     'SurveyDocument',
-                     'SurveyCleaning',
-                     'SurveyTripCleaning',
-                     'ResearchSite',
-                     'SiteDocument',
-                     )
+                    'DaaSite',
+                    'HeritageSurvey',
+                    'SurveyDocument',
+                    'SurveyCleaning',
+                    'SurveyTripCleaning',
+                    'ResearchSite',
+                    'SiteDocument',
+                    )
          },
     )
 }
 
-#JET_SIDE_MENU_CUSTOM_APPS=  {'Settings':  ('core', ['auth.user',
+# JET_SIDE_MENU_CUSTOM_APPS=  {'Settings':  ('core', ['auth.user',
 #                                                             'auth.group',
 #                                                             'ymac_db.YmacStaff',
 #                                                             'ymac_db.RequestUser']),
@@ -214,13 +221,13 @@ SUIT_CONFIG = {
 #                     'ResearchSite',
 #                     'SiteDocument',
 #                     ])
-#}
+# }
 
 JET_THEMES = [
     {
-        'theme': 'default', # theme folder name
-        'color': '#47bac1', # color of the theme's button in user menu
-        'title': 'Default' # theme title
+        'theme': 'default',  # theme folder name
+        'color': '#47bac1',  # color of the theme's button in user menu
+        'title': 'Default'  # theme title
     },
     {
         'theme': 'green',

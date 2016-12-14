@@ -44,7 +44,8 @@ site_location = [('Located', 'Located'),
                  ('Approximate', 'Approximate'),
                  ('Less Approximate', 'Less Approximate'),
                  ('Unreliable', 'Unreliable'),
-                 ('Unknown', 'Unknown')
+                 ('Unknown', 'Unknown'),
+                 ('Restricted','Restricted')
                  ]
 # TODO: Consider making this a site table
 
