@@ -19,10 +19,12 @@ from django.utils.translation import ugettext_lazy as _
 from leaflet.admin import LeafletGeoAdmin
 from jet.admin import CompactInline
 from .validators import valid_surveyid
+
+from django.contrib.auth import get_user_model
 from .forms import *
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin, ImportExportActionModelAdmin
-
+import pdb
 
 def custom_titled_filter(title):
     class Wrapper(baseadmin.FieldListFilter):
@@ -33,6 +35,14 @@ def custom_titled_filter(title):
 
     return Wrapper
 
+def custom_relatedtitled_filter(title):
+    class Wrapper(baseadmin.RelatedFieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = baseadmin.RelatedFieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+
+    return Wrapper
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Geometry Exists')
@@ -1391,25 +1401,28 @@ class HeritageSiteAdmin(SiteAdmin):
 
 
 class ResearchSiteResource(resources.ModelResource):
-    informants = fields.Field(column_name='informants')
-    site_type = fields.Field(column_name='site_type')
+    informant_names = fields.Field()
+    site_types = fields.Field()
 
     class Meta:
         model = ResearchSite
         import_id_fields = ('research_site_id',)
         fields = (
-        'research_site_id', 'site_name', 'alt_site_name', 'site_label', 'site_number', 'claim_groups__group_name',
+        'research_site_id', 'site_name', 'alt_site_name', 'site_label', 'site_number', 'claim_groups',
         'ethno_detail',
-        'site_type', 'informants', 'site_groups__name', 'date_recorded', 'restricted_status',
+        'site_type','site_types' 'informants', 'informant_names',  'site_groups__name', 'date_recorded', 'restricted_status',
         'reference', 'orig_x_val',
         'orig_y_val', 'buffer', 'capture_coord_sys', 'coordinate_accuracy',
         'geom',)
 
-        def dehydrate_informants(self, informants):
-            return ", ".join([r.name for r in informants])
+        def dehydrate_informant_names(self, rs):
+            return "%s " % rs.informants
 
-        def dehydrate_site_type(self, site_type):
-            return "%s" % site_type.site_classification
+        def dehydrate_site_types(self, rs):
+            return str("," in "%s" % SiteType.objects.get(id=rs.site_type).site_classification)
+
+        def dehydrate_claim_groups(self, rs):
+            return "%s" % SurveyGroup.objects.get(id=rs.claim_groups).group_name
 
 
 @admin.register(ResearchSite)
@@ -1429,6 +1442,12 @@ class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
 
     type_list.short_description = "Site Classification"
 
+    def informant_list(self, obj):
+        try:
+            return ";\n".join([smart_text(hs.name) for hs in obj.informants.all()])
+        except AttributeError:
+            return ''
+
     inlines = [
     ]
     list_display = [
@@ -1442,8 +1461,8 @@ class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
     list_filter = [
         'site_type__site_classification',
         'site_type__site_category',
-        ('informants__name', custom_titled_filter('informant')),
-        ('site_groups__name', custom_titled_filter('site_group')),
+        ('informants__name', custom_relatedtitled_filter('informant')),
+        ('site_groups__name', custom_relatedtitled_filter('site_group')),
         ('claim_groups', baseadmin.RelatedOnlyFieldListFilter),
         HasGeomFilter,
         HasSiteTypeFilter
@@ -1783,6 +1802,30 @@ class DAASiteAdmin(YMACModelAdmin):
         'region',
         SiteTypeFilter
     ]
+
+
+@admin.register(YMACSpatialUpdate)
+class YMACSpatialUpdateAdmin(baseadmin.ModelAdmin):
+    form = UpdateForm
+
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'update_user':
+            kwargs['queryset'] = get_user_model().objects.filter(username=request.user.username)
+        return super(YMACSpatialUpdateAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return self.readonly_fields + ('update_user',)
+        return self.readonly_fields
+
+
+    def add_view(self, request, form_url="", extra_context=None):
+        data = request.GET.copy()
+        data['author'] = request.user
+        request.GET = data
+        return super(YMACSpatialUpdateAdmin, self).add_view(request, form_url="", extra_context=extra_context)
 
 
 basemodels = [SiteUser,

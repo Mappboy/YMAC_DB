@@ -9,7 +9,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.html import format_html
-
+from django.conf import settings
+from taggit.managers import TaggableManager
+from ckeditor.fields import RichTextField
 from .validators import *
 
 VALID_DRIVES = [
@@ -516,7 +518,7 @@ class HeritageSurvey(models.Model):
     created_by = models.ForeignKey('SiteUser',on_delete=models.DO_NOTHING, db_index=True, related_name='created_user', blank=True, null=True)
     date_create = models.DateField(blank=True, null=True, default=datetime.date.today)
     mod_by = models.ForeignKey('SiteUser', db_index=True, related_name='mod_user', blank=True, null=True)
-    date_mod = models.DateField(blank=True, null=True, default=datetime.date.today)
+    date_mod = models.DateField(blank=True, null=True, auto_now=True)
     data_qa = models.BooleanField(default=False, help_text="Has Actual data been checked by Spatial Team")
     spatial_data_exists = models.BooleanField(default=False,
                                               help_text="Do we know if there is actually spatial data for the survey?")
@@ -720,7 +722,7 @@ class ResearchSite(models.Model):
     group_name = models.TextField(blank=True, null=True, help_text="Is this site part of a group of sites or complex?")
     restricted_status = models.ForeignKey('RestrictionStatus', on_delete=models.DO_NOTHING, db_column='restricted_status',
                                           blank=True, null=True)
-
+    date_modified = models.DateField(blank=True, auto_now=True)
     date_created = models.DateField(blank=True, null=True)
     created_by = models.ForeignKey('SiteUser', on_delete=models.DO_NOTHING, db_column='created_by',
                                    related_name='research_created_by',)
@@ -1434,6 +1436,20 @@ class YMACSpatialRequest(models.Model):
                 control_number = 1
             return "J{0}-{1:0>3}".format(year, control_number)
 
+
+@python_2_unicode_compatible
+class YMACSpatialUpdate(models.Model):
+    """
+    Update page for YMAC spatial Updates
+    """
+    update_title = models.TextField()
+    update_text = RichTextField()
+    update_user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    update_date = models.DateField(auto_now_add=True)
+    tags = TaggableManager()
+
+    def __str__(self):
+        return smart_text("{:.100} - {:%d/%m/%Y}".format(self.update_text, self.update_date))
 
 @python_2_unicode_compatible
 class YACReturn(models.Model):

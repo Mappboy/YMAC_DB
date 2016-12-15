@@ -487,3 +487,13 @@ class ConsultantForm(baseform.ModelForm):
         widgets = {
             'company': autocomplete.ModelSelect2(url='captureorg-autocomplete'),
         }
+
+
+class UpdateForm(autocomplete.FutureModelForm):
+    class Meta:
+        model = YMACSpatialUpdate
+        fields = '__all__'
+        widgets = {
+            'tags': autocomplete.TaggitSelect2(url='tag-autocomplete'),
+        }
+

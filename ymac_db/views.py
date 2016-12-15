@@ -1,20 +1,3 @@
-"""
-from django.core.mail import send_mail
-
-if form.is_valid():
-    subject = form.cleaned_data['subject']
-    message = form.cleaned_data['message']
-    sender = form.cleaned_data['sender']
-    cc_myself = form.cleaned_data['cc_myself']
-
-    recipients = ['info@example.com']
-    if cc_myself:
-        recipients.append(sender)
-
-    send_mail(subject, message, sender, recipients)
-    return HttpResponseRedirect('/thanks/')
-"""
-
 import json
 from datetime import date
 
@@ -34,6 +17,7 @@ from .forms import *
 from .models import HeritageSurvey, YMACRequestFiles
 import sys
 import requests
+from taggit.models import Tag
 
 try:
     from urllib.parse import quote_plus, urlencode
@@ -50,6 +34,7 @@ def index(request):
     today = date.today()
     return render(request, 'base.html', context={
         'all_requests': YMACSpatialRequest.objects.filter(done=False),
+        'spatial_updates':YMACSpatialUpdate.objects.all()[:5]
     })
 
 
@@ -80,6 +65,8 @@ def spatial_thanks(request):
 def data_download(request):
     return render(request, 'data_download.html')
 
+def updates(request):
+    return render(request, 'updates.html', context={"updates": YMACSpatialUpdate.objects.all()})
 
 def claims(request):
     return render(request, 'claim_overview.html', context={'claim_groups': YmacClaim.objects.filter(current=True)})
@@ -578,5 +565,19 @@ class RequestUserAllAutocomplete(autocomplete.Select2QuerySetView):
 
         if self.q:
             qs = qs.filter(Q(name__istartswith=self.q))
+
+        return qs
+
+
+class TagAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return Tag.objects.none()
+
+        qs = Tag.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
 
         return qs

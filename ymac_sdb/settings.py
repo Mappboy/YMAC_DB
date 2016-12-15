@@ -45,16 +45,12 @@ INSTALLED_APPS = [
     'dal',
     'dal_select2',
     'import_export',
-    # 'grappelli',
     'jet',
     'django_tables2',
     'rest_framework',
-'rest_framework_gis',
-    # 'suit',
-    # 'material',
-    # 'material.frontend',
-    # 'material.admin',
-    # 'django_admin_bootstrapped',
+    'rest_framework_gis',
+    'ckeditor',
+    'taggit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,7 +78,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        ,'APP_DIRS':True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -92,19 +88,16 @@ TEMPLATES = [
                 # Included this for suit
                 # 'django.core.context_processors.request',
             ],
-            'loaders': [
-                ('django.template.loaders.cached.Loader', [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                ]), ],
         },
     },
 ]
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '192.168.0.141:11211',
+        # 'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        # 'LOCATION': '192.168.0.141:11211',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'ymac_db_cache',
     }
 }
 
@@ -246,11 +239,14 @@ JET_THEMES = [
     },
 ]
 
-GRAPPELLI_ADMIN_TITLE = 'YMAC Spatial Database'
-
 STATIC_URL = '/static/'
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
 MEDIA_URL = '/uploads/'
+
+
+DJANGO_WYSIWYG_FLAVOR = 'yui'       # Default
+#DJANGO_WYSIWYG_FLAVOR = 'ckeditor'  # Requires you to also place the ckeditor files here:
+DJANGO_WYSIWYG_MEDIA_URL = STATIC_URL + "ckeditor/"

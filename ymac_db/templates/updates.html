@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Updates</h1>
+    {%  autoescape off %}
+    {% for update in updates %}
+        <a name="{{ update.update_title|slugify }}"><h3>{{ update.update_title }} - {{  update.update_date|date:"SHORT_DATE_FORMAT" }}</h3></a>
+        {{ update.update_text }}
+    {% endfor %}
+    {%  endautoescape %}
+{% endblock %}
+    {% block footer %}
+        <footer class=" fixed footer">
+            <div class="container">
+                <p class="text-muted">&copy; YMAC 2016</p>
+            </div>
+        </footer>    <!-- JS includes -->
+    {% endblock %}

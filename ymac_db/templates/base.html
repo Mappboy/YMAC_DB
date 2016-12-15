@@ -25,7 +25,7 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="{% static  "css/bootstrap-theme.min.css" %}">{% endblock %}
     {% block extra_css %}{% endblock %}{% block head_js %}
-            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     {% endblock %}
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -34,30 +34,30 @@
     <![endif]-->
 
     <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-          {% regroup all_requests|dictsort:"priority" by priority as request_list  %}
-          var total = {{ all_requests |length }};
-          var dataTable = new google.visualization.DataTable();
+        google.charts.load('current', {'packages': ['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            {% regroup all_requests|dictsort:"priority" by priority as request_list  %}
+            var total = {{ all_requests |length }};
+            var dataTable = new google.visualization.DataTable();
             dataTable.addColumn('string', 'Requests');
             dataTable.addColumn('number', 'In Progress');
             dataTable.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
             dataTable.addRows([
-            {%  for requests in request_list %}
-                [ "{{ requests.grouper }}", {{ requests.list |length }}, '{% for job in requests.list %}{{ job.user.name }} : {{ job.job_control}}<br>{% endfor %}' ],
-            {% endfor %}
-        ]);
+                {%  for requests in request_list %}
+                    ["{{ requests.grouper }}", {{ requests.list |length }}, '{% for job in requests.list %}{{ job.user.name }} : {{ job.job_control}}<br>{% endfor %}'],
+                {% endfor %}
+            ]);
 
-        var options = {
-          title: 'Spatial Requests: ' + total + ' in progress ',
-            tooltip: { isHtml:true}
-        };
+            var options = {
+                title: 'Spatial Requests: ' + total + ' in progress ',
+                tooltip: {isHtml: true}
+            };
 
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
-        chart.draw(dataTable, options);
-      }
+            chart.draw(dataTable, options);
+        }
     </script>
 </head>
 <body>
@@ -115,20 +115,21 @@
             <div class="jumbotron">
                 <h1>YMAC SPATIAL SERVER</h1>
                 <p>Welcome to the YMAC Spatial Server. An endeavour to collect our spatial assets and information.
-                        Here you will find information about what we do, our services,
-                        our Spatial Request Form, Data Kiosk, Wiki and other useful information.
-                        If you have trouble finding anything on this page or have any recommendations or problems,
-                        please let us know.</p>
+                    Here you will find information about what we do, our services,
+                    our Spatial Request Form, Data Kiosk, Wiki and other useful information.
+                    If you have trouble finding anything on this page or have any recommendations or problems,
+                    please let us know.</p>
             </div>
             <div class="row">
-            <div class="col-lg-8">
-                <div id="piechart" style="width: 900px; height: 500px;"></div>
-            </div>
+                <div class="col-lg-8">
+                    <div id="piechart" style="width: 900px; height: 500px;"></div>
+                </div>
                 <div class="col-lg-4" id="linksdiv"><!-- content -->
                     <h2><span id="linksspan">Useful links</span></h2>
                     <ul class="" id="linkslist">
                         <li id="fmeserver"><a class="" href="http://spatial.yamatji.org.au:8080">FME server</a></li>
-                        <li id="spatialwiki"><a class="" href="http://spatial.yamatji.org.au/wiki/">Spatial Wiki</a></li>
+                        <li id="spatialwiki"><a class="" href="http://spatial.yamatji.org.au/wiki/">Spatial Wiki</a>
+                        </li>
                         <li id="opengeo"><a class="" href="http://spatial.yamatji.org.au:9000">Opengeoserver</a></li>
                         <li id="qgistraining"><a class="" href="http://docs.qgis.org/2.8/en/docs/training_manual/">QGIS
                             Training
@@ -140,21 +141,31 @@
                                                 href="http://docs.safe.com/fme/html/Tutorial_Getting_Started_FME_Desktop/FME_Desktop_Tutorial.htm">FME
                             Desktop tutorial</a></li>
                     </ul>
+                    {% if spatial_updates %}
+                        <h3> Recent Updates</h3>
+                        <ul>
+                        {% autoescape off %}
+                            {% for su in spatial_updates %}
+                                <li>{{ su.update_text|truncatewords_html:20 }}<a href="{%  url 'updates' %}#{{ su.update_title|slugify }}">more</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% endautoescape %}
+                    {% endif %}
                 </div>
             </div>
         {% endblock %}
     </div><!-- site container-->
     {% block footer %}
-    <footer class="footer">
-        <div class="container">
-            <p class="text-muted">&copy; YMAC 2016</p>
-        </div>
-    </footer>    <!-- JS includes -->
+        <footer class="footer">
+            <div class="container">
+                <p class="text-muted">&copy; YMAC 2016</p>
+            </div>
+        </footer>    <!-- JS includes -->
     {% endblock %}
-    {%  block foot_js %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script type='text/javascript' src="{% static "js/bootstrap.min.js" %}"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    {% block foot_js %}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script type='text/javascript' src="{% static "js/bootstrap.min.js" %}"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     {% endblock %}
 
 {% endblock %}
