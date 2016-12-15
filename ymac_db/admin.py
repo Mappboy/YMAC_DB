@@ -4,7 +4,7 @@
 # Set List display
 # Create our own map template
 from __future__ import unicode_literals
-
+from django.contrib.auth.models import Permission
 from django.contrib import admin as baseadmin
 from django.contrib import messages
 from django.contrib.admin.helpers import ActionForm
@@ -26,6 +26,7 @@ from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin, ImportExportActionModelAdmin
 import pdb
 
+
 def custom_titled_filter(title):
     class Wrapper(baseadmin.FieldListFilter):
         def __new__(cls, *args, **kwargs):
@@ -35,6 +36,7 @@ def custom_titled_filter(title):
 
     return Wrapper
 
+
 def custom_relatedtitled_filter(title):
     class Wrapper(baseadmin.RelatedFieldListFilter):
         def __new__(cls, *args, **kwargs):
@@ -43,6 +45,7 @@ def custom_relatedtitled_filter(title):
             return instance
 
     return Wrapper
+
 
 class HasGeomFilter(baseadmin.SimpleListFilter):
     title = _('Geometry Exists')
@@ -1408,12 +1411,13 @@ class ResearchSiteResource(resources.ModelResource):
         model = ResearchSite
         import_id_fields = ('research_site_id',)
         fields = (
-        'research_site_id', 'site_name', 'alt_site_name', 'site_label', 'site_number', 'claim_groups',
-        'ethno_detail',
-        'site_type','site_types' 'informants', 'informant_names',  'site_groups__name', 'date_recorded', 'restricted_status',
-        'reference', 'orig_x_val',
-        'orig_y_val', 'buffer', 'capture_coord_sys', 'coordinate_accuracy',
-        'geom',)
+            'research_site_id', 'site_name', 'alt_site_name', 'site_label', 'site_number', 'claim_groups',
+            'ethno_detail',
+            'site_type', 'site_types' 'informants', 'informant_names', 'site_groups__name', 'date_recorded',
+            'restricted_status',
+            'reference', 'orig_x_val',
+            'orig_y_val', 'buffer', 'capture_coord_sys', 'coordinate_accuracy',
+            'geom',)
 
         def dehydrate_informant_names(self, rs):
             return "%s " % rs.informants
@@ -1432,7 +1436,9 @@ class ResearchSiteAdmin(SiteAdmin, ImportExportModelAdmin):
     def get_queryset(self, request):
         research_model = super(ResearchSiteAdmin, self).get_queryset(request)
         research_model = research_model.prefetch_related('site_type')
-        return research_model
+        if request.user.has_perm('ymac_db.view_restricted'):
+            return research_model
+        return research_model.filter(restricted_status__isnull=True)
 
     def type_list(self, obj):
         try:
@@ -1808,18 +1814,15 @@ class DAASiteAdmin(YMACModelAdmin):
 class YMACSpatialUpdateAdmin(baseadmin.ModelAdmin):
     form = UpdateForm
 
-
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'update_user':
             kwargs['queryset'] = get_user_model().objects.filter(username=request.user.username)
         return super(YMACSpatialUpdateAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-
     def get_readonly_fields(self, request, obj=None):
         if obj is not None:
             return self.readonly_fields + ('update_user',)
         return self.readonly_fields
-
 
     def add_view(self, request, form_url="", extra_context=None):
         data = request.GET.copy()
@@ -1844,6 +1847,7 @@ basemodels = [SiteUser,
               YmacStaff,
               SiteGroup,
               SiteInformant,
+              Permission
               ]
 
 for m in basemodels:

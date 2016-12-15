@@ -746,6 +746,7 @@ class ResearchSite(models.Model):
         managed = True
         unique_together = ('site_name', 'claim_groups')
         ordering = ('research_site_id', 'site_name', 'site_number',)
+        permissions = (("view_restricted", "Can view restricted sites"),)
 
 
 @python_2_unicode_compatible
@@ -1449,7 +1450,7 @@ class YMACSpatialUpdate(models.Model):
     tags = TaggableManager()
 
     def __str__(self):
-        return smart_text("{:.100} - {:%d/%m/%Y}".format(self.update_text, self.update_date))
+        return smart_text("{:.100} - {:%d/%m/%Y}".format(self.update_title, self.update_date))
 
 @python_2_unicode_compatible
 class YACReturn(models.Model):
